@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36127.28 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RadarConnect", "RadarConnect.csproj", "{462310DB-8EC3-4D39-B242-18E0701B26DE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{462310DB-8EC3-4D39-B242-18E0701B26DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{462310DB-8EC3-4D39-B242-18E0701B26DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{462310DB-8EC3-4D39-B242-18E0701B26DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{462310DB-8EC3-4D39-B242-18E0701B26DE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9C170B27-3892-4B85-859D-211141F07E82}
+	EndGlobalSection
+EndGlobal
