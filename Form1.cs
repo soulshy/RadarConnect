@@ -29,7 +29,6 @@ namespace RadarConnect
         private string _currentDeviceIp;
         private bool _isSaving = false;
 
-        private VtkPointCloudForm _cloudViewer = null;
         private PointCloudProcessor _processor = new PointCloudProcessor();
 
         // 队列现在存储的是“点云列表(Batch)”，而不是单个点
@@ -56,11 +55,6 @@ namespace RadarConnect
             _heartbeatTimer.Interval = 1000;
             _heartbeatTimer.Tick += OnHeartbeatTimerTick;
 
-            // UI 刷新定时器
-            _uiRefreshTimer = new System.Windows.Forms.Timer();
-            _uiRefreshTimer.Interval = 100;
-            _uiRefreshTimer.Tick += OnUiRefreshTimerTick;
-            _uiRefreshTimer.Start();
 
             _udpClient.OnBroadcastReceived += HandleBroadcast;
             _udpClient.OnCmdAckReceived += HandleAck;
@@ -75,65 +69,8 @@ namespace RadarConnect
             cbx_Coordinate.Items.AddRange(new object[] { "直角坐标", "球坐标" });
             cbx_Coordinate.SelectedIndex = 0;
 
-            Button btn_ShowCloud = new Button();
-            btn_ShowCloud.Text = "显示点云图";
-            btn_ShowCloud.Location = new System.Drawing.Point(17, 280);
-            btn_ShowCloud.Size = new System.Drawing.Size(160, 30);
-            btn_ShowCloud.UseVisualStyleBackColor = true;
-            btn_ShowCloud.Click += Btn_ShowCloud_Click;
-
-            this.groupBox2.Controls.Add(btn_ShowCloud);
-            if (this.groupBox2.Height < 330) 
-                this.groupBox2.Height = 330;
-
-            _processor.MinDistance = 1.5f;
-            _processor.MinReflectivity = 0; 
-            _processor.DownsampleFactor = 1;
         }
 
-        private void Btn_ShowCloud_Click(object sender, EventArgs e)
-        {
-            if (_cloudViewer == null || _cloudViewer.IsDisposed)
-            {
-                // 实例化新的 VTK 窗口
-                _cloudViewer = new VtkPointCloudForm();
-                _cloudViewer.Show();
-            }
-            else
-            {
-                _cloudViewer.BringToFront();
-                if (_cloudViewer.WindowState == FormWindowState.Minimized)
-                    _cloudViewer.WindowState = FormWindowState.Normal;
-            }
-        }
-
-        //批量取出数据
-        private void OnUiRefreshTimerTick(object sender, EventArgs e)
-        {
-            if (_cloudViewer == null || _cloudViewer.IsDisposed || _uiDataQueue.IsEmpty)
-            {
-                if ((_cloudViewer == null || _cloudViewer.IsDisposed) && !_uiDataQueue.IsEmpty)
-                {
-                    while (_uiDataQueue.TryDequeue(out _)) { } // 清理积压
-                }
-                return;
-            }
-
-            // 准备一个大列表，容纳这 100ms 内收到的所有点
-            List<PointData> aggregatedBatch = new List<PointData>(15000);
-
-            // 一次性取出队列中所有的“包”
-            while (_uiDataQueue.TryDequeue(out var batch))
-            {
-                aggregatedBatch.AddRange(batch);
-            }
-
-            // 如果有数据，一次性发给 UI
-            if (aggregatedBatch.Count > 0)
-            {
-                _cloudViewer.AddPoints(aggregatedBatch);
-            }
-        }
 
         private void btn_StartListen_Click(object sender, EventArgs e) { 
             _udpClient.Start(FIXED_LOCAL_IP, LOCAL_CMD_PORT, LOCAL_DATA_PORT); 
@@ -272,7 +209,29 @@ namespace RadarConnect
                         AddLog($"收到心跳 ACK | 状态: {stateStr}");
                     }
                 }
-                else if (cmdSet == 0 && cmdId == 6) { AddLog($"收到断开连接确认。雷达已断开。"); if (listView_Devices.SelectedItems.Count > 0) listView_Devices.SelectedItems[0].SubItems[3].Text = "未连接"; StopAllWork(); btn_StartSample.Enabled = true; btn_StopSample.Enabled = true; } else if (cmdSet == 0 && cmdId == 10) { byte retCode = (data.Length > 11) ? data[11] : (byte)255; if (retCode == 0) AddLog(">>> 时间同步成功！"); else AddLog($">>> 时间同步失败，RetCode: {retCode}"); } else if (cmdSet == (byte)CmdSet.Lidar && cmdId == (byte)LidarCmdId.SetMode) { byte retCode = (data.Length > 11) ? data[11] : (byte)255; if (retCode == 0) AddLog(">>> 工作模式设置成功！"); else AddLog($">>> 工作模式设置失败，错误码: {retCode}"); } else if (cmdSet == (byte)CmdSet.General && cmdId == (byte)GeneralCmdId.CoordinateSystem) { byte retCode = (data.Length > 11) ? data[11] : (byte)255; if (retCode == 0) AddLog(">>> 坐标系切换成功！下一次采样生效。"); else if (retCode == 3) AddLog(">>> 设备不支持切换坐标系指令 (RetCode: NotSupported)。"); else AddLog($">>> 坐标系切换失败，错误码: {retCode}"); }
+                else if (cmdSet == 0 && cmdId == 6) { AddLog($"收到断开连接确认。雷达已断开。"); 
+                    if (listView_Devices.SelectedItems.Count > 0) listView_Devices.SelectedItems[0].SubItems[3].Text = "未连接"; 
+                    StopAllWork(); 
+                    btn_StartSample.Enabled = true; 
+                    btn_StopSample.Enabled = true;
+                } else if (cmdSet == 0 && cmdId == 10) {
+                    byte retCode = (data.Length > 11) ? data[11] : (byte)255; 
+                    if (retCode == 0)
+                        AddLog(">>> 时间同步成功！"); 
+                    else 
+                        AddLog($">>> 时间同步失败，RetCode: {retCode}"); 
+                } else if (cmdSet == (byte)CmdSet.Lidar && cmdId == (byte)LidarCmdId.SetMode) { 
+                    byte retCode = (data.Length > 11) ? data[11] : (byte)255;
+                    if (retCode == 0) AddLog(">>> 工作模式设置成功！"); 
+                    else AddLog($">>> 工作模式设置失败，错误码: {retCode}");
+                } else if (cmdSet == (byte)CmdSet.General && cmdId == (byte)GeneralCmdId.CoordinateSystem) { 
+                    byte retCode = (data.Length > 11) ? data[11] : (byte)255; 
+                    if (retCode == 0) 
+                        AddLog(">>> 坐标系切换成功！"); 
+                    else if (retCode == 3) 
+                        AddLog(">>> 设备不支持切换坐标系指令 (RetCode: NotSupported)。");
+                    else 
+                        AddLog($">>> 坐标系切换失败，错误码: {retCode}"); }
             });
         }
         private void SyncRadarTime()
@@ -321,18 +280,23 @@ namespace RadarConnect
                 return; 
                     }
             byte coordVal = (byte)cbx_Coordinate.SelectedIndex;
-            string coordName = (coordVal == 0) ? "直角坐标 (Cartesian)" : "球坐标 (Spherical)"; AddLog($"正在请求切换坐标系为: {coordName}..."); SendControlCommand(CmdSet.General, (byte)GeneralCmdId.CoordinateSystem, new byte[] { coordVal });
+            string coordName = (coordVal == 0) ? "直角坐标 (Cartesian)" : "球坐标 (Spherical)"; 
+            AddLog($"正在请求切换坐标系为: {coordName}..."); 
+            SendControlCommand(CmdSet.General, (byte)GeneralCmdId.CoordinateSystem, new byte[] { coordVal });
         }
 
         private void ProcessPointCloud(byte[] data)
         {
-            int protocolHeaderSize = 11; int livoxEthHeaderSize = 18;
-            if (data.Length < protocolHeaderSize + livoxEthHeaderSize && data.Length < 100)
-                return;
+            int protocolHeaderSize = 11;
+            int livoxEthHeaderSize = 18;
+            if (data.Length < protocolHeaderSize + livoxEthHeaderSize) return;
+
             int ptr = protocolHeaderSize;
             byte timestamp_type = data[ptr + 8];
             byte data_type = data[ptr + 9];
             ulong radarTimestamp = BitConverter.ToUInt64(data, ptr + 10);
+
+            // --- 时间戳处理逻辑 ---
             DateTime frameTime;
             if (timestamp_type == 1 || timestamp_type == 3)
             {
@@ -359,78 +323,69 @@ namespace RadarConnect
                 frameTime = new DateTime(_basePcTicks + diffTicks, DateTimeKind.Utc);
             }
 
-            int dataOffset = protocolHeaderSize + livoxEthHeaderSize; int pSize = 0;
+            // --- 数据解析与转换逻辑 ---
+            int dataOffset = protocolHeaderSize + livoxEthHeaderSize;
+            int pSize = 0;
             switch (data_type)
             {
-                case 0: pSize = 13; break;
-                case 1: pSize = 9; break;
-                case 2: pSize = 14; break;
-                case 3: pSize = 10; break;
+                case 0: pSize = 13; break; // 单回波直角坐标
+                case 1: pSize = 9; break; // 单回波球坐标
+                case 2: pSize = 14; break; // 扩展直角坐标
+                case 3: pSize = 10; break; // 扩展球坐标
                 default: return;
             }
-            int pointsDataLen = data.Length - dataOffset; if (pSize == 0) return; int count = pointsDataLen / pSize; double pointIntervalTicks = 100.0;
+
+            int pointsDataLen = data.Length - dataOffset;
+            int count = pointsDataLen / pSize;
+            double pointIntervalTicks = 100.0;
 
             List<PointData> rawBatch = new List<PointData>();
-            bool isViewerOpen = (_cloudViewer != null && !_cloudViewer.IsDisposed);
 
             for (int i = 0; i < count; i++)
             {
                 int currentOffset = dataOffset + (i * pSize);
                 if (currentOffset + pSize > data.Length) break;
+
                 DateTime exactPointTime = frameTime.AddTicks((long)(i * pointIntervalTicks));
-                int x = 0, y = 0, z = 0; byte reflectivity = 0; byte tag = 0;
-                if (data_type == 0 || data_type == 2)
+                int x = 0, y = 0, z = 0;
+                float depth_val = 0;
+                byte reflectivity = 0;
+                byte tag = 0;
+
+                if (data_type == 0 || data_type == 2) // 直角坐标系
                 {
                     x = BitConverter.ToInt32(data, currentOffset);
                     y = BitConverter.ToInt32(data, currentOffset + 4);
                     z = BitConverter.ToInt32(data, currentOffset + 8);
                     reflectivity = data[currentOffset + 12];
-                    if (data_type == 2)
-                        tag = data[currentOffset + 13];
+                    if (data_type == 2) tag = data[currentOffset + 13];
+
+                    depth_val = 0; // 直角坐标系下深度强制存 0
                 }
-                else if (data_type == 1 || data_type == 3)
+                else if (data_type == 1 || data_type == 3) // 球坐标系
                 {
-                    uint depth = BitConverter.ToUInt32(data, currentOffset);
-                    ushort theta = BitConverter.ToUInt16(data, currentOffset + 4);
-                    ushort phi = BitConverter.ToUInt16(data, currentOffset + 6);
-                    reflectivity = data[currentOffset + 8]; if (data_type == 3) tag = data[currentOffset + 9];
-                    if (depth > 0)
-                    {
-                        double d = depth; double t = theta * 0.01 * Math.PI / 180.0;
-                        double p = phi * 0.01 * Math.PI / 180.0;
-                        x = (int)(d * Math.Sin(t) * Math.Cos(p));
-                        y = (int)(d * Math.Sin(t) * Math.Sin(p));
-                        z = (int)(d * Math.Cos(t));
-                    }
+                    // 根据协议图解析：深度(4字节), 天顶角(2字节), 方位角(2字节), 反射率(1字节)
+                    uint depth_raw = BitConverter.ToUInt32(data, currentOffset);
+                    ushort thetaRaw = BitConverter.ToUInt16(data, currentOffset + 4);
+                    ushort phiRaw = BitConverter.ToUInt16(data, currentOffset + 6);
+                    reflectivity = data[currentOffset + 8];
+                    if (data_type == 3) tag = data[currentOffset + 9];
+
+                    depth_val = depth_raw / 1000.0f; // 解析出的深度（米）
+
+                    // 球坐标转直角坐标
+                    double theta = (thetaRaw * 0.01) * (Math.PI / 180.0);
+                    double phi = (phiRaw * 0.01) * (Math.PI / 180.0);
+                    x = (int)(depth_raw * Math.Sin(theta) * Math.Cos(phi));
+                    y = (int)(depth_raw * Math.Sin(theta) * Math.Sin(phi));
+                    z = (int)(depth_raw * Math.Cos(theta));
                 }
 
                 if (x == 0 && y == 0 && z == 0) continue;
-                _dbManager.EnqueuePoint(exactPointTime, x, y, z, reflectivity, tag);
 
-                if (isViewerOpen)
-                {
-                    rawBatch.Add(new PointData
-                    {
-                        ExactTime = exactPointTime,
-                        X = x / 1000.0f,
-                        Y = y / 1000.0f,
-                        Z = z / 1000.0f,
-                        Reflectivity = reflectivity,
-                        Tag = tag
-                    });
-                }
-            }
+                // 调用更新后的数据库入库方法
+                _dbManager.EnqueuePoint(exactPointTime, x, y, z, depth_val, reflectivity, tag);
 
-            //
-            // 将整个 List 放入队列，而不是逐个放入点
-            if (rawBatch.Count > 0 && isViewerOpen)
-            {
-                List<PointData> filteredBatch = _processor.ApplyFilters(rawBatch);
-                // 只有非空才放
-                if (filteredBatch.Count > 0)
-                {
-                    _uiDataQueue.Enqueue(filteredBatch);
-                }
             }
         }
     }

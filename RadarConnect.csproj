@@ -222,12 +222,6 @@
     <Compile Include="ProtocolModels.cs" />
     <Compile Include="ProtocolUtils.cs" />
     <Compile Include="UdpCommunication.cs" />
-    <Compile Include="VtkPointCloudForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="VtkPointCloudForm.Designer.cs">
-      <DependentUpon>VtkPointCloudForm.cs</DependentUpon>
-    </Compile>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

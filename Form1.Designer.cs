@@ -51,13 +51,24 @@
             this.listBox_Log = new System.Windows.Forms.ListBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
+
+            // 新增点云展示相关控件
+            this.groupBox_Cloud = new System.Windows.Forms.GroupBox();
+            this.pic_CloudMap = new System.Windows.Forms.PictureBox();
+            this.label_Backtrack = new System.Windows.Forms.Label();
+            this.num_QueryRange = new System.Windows.Forms.NumericUpDown();
+
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statusStrip1.SuspendLayout();
+            this.groupBox_Cloud.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pic_CloudMap)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.num_QueryRange)).BeginInit();
             this.SuspendLayout();
+
             // 
-            // groupBox1
+            // groupBox1 (连接管理)
             // 
             this.groupBox1.Controls.Add(this.btn_Disconnect);
             this.groupBox1.Controls.Add(this.btn_HandShake);
@@ -70,55 +81,39 @@
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "连接管理";
-            // 
-            // btn_Disconnect
-            // 
+
+            // btn_Disconnect, btn_HandShake, btn_StopListen, btn_StartListen 坐标保持不变...
             this.btn_Disconnect.Location = new System.Drawing.Point(745, 133);
             this.btn_Disconnect.Name = "btn_Disconnect";
             this.btn_Disconnect.Size = new System.Drawing.Size(100, 30);
             this.btn_Disconnect.TabIndex = 4;
             this.btn_Disconnect.Text = "断开连接";
-            this.btn_Disconnect.UseVisualStyleBackColor = true;
             this.btn_Disconnect.Click += new System.EventHandler(this.btn_Disconnect_Click_1);
-            // 
-            // btn_HandShake
-            // 
+
             this.btn_HandShake.Location = new System.Drawing.Point(745, 97);
             this.btn_HandShake.Name = "btn_HandShake";
             this.btn_HandShake.Size = new System.Drawing.Size(100, 30);
             this.btn_HandShake.TabIndex = 3;
             this.btn_HandShake.Text = "握手(连接)";
-            this.btn_HandShake.UseVisualStyleBackColor = true;
             this.btn_HandShake.Click += new System.EventHandler(this.btn_HandShake_Click);
-            // 
-            // btn_StopListen
-            // 
+
             this.btn_StopListen.Enabled = false;
             this.btn_StopListen.Location = new System.Drawing.Point(745, 61);
             this.btn_StopListen.Name = "btn_StopListen";
             this.btn_StopListen.Size = new System.Drawing.Size(100, 30);
             this.btn_StopListen.TabIndex = 2;
             this.btn_StopListen.Text = "停止监听";
-            this.btn_StopListen.UseVisualStyleBackColor = true;
             this.btn_StopListen.Click += new System.EventHandler(this.btn_StopListen_Click);
-            // 
-            // btn_StartListen
-            // 
+
             this.btn_StartListen.Location = new System.Drawing.Point(745, 25);
             this.btn_StartListen.Name = "btn_StartListen";
             this.btn_StartListen.Size = new System.Drawing.Size(100, 30);
             this.btn_StartListen.TabIndex = 1;
             this.btn_StartListen.Text = "开始监听";
-            this.btn_StartListen.UseVisualStyleBackColor = true;
             this.btn_StartListen.Click += new System.EventHandler(this.btn_StartListen_Click);
-            // 
-            // listView_Devices
-            // 
+
             this.listView_Devices.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnHeader1,
-            this.columnHeader2,
-            this.columnHeader3,
-            this.columnHeader4});
+            this.columnHeader1, this.columnHeader2, this.columnHeader3, this.columnHeader4});
             this.listView_Devices.FullRowSelect = true;
             this.listView_Devices.GridLines = true;
             this.listView_Devices.HideSelection = false;
@@ -127,30 +122,20 @@
             this.listView_Devices.Name = "listView_Devices";
             this.listView_Devices.Size = new System.Drawing.Size(733, 170);
             this.listView_Devices.TabIndex = 0;
-            this.listView_Devices.UseCompatibleStateImageBehavior = false;
             this.listView_Devices.View = System.Windows.Forms.View.Details;
-            // 
-            // columnHeader1
-            // 
+
+            // columnHeader1-4 保持不变...
             this.columnHeader1.Text = "发现时间";
             this.columnHeader1.Width = 120;
-            // 
-            // columnHeader2
-            // 
             this.columnHeader2.Text = "IP地址";
             this.columnHeader2.Width = 150;
-            // 
-            // columnHeader3
-            // 
             this.columnHeader3.Text = "型号";
             this.columnHeader3.Width = 100;
-            // 
-            // columnHeader4
-            // 
             this.columnHeader4.Text = "状态";
             this.columnHeader4.Width = 100;
+
             // 
-            // groupBox2
+            // groupBox2 (雷达控制) - 移至下方
             // 
             this.groupBox2.Controls.Add(this.btn_SetCoordinate);
             this.groupBox2.Controls.Add(this.cbx_Coordinate);
@@ -162,143 +147,148 @@
             this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Location = new System.Drawing.Point(882, 12);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(200, 320);
+            this.groupBox2.Size = new System.Drawing.Size(200, 279);
             this.groupBox2.TabIndex = 1;
-            this.groupBox2.TabStop = false;
             this.groupBox2.Text = "雷达控制";
-            // 
-            // btn_SetCoordinate
-            // 
+
+            // groupBox2 内部控件配置保持不变...
             this.btn_SetCoordinate.Location = new System.Drawing.Point(135, 240);
             this.btn_SetCoordinate.Name = "btn_SetCoordinate";
             this.btn_SetCoordinate.Size = new System.Drawing.Size(50, 23);
             this.btn_SetCoordinate.TabIndex = 9;
             this.btn_SetCoordinate.Text = "设置";
-            this.btn_SetCoordinate.UseVisualStyleBackColor = true;
             this.btn_SetCoordinate.Click += new System.EventHandler(this.btn_SetCoordinate_Click);
-            // 
-            // cbx_Coordinate
-            // 
+
             this.cbx_Coordinate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbx_Coordinate.FormattingEnabled = true;
             this.cbx_Coordinate.Location = new System.Drawing.Point(17, 242);
             this.cbx_Coordinate.Name = "cbx_Coordinate";
             this.cbx_Coordinate.Size = new System.Drawing.Size(110, 20);
-            this.cbx_Coordinate.TabIndex = 8;
-            // 
-            // label2
-            // 
+
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(15, 227);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(53, 12);
-            this.label2.TabIndex = 10;
             this.label2.Text = "坐标系：";
-            // 
-            // btn_StopSample
-            // 
+
             this.btn_StopSample.Location = new System.Drawing.Point(17, 156);
             this.btn_StopSample.Name = "btn_StopSample";
             this.btn_StopSample.Size = new System.Drawing.Size(160, 30);
-            this.btn_StopSample.TabIndex = 4;
             this.btn_StopSample.Text = "停止采样";
-            this.btn_StopSample.UseVisualStyleBackColor = true;
             this.btn_StopSample.Click += new System.EventHandler(this.btn_StopSample_Click_1);
-            // 
-            // btn_StartSample
-            // 
+
             this.btn_StartSample.Location = new System.Drawing.Point(17, 120);
             this.btn_StartSample.Name = "btn_StartSample";
             this.btn_StartSample.Size = new System.Drawing.Size(160, 30);
-            this.btn_StartSample.TabIndex = 3;
             this.btn_StartSample.Text = "开始采样";
-            this.btn_StartSample.UseVisualStyleBackColor = true;
             this.btn_StartSample.Click += new System.EventHandler(this.btn_StartSample_Click_1);
-            // 
-            // btn_SetMode
-            // 
+
             this.btn_SetMode.Location = new System.Drawing.Point(17, 75);
             this.btn_SetMode.Name = "btn_SetMode";
             this.btn_SetMode.Size = new System.Drawing.Size(160, 30);
-            this.btn_SetMode.TabIndex = 2;
             this.btn_SetMode.Text = "设置工作模式";
-            this.btn_SetMode.UseVisualStyleBackColor = true;
             this.btn_SetMode.Click += new System.EventHandler(this.btn_SetMode_Click);
-            // 
-            // cbx_WorkMode
-            // 
+
             this.cbx_WorkMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbx_WorkMode.FormattingEnabled = true;
             this.cbx_WorkMode.Location = new System.Drawing.Point(17, 45);
             this.cbx_WorkMode.Name = "cbx_WorkMode";
             this.cbx_WorkMode.Size = new System.Drawing.Size(160, 20);
-            this.cbx_WorkMode.TabIndex = 1;
-            // 
-            // label1
-            // 
+
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(15, 25);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(65, 12);
-            this.label1.TabIndex = 11;
             this.label1.Text = "工作模式：";
+
             // 
-            // groupBox3
+            // groupBox3 (日志)
             // 
             this.groupBox3.Controls.Add(this.listBox_Log);
-            this.groupBox3.Location = new System.Drawing.Point(179, 218);
+            this.groupBox3.Location = new System.Drawing.Point(18, 218);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(560, 300);
+            this.groupBox3.Size = new System.Drawing.Size(733, 594);
             this.groupBox3.TabIndex = 2;
-            this.groupBox3.TabStop = false;
             this.groupBox3.Text = "日志";
-            // 
-            // listBox_Log
-            // 
+
             this.listBox_Log.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBox_Log.FormattingEnabled = true;
-            this.listBox_Log.ItemHeight = 12;
             this.listBox_Log.Location = new System.Drawing.Point(3, 17);
             this.listBox_Log.Name = "listBox_Log";
-            this.listBox_Log.Size = new System.Drawing.Size(554, 280);
-            this.listBox_Log.TabIndex = 0;
+            this.listBox_Log.Size = new System.Drawing.Size(727, 574);
+
+            // 
+            // groupBox_Cloud (新增：点云图展示区)
+            // 
+            this.groupBox_Cloud.Controls.Add(this.num_QueryRange);
+            this.groupBox_Cloud.Controls.Add(this.label_Backtrack);
+            this.groupBox_Cloud.Controls.Add(this.pic_CloudMap);
+            this.groupBox_Cloud.Location = new System.Drawing.Point(757, 297);
+            this.groupBox_Cloud.Name = "groupBox_Cloud";
+            this.groupBox_Cloud.Size = new System.Drawing.Size(1195, 515);
+            this.groupBox_Cloud.TabIndex = 4;
+            this.groupBox_Cloud.TabStop = false;
+            this.groupBox_Cloud.Text = "还原点云图";
+
+            // label_Backtrack
+            this.label_Backtrack.AutoSize = true;
+            this.label_Backtrack.Location = new System.Drawing.Point(15, 25);
+            this.label_Backtrack.Name = "label_Backtrack";
+            this.label_Backtrack.Size = new System.Drawing.Size(77, 12);
+            this.label_Backtrack.Text = "回溯时间(s):";
+
+            // num_QueryRange
+            this.num_QueryRange.DecimalPlaces = 1;
+            this.num_QueryRange.Increment = new decimal(new int[] { 5, 0, 0, 65536 });
+            this.num_QueryRange.Location = new System.Drawing.Point(98, 23);
+            this.num_QueryRange.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
+            this.num_QueryRange.Minimum = new decimal(new int[] { 1, 0, 0, 65536 });
+            this.num_QueryRange.Name = "num_QueryRange";
+            this.num_QueryRange.Size = new System.Drawing.Size(60, 21);
+            this.num_QueryRange.Value = new decimal(new int[] { 10, 0, 0, 65536 });
+
+            // pic_CloudMap
+            this.pic_CloudMap.BackColor = System.Drawing.Color.Black;
+            this.pic_CloudMap.Location = new System.Drawing.Point(17, 50);
+            this.pic_CloudMap.Name = "pic_CloudMap";
+            this.pic_CloudMap.Size = new System.Drawing.Size(1160, 450);
+            this.pic_CloudMap.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pic_CloudMap.TabIndex = 0;
+            this.pic_CloudMap.TabStop = false;
+
             // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lbl_SampleState});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 540);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 815);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1334, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1964, 22);
             this.statusStrip1.TabIndex = 3;
             this.statusStrip1.Text = "statusStrip1";
-            // 
-            // lbl_SampleState
-            // 
+
             this.lbl_SampleState.Name = "lbl_SampleState";
             this.lbl_SampleState.Size = new System.Drawing.Size(56, 17);
             this.lbl_SampleState.Text = "系统就绪";
+
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1334, 562);
+            this.ClientSize = new System.Drawing.Size(1964, 837);
+            this.Controls.Add(this.groupBox_Cloud);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Name = "Form1";
-            this.Text = "Livox Radar Demo (Refined)";
+            this.Text = "Livox Radar";
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            this.groupBox_Cloud.ResumeLayout(false);
+            this.groupBox_Cloud.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pic_CloudMap)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.num_QueryRange)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
@@ -316,7 +306,7 @@
         private System.Windows.Forms.Button btn_SetMode;
         private System.Windows.Forms.ComboBox cbx_WorkMode;
         private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.ListBox listBox_Log; // 已修改为 ListBox
+        private System.Windows.Forms.ListBox listBox_Log;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel lbl_SampleState;
         private System.Windows.Forms.Button btn_SetCoordinate;
@@ -326,5 +316,9 @@
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.ColumnHeader columnHeader4;
+        private System.Windows.Forms.GroupBox groupBox_Cloud;
+        private System.Windows.Forms.PictureBox pic_CloudMap;
+        private System.Windows.Forms.NumericUpDown num_QueryRange;
+        private System.Windows.Forms.Label label_Backtrack;
     }
 }
