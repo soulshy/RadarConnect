@@ -1,52 +1,114 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices; // 用于内联优化
 
 namespace RadarConnect
 {
     /// <summary>
-    /// 点云处理器
+    /// 优化后的点云处理器
     /// </summary>
     public class PointCloudProcessor
     {
-        // 1. 基础过滤
-        public float MinDistance = 1.5f;   // 0.1米防遮挡
-        public float MaxDistance = 200.0f; // 200米
+        // ==========================================
+        // 1. 过滤参数
+        // ==========================================
+        // 距离阈值 (平方值缓存，避免循环内开方)
+        private float _minDistSq = 1.5f * 1.5f;
+        private float _maxDistSq = 200.0f * 200.0f;
 
-        // 确保能看到黑色物体/墙面
+        private float _minDist = 1.5f;
+        public float MinDistance
+        {
+            get => _minDist;
+            set { _minDist = value; _minDistSq = value * value; }
+        }
+
+        private float _maxDist = 200.0f;
+        public float MaxDistance
+        {
+            get => _maxDist;
+            set { _maxDist = value; _maxDistSq = value * value; }
+        }
+
+        // 反射率阈值
         public byte MinReflectivity = 0;
 
-        // 2. 降采样因子 (1 = 全显示, 2 = 丢弃一半, 3 = 丢弃2/3...)
-        public int DownsampleFactor = 1;
-
-        public List<PointData> ApplyFilters(List<PointData> rawPoints)
+        // 降采样因子 (必须 >= 1)
+        private int _downsampleFactor = 1;
+        public int DownsampleFactor
         {
-            if (rawPoints == null || rawPoints.Count == 0) return new List<PointData>();
+            get => _downsampleFactor;
+            set => _downsampleFactor = Math.Max(1, value); // 防止设为0导致死循环
+        }
 
-            // 预分配内存，避免 GC
-            List<PointData> result = new List<PointData>(rawPoints.Count / DownsampleFactor);
+        // ==========================================
+        // 2. ROI (Region of Interest)
+        // ==========================================
+        // 比如：用于过滤地面(Z > -1.5) 或 天花板(Z < 3.0)
+        public bool EnableRoiFilter = false;
+        public float MinZ = -100f;
+        public float MaxZ = 100f;
+        public float MinX = -100f;
+        public float MaxX = 100f;
+        public float MinY = -100f;
+        public float MaxY = 100f;
 
-            float minDSq = MinDistance * MinDistance;
-            float maxDSq = MaxDistance * MaxDistance;
+        /// <summary>
+        /// 处理点云 (高性能版)
+        /// </summary>
+        /// <param name="rawPoints">原始数据源</param>
+        /// <param name="outputBuffer">输出缓冲区 (传入已有的List以复用内存)</param>
+        public void ApplyFilters(List<PointData> rawPoints, List<PointData> outputBuffer)
+        {
+            // 1. 基础检查
+            if (rawPoints == null || rawPoints.Count == 0) return;
+            if (outputBuffer == null) throw new ArgumentNullException(nameof(outputBuffer));
 
-            for (int i = 0; i < rawPoints.Count; i++)
+            // 2. 清空输出缓冲区 (不释放内存，只重置计数，极快)
+            outputBuffer.Clear();
+
+            // 缓存局部变量，减少属性访问开销
+            float minDSq = _minDistSq;
+            float maxDSq = _maxDistSq;
+            byte minRef = MinReflectivity;
+            int step = DownsampleFactor;
+            int count = rawPoints.Count;
+
+            // 缓存 ROI 变量
+            bool useRoi = EnableRoiFilter;
+            float minZ = MinZ, maxZ = MaxZ;
+            float minX = MinX, maxX = MaxX;
+            float minY = MinY, maxY = MaxY;
+
+            // 3. 循环优化
+            for (int i = 0; i < count; i += step)
             {
-                // 简单的降采样：每隔 N 个点取 1 个
-                if (i % DownsampleFactor != 0) continue;
+                // 获取结构体
+                PointData p = rawPoints[i];
 
-                var p = rawPoints[i];
+                // --- 第一层：极速过滤 (反射率) ---
+                if (p.Reflectivity < minRef) continue;
 
-                // 1. 反射率过滤
-                if (p.Reflectivity < MinReflectivity) continue;
+                // --- 第二层：有效性检查 (防止 NaN 导致程序崩溃) ---
+                if (float.IsNaN(p.X) || float.IsNaN(p.Y) || float.IsNaN(p.Z)) continue;
 
-                // 2. 距离过滤
+                // --- 第三层：距离过滤 (球体) ---
+                // 优化点：使用 float 运算，避免 Math.Pow
                 float distSq = p.X * p.X + p.Y * p.Y + p.Z * p.Z;
                 if (distSq < minDSq || distSq > maxDSq) continue;
 
-                result.Add(p);
-            }
+                // --- 第四层：ROI 过滤 (立方体) ---
+                // 只有在开启时才判断，用于切除不需要的区域
+                if (useRoi)
+                {
+                    if (p.Z < minZ || p.Z > maxZ) continue;
+                    if (p.X < minX || p.X > maxX) continue;
+                    if (p.Y < minY || p.Y > maxY) continue;
+                }
 
-            return result;
+                // 加入结果
+                outputBuffer.Add(p);
+            }
         }
     }
 }
