@@ -7,7 +7,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using Kitware.VTK;
 
 namespace RadarConnect
 {
@@ -16,7 +18,7 @@ namespace RadarConnect
         // ==========================================
         // 配置区域
         // ==========================================
-        private const string FIXED_LOCAL_IP = "192.168.1.230"; // 本机 IP，请确保与网卡一致
+        private const string FIXED_LOCAL_IP = "192.168.1.230"; // 本机 IP
         private const int TARGET_LIDAR_PORT = 65000;
         private const int LOCAL_CMD_PORT = 50001;
         private const int LOCAL_DATA_PORT = 60000;
@@ -31,17 +33,22 @@ namespace RadarConnect
 
         private PointCloudProcessor _processor = new PointCloudProcessor();
 
-        // 队列现在存储的是“点云列表(Batch)”，而不是单个点
+        // 队列
         private ConcurrentQueue<List<PointData>> _uiDataQueue = new ConcurrentQueue<List<PointData>>();
 
-        private System.Windows.Forms.Timer _uiRefreshTimer;
         private System.Windows.Forms.Timer _heartbeatTimer;
 
-        // 时间同步相关
+        // 时间同步
         private ulong _lastRadarTimestamp = 0;
         private bool _isTimeSynced = false;
         private long _basePcTicks = 0;
         private ulong _baseRadarTime = 0;
+
+        // VTK 可视化包装器
+        private VtkVisualizer _vtkVisualizer;
+
+        // 预处理复用缓冲区
+        private List<PointData> _displayBuffer = new List<PointData>(300000);
 
         public Form1()
         {
@@ -57,13 +64,33 @@ namespace RadarConnect
 
             _udpClient.OnBroadcastReceived += HandleBroadcast;
             _udpClient.OnCmdAckReceived += HandleAck;
-            _udpClient.OnDataReceived += ProcessPointCloud; // 绑定解析函数
+            _udpClient.OnDataReceived += ProcessPointCloud;
             _udpClient.OnError += (msg) => this.BeginInvoke((MethodInvoker)delegate { AddLog($"错误: {msg}"); });
+
+            // 配置预处理器参数
+            _processor.DownsampleFactor = 1;
+            _processor.MinReflectivity = 10;
+            _processor.EnableRoiFilter = true;
+            _processor.MinZ = -2.0f;
+            _processor.MaxZ = 50.0f;
+            this.Load += Form1_Load;
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                _vtkVisualizer = new VtkVisualizer(renderWindowControl1);
+                AddLog("VTK 可视化组件初始化成功。");
+            }
+            catch (Exception ex)
+            {
+                AddLog($"VTK 初始化失败: {ex.Message}");
+                MessageBox.Show("VTK 初始化失败，请确保已正确安装 Activiz.NET 库。\n" + ex.Message);
+            }
         }
 
         private void InitGui()
         {
-            // 初始化下拉框
             if (cbx_WorkMode.Items.Count == 0)
                 cbx_WorkMode.Items.AddRange(new object[] { "正常模式", "省电模式", "待机模式" });
             cbx_WorkMode.SelectedIndex = 0;
@@ -71,16 +98,78 @@ namespace RadarConnect
             if (cbx_Coordinate.Items.Count == 0)
                 cbx_Coordinate.Items.AddRange(new object[] { "直角坐标", "球坐标" });
             cbx_Coordinate.SelectedIndex = 0;
+
+            // 初始化时间选择器为当前时间
+            dateTimePicker_Query.Value = DateTime.Now;
         }
 
-        #region 按钮事件
+        #region 数据库查询与还原
 
+        // 点击按钮触发：根据 dateTimePicker 的时间查询并显示
+        // 【核心功能】数据库查询与还原
+        private async void btn_Reconstruct_Click(object sender, EventArgs e)
+        {
+            // 1. 获取用户选择的【起始时间】（北京时间）
+            DateTime selectedStartTime = dateTimePicker_Query.Value;
+
+            // 设定查询时长为 1 秒
+            double durationSeconds = 1.0;
+
+            // 显示日志
+            AddLog($"[查询] 时间窗口: {selectedStartTime.ToString("HH:mm:ss")} -> +1s");
+
+            btn_Reconstruct.Enabled = false;
+
+            try
+            {
+                // 2. 异步后台查询
+                List<PointData> pointsToRender = await Task.Run(() =>
+                {
+                    // 直接调用 DatabaseManager，传入起始时间和时长
+                    // 内部会自动处理 UTC 转换和 "不足1s查到最后" 的逻辑
+                    List<PointData> rawPoints = _dbManager.GetPointsInRange(selectedStartTime, durationSeconds);
+
+                    if (rawPoints == null || rawPoints.Count == 0) return null;
+
+                    // 3. 数据预处理
+                    lock (_displayBuffer)
+                    {
+                        _processor.ApplyFilters(rawPoints, _displayBuffer);
+                        return new List<PointData>(_displayBuffer);
+                    }
+                });
+
+                // 4. UI 线程渲染
+                if (pointsToRender != null && pointsToRender.Count > 0)
+                {
+                    AddLog($"[还原] 成功加载点数: {pointsToRender.Count}");
+                    _vtkVisualizer.Render(pointsToRender);
+                }
+                else
+                {
+                    AddLog("[警告] 该时间段内无数据！");
+                    MessageBox.Show($"未找到 {selectedStartTime.ToString("HH:mm:ss")} 这一秒内的数据。\n请确认：\n1. 数据库中是否有该时段记录？\n2. 是否存在 8小时 时差问题？");
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog($"[错误] {ex.Message}");
+            }
+            finally
+            {
+                btn_Reconstruct.Enabled = true;
+            }
+        }
+
+        #endregion
+
+        #region 
         private void btn_StartListen_Click(object sender, EventArgs e)
         {
             _udpClient.Start(FIXED_LOCAL_IP, LOCAL_CMD_PORT, LOCAL_DATA_PORT);
             btn_StartListen.Enabled = false;
             btn_StopListen.Enabled = true;
-            AddLog($"服务启动 | 命令端口:{LOCAL_CMD_PORT} 数据端口:{LOCAL_DATA_PORT}");
+            AddLog($"服务启动 | 命令:{LOCAL_CMD_PORT} 数据:{LOCAL_DATA_PORT}");
         }
 
         private void btn_StopListen_Click(object sender, EventArgs e)
@@ -100,7 +189,6 @@ namespace RadarConnect
             HandshakeRequest req = new HandshakeRequest();
             string localIpStr = FIXED_LOCAL_IP;
 
-            // 自动获取本机IP逻辑(保留原样)
             try
             {
                 var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -121,7 +209,7 @@ namespace RadarConnect
             req.imu_port = LOCAL_DATA_PORT;
 
             SendControlCommand(CmdSet.General, (byte)GeneralCmdId.Handshake, ProtocolUtils.StructToBytes(req), 0x01);
-            AddLog($"发送握手 -> {_currentDeviceIp} (Port:{TARGET_LIDAR_PORT})");
+            AddLog($"发送握手 -> {_currentDeviceIp}");
         }
 
         private void btn_StartSample_Click_1(object sender, EventArgs e)
@@ -129,7 +217,7 @@ namespace RadarConnect
             SendControlCommand(CmdSet.General, 0x04, new byte[] { 0x01 });
             _isSaving = true;
             _dbManager.StartSaving();
-            AddLog("已发送 [开始采样] 指令，并启动入库。");
+            AddLog("开始采样并入库...");
             btn_StartSample.Enabled = false;
             btn_StopSample.Enabled = true;
         }
@@ -140,7 +228,7 @@ namespace RadarConnect
             _isSaving = false;
             _dbManager.StopSaving();
             _isTimeSynced = false;
-            AddLog("已发送 [停止采样] 指令，停止入库。");
+            AddLog("停止采样");
             btn_StartSample.Enabled = true;
             btn_StopSample.Enabled = false;
         }
@@ -149,63 +237,41 @@ namespace RadarConnect
         {
             SendControlCommand(CmdSet.General, 0x06, null);
             StopAllWork();
-            AddLog(">>> 已发送断开请求");
+            AddLog(">>> 请求断开");
+            listView_Devices.SelectedItems[0].SubItems[3].Text = "未连接";
         }
 
         private void btn_SetMode_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(_currentDeviceIp))
-            {
-                MessageBox.Show("请先选择并连接设备！");
-                return;
-            }
+            if (string.IsNullOrEmpty(_currentDeviceIp)) return;
             byte modeVal = (byte)(cbx_WorkMode.SelectedIndex + 1);
-            if (!Enum.IsDefined(typeof(LidarMode), modeVal)) modeVal = (byte)LidarMode.Normal;
-
-            AddLog($"正在设置工作模式为: {((LidarMode)modeVal)}...");
             SendControlCommand(CmdSet.Lidar, (byte)LidarCmdId.SetMode, new byte[] { modeVal });
         }
 
         private void btn_SetCoordinate_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(_currentDeviceIp))
-            {
-                MessageBox.Show("请先选择并连接设备！");
-                return;
-            }
-
-            // 雷达采样过程中无法切换数据流格式
+            if (string.IsNullOrEmpty(_currentDeviceIp)) return;
             if (btn_StartSample.Enabled == false)
             {
-                MessageBox.Show("请先停止采样（点击'停止采样'），然后再设置坐标系！", "操作提示");
+                MessageBox.Show("请先停止采样！");
                 return;
             }
-
             byte coordVal = (byte)cbx_Coordinate.SelectedIndex;
-            string coordName = (coordVal == 0) ? "直角坐标 (Cartesian)" : "球坐标 (Spherical)";
-            AddLog($"正在请求切换坐标系为: {coordName}...");
             SendControlCommand(CmdSet.General, (byte)GeneralCmdId.CoordinateSystem, new byte[] { coordVal });
         }
 
         #endregion
 
-        /// <summary>
-        /// 核心解析逻辑：全兼容 Livox Avia (单/双/三回波, 直角/球坐标)
-        /// </summary>
+        #region 
+
         private void ProcessPointCloud(byte[] data)
         {
-            // -----------------------------------------------------
-            // 1. 头部校验 (Livox Ethernet Header 固定 18 字节)
-            // -----------------------------------------------------
             int livoxHeaderSize = 18;
             if (data.Length < livoxHeaderSize) return;
 
             byte data_type = data[9];
             ulong radarTimestamp = BitConverter.ToUInt64(data, 10);
 
-            // -----------------------------------------------------
-            // 2. 时间同步
-            // -----------------------------------------------------
             DateTime frameTime;
             if (!_isTimeSynced || (Math.Abs((long)radarTimestamp - (long)_lastRadarTimestamp) > 1_000_000_000))
             {
@@ -219,85 +285,51 @@ namespace RadarConnect
             long diffTicks = diffNs / 100;
             frameTime = new DateTime(_basePcTicks + diffTicks, DateTimeKind.Utc);
 
-            // -----------------------------------------------------
-            // 3. 确定数据结构 (Data Type)
-            // -----------------------------------------------------
             int pSize = 0;
-            int returnCount = 1; // 每次发射包含的回波数量 (1, 2, 3)
+            int returnCount = 1;
 
-            // Avia 激光点火频率固定为 240,000 Hz (周期约 4.17us)
-            // 无论是双回波还是三回波，都是同一次点火产生的多个点，因此循环的时间步长由点火频率决定。
             const double AVIA_FIRING_FREQ = 240000.0;
             const double TICKS_PER_SECOND = 10000000.0;
-            double pointIntervalTicks = TICKS_PER_SECOND / AVIA_FIRING_FREQ; // ~41.67 Ticks
+            double pointIntervalTicks = TICKS_PER_SECOND / AVIA_FIRING_FREQ;
 
             switch (data_type)
             {
-                // === 单回波 (Single Return) ===
-                case 2: // 直角 (14 bytes)
-                    pSize = 14; returnCount = 1; break;
-                case 3: // 球坐标 (10 bytes)
-                    pSize = 10; returnCount = 1; break;
-
-                // === 双回波 (Dual Return) ===
-                case 4: // 直角 (28 bytes): P1(14) + P2(14)
-                    pSize = 28; returnCount = 2; break;
-                case 5: // 球坐标 (16 bytes): Theta(2)+Phi(2) + P1(6) + P2(6) [共享角度]
-                    pSize = 16; returnCount = 2; break;
-
-                // === 三回波 (Triple Return) ===
-                case 7: // 直角 (42 bytes): P1(14) + P2(14) + P3(14)
-                    pSize = 42; returnCount = 3; break;
-                case 8: // 球坐标 (22 bytes): Theta(2)+Phi(2) + P1(6) + P2(6) + P3(6) [共享角度]
-                    pSize = 22; returnCount = 3; break;
-
-                // === 兼容旧设备 ===
-                case 0: // Mid-40 直角
-                    pSize = 13; pointIntervalTicks = 100.0; break;
-                case 1: // Mid-40 球坐标
-                    pSize = 9; pointIntervalTicks = 100.0; break;
-
-                default: return; // 未知类型
+                case 2: pSize = 14; returnCount = 1; break;
+                case 3: pSize = 10; returnCount = 1; break;
+                case 4: pSize = 28; returnCount = 2; break;
+                case 5: pSize = 16; returnCount = 2; break;
+                case 7: pSize = 42; returnCount = 3; break;
+                case 8: pSize = 22; returnCount = 3; break;
+                case 0: pSize = 13; pointIntervalTicks = 100.0; break;
+                case 1: pSize = 9; pointIntervalTicks = 100.0; break;
+                default: return;
             }
 
             if (pSize == 0) return;
 
             int pointsDataLen = data.Length - livoxHeaderSize;
-            int packetCount = pointsDataLen / pSize; // 这个包里有多少个"发射周期"
+            int packetCount = pointsDataLen / pSize;
 
-            // -----------------------------------------------------
-            // 4. 循环解析 (遍历每一次激光发射)
-            // -----------------------------------------------------
             for (int i = 0; i < packetCount; i++)
             {
                 int baseOffset = livoxHeaderSize + (i * pSize);
                 if (baseOffset + pSize > data.Length) break;
 
-                // 计算本次发射的时间 (所有回波共用此时间)
                 DateTime firingTime = frameTime.AddTicks((long)(i * pointIntervalTicks));
 
-                // === 分类解析 ===
-
-                // A. 直角坐标系 (Type 2, 4, 7) - 结构都是 X(4)+Y(4)+Z(4)+R(1)+Tag(1) 的重复
                 if (data_type == 2 || data_type == 4 || data_type == 7)
                 {
-                    // 内部循环 j 处理第几个回波
                     for (int j = 0; j < returnCount; j++)
                     {
-                        // 每个点固定 14 字节
                         int ptOffset = baseOffset + (j * 14);
-
                         int x = BitConverter.ToInt32(data, ptOffset);
                         int y = BitConverter.ToInt32(data, ptOffset + 4);
                         int z = BitConverter.ToInt32(data, ptOffset + 8);
                         byte refI = data[ptOffset + 12];
                         byte tag = data[ptOffset + 13];
-
-                        // 入库
                         EnqueueCartesianPoint(firingTime, x, y, z, refI, tag);
                     }
                 }
-                // B. 球坐标系 (Type 3) - 独立角度
                 else if (data_type == 3)
                 {
                     uint depth = BitConverter.ToUInt32(data, baseOffset);
@@ -305,82 +337,63 @@ namespace RadarConnect
                     ushort phi = BitConverter.ToUInt16(data, baseOffset + 6);
                     byte refI = data[baseOffset + 8];
                     byte tag = data[baseOffset + 9];
-
                     EnqueueSphericalPoint(firingTime, depth, theta, phi, refI, tag);
                 }
-                // C. 球坐标系 (Type 5, 8) - 共享角度
                 else if (data_type == 5 || data_type == 8)
                 {
-                    // 1. 读取共享角度 (Offset 0 和 2)
-                    ushort theta = BitConverter.ToUInt16(data, baseOffset);     // Zenith
-                    ushort phi = BitConverter.ToUInt16(data, baseOffset + 2);   // Azimuth
-
-                    // 2. 遍历回波
+                    ushort theta = BitConverter.ToUInt16(data, baseOffset);
+                    ushort phi = BitConverter.ToUInt16(data, baseOffset + 2);
                     for (int j = 0; j < returnCount; j++)
                     {
-                        // 偏移量计算:
-                        // 角度占4字节。之后每个点占6字节 (Depth 4B + Ref 1B + Tag 1B)
-                        // Type 5: 4 + 6*0 (P1), 4 + 6*1 (P2)
                         int ptOffset = baseOffset + 4 + (j * 6);
-
                         uint depth = BitConverter.ToUInt32(data, ptOffset);
                         byte refI = data[ptOffset + 4];
                         byte tag = data[ptOffset + 5];
-
                         EnqueueSphericalPoint(firingTime, depth, theta, phi, refI, tag);
                     }
                 }
-                // D. 兼容旧设备 Type 0/1 (简化处理)
                 else if (data_type == 0 || data_type == 1)
                 {
-                     if(data_type == 0) {
+                    if (data_type == 0)
+                    {
                         int x = BitConverter.ToInt32(data, baseOffset);
                         int y = BitConverter.ToInt32(data, baseOffset + 4);
                         int z = BitConverter.ToInt32(data, baseOffset + 8);
                         byte refI = data[baseOffset + 12];
                         EnqueueCartesianPoint(firingTime, x, y, z, refI, 0);
-                     } else {
+                    }
+                    else
+                    {
                         uint d = BitConverter.ToUInt32(data, baseOffset);
                         ushort t = BitConverter.ToUInt16(data, baseOffset + 4);
                         ushort p = BitConverter.ToUInt16(data, baseOffset + 6);
                         byte r = data[baseOffset + 8];
                         EnqueueSphericalPoint(firingTime, d, t, p, r, 0);
-                     }
+                    }
                 }
             }
         }
 
-        // --- 辅助入库函数：直角坐标 ---
         private void EnqueueCartesianPoint(DateTime time, int x, int y, int z, byte reflectivity, byte tag)
         {
-            if (x == 0 && y == 0 && z == 0) return; // 过滤无效点
-
+            if (x == 0 && y == 0 && z == 0) return;
             double distSq = (double)x * x + (double)y * y + (double)z * z;
             float depth_m = (distSq > 0) ? (float)(Math.Sqrt(distSq) / 1000.0) : 0;
-
             _dbManager.EnqueuePoint(time, x, y, z, depth_m, reflectivity, tag);
         }
 
-        // --- 辅助入库函数：球坐标转直角 ---
         private void EnqueueSphericalPoint(DateTime time, uint depth_mm, ushort thetaRaw, ushort phiRaw, byte reflectivity, byte tag)
         {
             if (depth_mm == 0) return;
-
-            // 角度单位 0.01 度 -> 弧度
             double thetaRad = (thetaRaw * 0.01) * (Math.PI / 180.0);
             double phiRad = (phiRaw * 0.01) * (Math.PI / 180.0);
             double r = (double)depth_mm;
-
-            // 转换公式
             int x = (int)(r * Math.Sin(thetaRad) * Math.Cos(phiRad));
             int y = (int)(r * Math.Sin(thetaRad) * Math.Sin(phiRad));
             int z = (int)(r * Math.Cos(thetaRad));
-
             float depth_m = depth_mm / 1000.0f;
-
             _dbManager.EnqueuePoint(time, x, y, z, depth_m, reflectivity, tag);
         }
-        #region 辅助与控制逻辑
 
         private void StopAllWork()
         {
@@ -426,7 +439,6 @@ namespace RadarConnect
         private void HandleBroadcast(byte[] data, IPEndPoint remote)
         {
             if (data.Length < 10) return;
-            // 简单判断是否是 Livox 广播包
             if (data.Length > 10)
             {
                 this.BeginInvoke((MethodInvoker)delegate
@@ -457,7 +469,6 @@ namespace RadarConnect
 
             this.BeginInvoke((MethodInvoker)delegate
             {
-                // 握手确认
                 if (cmdType == 1 && cmdSet == 0 && cmdId == 1)
                 {
                     AddLog($"握手成功! 雷达已连接 ({remote.Address})");
@@ -466,20 +477,17 @@ namespace RadarConnect
                     SyncRadarTime();
                     if (!_heartbeatTimer.Enabled) _heartbeatTimer.Start();
                 }
-                // 采样控制确认
                 else if (cmdSet == 0 && cmdId == 4)
                 {
                     byte retCode = (data.Length > 11) ? data[11] : (byte)255;
                     AddLog(retCode == 0 ? ">>> 采样状态变更成功" : $">>> 采样状态变更失败: {retCode}");
                 }
-                // 坐标系切换确认
                 else if (cmdSet == (byte)CmdSet.General && cmdId == (byte)GeneralCmdId.CoordinateSystem)
                 {
                     byte retCode = (data.Length > 11) ? data[11] : (byte)255;
                     if (retCode == 0) AddLog(">>> 坐标系切换成功！请重新开始采样。");
                     else AddLog($">>> 坐标系切换失败，错误码: {retCode}");
                 }
-                // 其他 ACK 日志...
                 else if (cmdSet == (byte)CmdSet.Lidar && cmdId == (byte)LidarCmdId.SetMode)
                 {
                     AddLog(">>> 工作模式设置指令已返回");

@@ -2,30 +2,16 @@
 {
     partial class Form1
     {
-        /// <summary>
-        /// 必需的设计器变量。
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// 清理所有正在使用的资源。
-        /// </summary>
-        /// <param name="disposing">如果应释放托管资源，为 true；否则为 false。</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
         #region Windows 窗体设计器生成的代码
 
-        /// <summary>
-        /// 设计器支持所需的方法 - 不要修改
-        /// 使用代码编辑器修改此方法的内容。
-        /// </summary>
         private void InitializeComponent()
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -39,6 +25,9 @@
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.dateTimePicker_Query = new System.Windows.Forms.DateTimePicker();
+            this.btn_Reconstruct = new System.Windows.Forms.Button();
             this.btn_SetCoordinate = new System.Windows.Forms.Button();
             this.cbx_Coordinate = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -51,6 +40,7 @@
             this.listBox_Log = new System.Windows.Forms.ListBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
+            this.renderWindowControl1 = new Kitware.VTK.RenderWindowControl();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -78,6 +68,7 @@
             this.btn_Disconnect.Size = new System.Drawing.Size(100, 30);
             this.btn_Disconnect.TabIndex = 4;
             this.btn_Disconnect.Text = "断开连接";
+            this.btn_Disconnect.UseVisualStyleBackColor = true;
             this.btn_Disconnect.Click += new System.EventHandler(this.btn_Disconnect_Click_1);
             // 
             // btn_HandShake
@@ -87,6 +78,7 @@
             this.btn_HandShake.Size = new System.Drawing.Size(100, 30);
             this.btn_HandShake.TabIndex = 3;
             this.btn_HandShake.Text = "握手(连接)";
+            this.btn_HandShake.UseVisualStyleBackColor = true;
             this.btn_HandShake.Click += new System.EventHandler(this.btn_HandShake_Click);
             // 
             // btn_StopListen
@@ -97,6 +89,7 @@
             this.btn_StopListen.Size = new System.Drawing.Size(100, 30);
             this.btn_StopListen.TabIndex = 2;
             this.btn_StopListen.Text = "停止监听";
+            this.btn_StopListen.UseVisualStyleBackColor = true;
             this.btn_StopListen.Click += new System.EventHandler(this.btn_StopListen_Click);
             // 
             // btn_StartListen
@@ -106,6 +99,7 @@
             this.btn_StartListen.Size = new System.Drawing.Size(100, 30);
             this.btn_StartListen.TabIndex = 1;
             this.btn_StartListen.Text = "开始监听";
+            this.btn_StartListen.UseVisualStyleBackColor = true;
             this.btn_StartListen.Click += new System.EventHandler(this.btn_StartListen_Click);
             // 
             // listView_Devices
@@ -148,6 +142,9 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.label3);
+            this.groupBox2.Controls.Add(this.dateTimePicker_Query);
+            this.groupBox2.Controls.Add(this.btn_Reconstruct);
             this.groupBox2.Controls.Add(this.btn_SetCoordinate);
             this.groupBox2.Controls.Add(this.cbx_Coordinate);
             this.groupBox2.Controls.Add(this.label2);
@@ -158,10 +155,39 @@
             this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Location = new System.Drawing.Point(882, 12);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(200, 279);
+            this.groupBox2.Size = new System.Drawing.Size(200, 360);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "雷达控制";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(15, 275);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(65, 12);
+            this.label3.TabIndex = 19;
+            this.label3.Text = "查询时间：";
+            // 
+            // dateTimePicker_Query
+            // 
+            this.dateTimePicker_Query.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+            this.dateTimePicker_Query.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dateTimePicker_Query.Location = new System.Drawing.Point(17, 292);
+            this.dateTimePicker_Query.Name = "dateTimePicker_Query";
+            this.dateTimePicker_Query.ShowUpDown = true;
+            this.dateTimePicker_Query.Size = new System.Drawing.Size(160, 21);
+            this.dateTimePicker_Query.TabIndex = 18;
+            // 
+            // btn_Reconstruct
+            // 
+            this.btn_Reconstruct.Location = new System.Drawing.Point(17, 319);
+            this.btn_Reconstruct.Name = "btn_Reconstruct";
+            this.btn_Reconstruct.Size = new System.Drawing.Size(160, 30);
+            this.btn_Reconstruct.TabIndex = 17;
+            this.btn_Reconstruct.Text = "查询并还原点云";
+            this.btn_Reconstruct.UseVisualStyleBackColor = true;
+            this.btn_Reconstruct.Click += new System.EventHandler(this.btn_Reconstruct_Click);
             // 
             // btn_SetCoordinate
             // 
@@ -170,11 +196,13 @@
             this.btn_SetCoordinate.Size = new System.Drawing.Size(50, 23);
             this.btn_SetCoordinate.TabIndex = 9;
             this.btn_SetCoordinate.Text = "设置";
+            this.btn_SetCoordinate.UseVisualStyleBackColor = true;
             this.btn_SetCoordinate.Click += new System.EventHandler(this.btn_SetCoordinate_Click);
             // 
             // cbx_Coordinate
             // 
             this.cbx_Coordinate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbx_Coordinate.FormattingEnabled = true;
             this.cbx_Coordinate.Location = new System.Drawing.Point(17, 242);
             this.cbx_Coordinate.Name = "cbx_Coordinate";
             this.cbx_Coordinate.Size = new System.Drawing.Size(110, 20);
@@ -196,6 +224,7 @@
             this.btn_StopSample.Size = new System.Drawing.Size(160, 30);
             this.btn_StopSample.TabIndex = 12;
             this.btn_StopSample.Text = "停止采样";
+            this.btn_StopSample.UseVisualStyleBackColor = true;
             this.btn_StopSample.Click += new System.EventHandler(this.btn_StopSample_Click_1);
             // 
             // btn_StartSample
@@ -205,6 +234,7 @@
             this.btn_StartSample.Size = new System.Drawing.Size(160, 30);
             this.btn_StartSample.TabIndex = 13;
             this.btn_StartSample.Text = "开始采样";
+            this.btn_StartSample.UseVisualStyleBackColor = true;
             this.btn_StartSample.Click += new System.EventHandler(this.btn_StartSample_Click_1);
             // 
             // btn_SetMode
@@ -214,11 +244,13 @@
             this.btn_SetMode.Size = new System.Drawing.Size(160, 30);
             this.btn_SetMode.TabIndex = 14;
             this.btn_SetMode.Text = "设置工作模式";
+            this.btn_SetMode.UseVisualStyleBackColor = true;
             this.btn_SetMode.Click += new System.EventHandler(this.btn_SetMode_Click);
             // 
             // cbx_WorkMode
             // 
             this.cbx_WorkMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbx_WorkMode.FormattingEnabled = true;
             this.cbx_WorkMode.Location = new System.Drawing.Point(17, 45);
             this.cbx_WorkMode.Name = "cbx_WorkMode";
             this.cbx_WorkMode.Size = new System.Drawing.Size(160, 20);
@@ -246,6 +278,7 @@
             // listBox_Log
             // 
             this.listBox_Log.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBox_Log.FormattingEnabled = true;
             this.listBox_Log.ItemHeight = 12;
             this.listBox_Log.Location = new System.Drawing.Point(3, 17);
             this.listBox_Log.Name = "listBox_Log";
@@ -268,17 +301,27 @@
             this.lbl_SampleState.Size = new System.Drawing.Size(56, 17);
             this.lbl_SampleState.Text = "系统就绪";
             // 
+            // renderWindowControl1
+            // 
+            this.renderWindowControl1.AddTestActors = false;
+            this.renderWindowControl1.Location = new System.Drawing.Point(1100, 12);
+            this.renderWindowControl1.Name = "renderWindowControl1";
+            this.renderWindowControl1.Size = new System.Drawing.Size(850, 800);
+            this.renderWindowControl1.TabIndex = 4;
+            this.renderWindowControl1.TestText = null;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1964, 837);
+            this.Controls.Add(this.renderWindowControl1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Name = "Form1";
-            this.Text = "Livox Radar";
+            this.Text = "Livox Radar Connect";
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
@@ -287,7 +330,6 @@
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
@@ -315,5 +357,10 @@
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.ColumnHeader columnHeader4;
+        private System.Windows.Forms.Button btn_Reconstruct;
+        private Kitware.VTK.RenderWindowControl renderWindowControl1;
+        // 新增的控件
+        private System.Windows.Forms.DateTimePicker dateTimePicker_Query;
+        private System.Windows.Forms.Label label3;
     }
 }

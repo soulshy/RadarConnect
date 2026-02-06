@@ -222,6 +222,7 @@
     <Compile Include="ProtocolModels.cs" />
     <Compile Include="ProtocolUtils.cs" />
     <Compile Include="UdpCommunication.cs" />
+    <Compile Include="VtkVisualizer.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

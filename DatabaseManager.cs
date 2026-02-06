@@ -42,7 +42,7 @@ namespace RadarConnect
             if (!_isSaving) return;
             _bufferQueue.Enqueue(new PointData
             {
-                ExactTime = time,
+                ExactTime = time, // 这里传入的通常已经是 UTC (来自 ProcessPointCloud)
                 X = x_mm / 1000.0f,
                 Y = y_mm / 1000.0f,
                 Z = z_mm / 1000.0f,
@@ -52,44 +52,78 @@ namespace RadarConnect
             });
         }
 
-        // 新增：根据时间范围查询点云
-        public List<PointData> GetPointsInRange(DateTime endTime, double secondsBack)
+        // =============================================================
+        // 查询方法：自动处理时区，支持任意时间段查询
+        // =============================================================
+        public List<PointData> GetPointsInRange(DateTime localStartTime, double durationSeconds)
         {
             List<PointData> points = new List<PointData>();
-            DateTime startTime = endTime.AddSeconds(-secondsBack);
+
+            // 1. 计算查询的时间窗口 (本地时间)
+            // 用户想查: StartTime -> StartTime + 1s
+            DateTime localEndTime = localStartTime.AddSeconds(durationSeconds);
+
+            // 2. 转换为 UTC 时间 (因为数据库存的是 UTC)
+            // .ToUniversalTime() 会自动减去本地时区偏移 (例如北京时间 -8小时)
+            DateTime utcStart = localStartTime.ToUniversalTime();
+            DateTime utcEnd = localEndTime.ToUniversalTime();
 
             using (MySqlConnection conn = new MySqlConnection(_connString))
             {
                 try
                 {
                     conn.Open();
-                    string sql = "SELECT x, y, z, depth, reflectivity, tag FROM point_cloud " +
-                                 "WHERE collect_time BETWEEN @start AND @end";
-                    MySqlCommand cmd = new MySqlCommand(sql, conn);
-                    cmd.Parameters.AddWithValue("@start", startTime);
-                    cmd.Parameters.AddWithValue("@end", endTime);
+                    // 3. 执行查询
+                    // BETWEEN 语法天然支持 "如果不足1s就查到最后"
+                    // 如果 utcEnd 超过了数据库里的最大时间，它只会返回到最大时间为止的数据
+                    string sql = "SELECT x, y, z, depth, reflectivity, tag, collect_time FROM point_cloud " +
+                                 "WHERE collect_time BETWEEN @start AND @end ORDER BY collect_time ASC";
 
-                    using (var reader = cmd.ExecuteReader())
+                    using (MySqlCommand cmd = new MySqlCommand(sql, conn))
                     {
-                        while (reader.Read())
+                        cmd.Parameters.AddWithValue("@start", utcStart);
+                        cmd.Parameters.AddWithValue("@end", utcEnd);
+
+                        using (var reader = cmd.ExecuteReader())
                         {
-                            points.Add(new PointData
+                            while (reader.Read())
                             {
-                                X = reader.GetFloat(0),
-                                Y = reader.GetFloat(1),
-                                Z = reader.GetFloat(2),
-                                Depth = reader.GetFloat(3),
-                                Reflectivity = reader.GetByte(4),
-                                Tag = reader.GetByte(5)
-                            });
+                                // 读取并还原为 PointData
+                                float x = reader.GetFloat("x");
+                                float y = reader.GetFloat("y");
+                                float z = reader.GetFloat("z");
+                                float depth = reader.GetFloat("depth");
+                                byte refl = reader.GetByte("reflectivity");
+                                byte tag = reader.GetByte("tag");
+
+                                // 读出来的 collect_time 是 UTC
+                                DateTime dbTimeUtc = reader.GetDateTime("collect_time");
+                                // 转换回本地时间，方便调试或显示
+                                DateTime dbTimeLocal = dbTimeUtc.ToLocalTime();
+
+                                points.Add(new PointData
+                                {
+                                    X = x,
+                                    Y = y,
+                                    Z = z,
+                                    Depth = depth,
+                                    Reflectivity = refl,
+                                    Tag = tag,
+                                    ExactTime = dbTimeLocal
+                                });
+                            }
                         }
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Query Error: " + ex.Message); }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Query Error: " + ex.Message);
+                }
             }
             return points;
         }
 
+        // 后台保存逻辑
         private void SaveLoop()
         {
             List<PointData> batch = new List<PointData>(BATCH_SIZE);
@@ -97,18 +131,24 @@ namespace RadarConnect
             {
                 batch.Clear();
                 while (batch.Count < BATCH_SIZE && _bufferQueue.TryDequeue(out var p)) batch.Add(p);
+
                 if (batch.Count > 0)
                 {
                     string tempFile = Path.GetTempFileName();
-                    using (StreamWriter sw = new StreamWriter(tempFile, false, Encoding.UTF8))
+                    try
                     {
-                        foreach (var p in batch)
+                        using (StreamWriter sw = new StreamWriter(tempFile, false, Encoding.UTF8))
                         {
-                            sw.WriteLine($"{p.ExactTime.ToString("yyyy-MM-dd HH:mm:ss.fff")},{p.X},{p.Y},{p.Z},{p.Depth},{p.Reflectivity},{p.Tag}");
+                            foreach (var p in batch)
+                            {
+                                // 存入 CSV 时使用 UTC 时间格式化
+                                sw.WriteLine($"{p.ExactTime.ToString("yyyy-MM-dd HH:mm:ss.fff")},{p.X},{p.Y},{p.Z},{p.Reflectivity},{p.Tag},{p.Depth}");
+                            }
                         }
+                        BulkLoadFromFile(tempFile);
                     }
-                    BulkLoadFromFile(tempFile);
-                    try { File.Delete(tempFile); } catch { }
+                    catch { }
+                    finally { try { File.Delete(tempFile); } catch { } }
                 }
                 else Thread.Sleep(10);
             }
@@ -127,7 +167,7 @@ namespace RadarConnect
                     FileName = filePath,
                     Local = true
                 };
-                bulk.Columns.AddRange(new[] { "collect_time", "x", "y", "z", "depth", "reflectivity", "tag" });
+                bulk.Columns.AddRange(new[] { "collect_time", "x", "y", "z","reflectivity", "tag","depth"});
                 bulk.Load();
             }
         }
