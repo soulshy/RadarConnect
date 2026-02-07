@@ -42,7 +42,7 @@ namespace RadarConnect
             if (!_isSaving) return;
             _bufferQueue.Enqueue(new PointData
             {
-                ExactTime = time, // 这里传入的通常已经是 UTC (来自 ProcessPointCloud)
+                ExactTime = time, // 这里传入的通常已经是 UTC 
                 X = x_mm / 1000.0f,
                 Y = y_mm / 1000.0f,
                 Z = z_mm / 1000.0f,
@@ -60,11 +60,10 @@ namespace RadarConnect
             List<PointData> points = new List<PointData>();
 
             // 1. 计算查询的时间窗口 (本地时间)
-            // 用户想查: StartTime -> StartTime + 1s
             DateTime localEndTime = localStartTime.AddSeconds(durationSeconds);
 
             // 2. 转换为 UTC 时间 (因为数据库存的是 UTC)
-            // .ToUniversalTime() 会自动减去本地时区偏移 (例如北京时间 -8小时)
+            // .ToUniversalTime() 会自动减去本地时区偏移
             DateTime utcStart = localStartTime.ToUniversalTime();
             DateTime utcEnd = localEndTime.ToUniversalTime();
 
@@ -74,8 +73,6 @@ namespace RadarConnect
                 {
                     conn.Open();
                     // 3. 执行查询
-                    // BETWEEN 语法天然支持 "如果不足1s就查到最后"
-                    // 如果 utcEnd 超过了数据库里的最大时间，它只会返回到最大时间为止的数据
                     string sql = "SELECT x, y, z, depth, reflectivity, tag, collect_time FROM point_cloud " +
                                  "WHERE collect_time BETWEEN @start AND @end ORDER BY collect_time ASC";
 

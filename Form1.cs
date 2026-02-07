@@ -106,10 +106,10 @@ namespace RadarConnect
         #region 数据库查询与还原
 
         // 点击按钮触发：根据 dateTimePicker 的时间查询并显示
-        // 【核心功能】数据库查询与还原
+        // 数据库查询与还原
         private async void btn_Reconstruct_Click(object sender, EventArgs e)
         {
-            // 1. 获取用户选择的【起始时间】（北京时间）
+            // 1. 获取用户选择的【起始时间】
             DateTime selectedStartTime = dateTimePicker_Query.Value;
 
             // 设定查询时长为 1 秒
@@ -125,7 +125,6 @@ namespace RadarConnect
                 // 2. 异步后台查询
                 List<PointData> pointsToRender = await Task.Run(() =>
                 {
-                    // 直接调用 DatabaseManager，传入起始时间和时长
                     // 内部会自动处理 UTC 转换和 "不足1s查到最后" 的逻辑
                     List<PointData> rawPoints = _dbManager.GetPointsInRange(selectedStartTime, durationSeconds);
 
