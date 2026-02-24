@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Kitware.VTK;
+using LibVLCSharp.Shared;
+using LibVLCSharp.WinForms;
 
 namespace RadarConnect
 {
@@ -50,6 +52,14 @@ namespace RadarConnect
         // 预处理复用缓冲区
         private List<PointData> _displayBuffer = new List<PointData>(300000);
 
+        // ==========================================
+        // 相机视频播放器变量
+        // ==========================================
+        private LibVLC _libVLC;
+        private MediaPlayer _mediaPlayer;
+        private VideoView _videoView;
+        private bool _isCameraPlaying = false;
+
         public Form1()
         {
             InitializeComponent();
@@ -74,6 +84,7 @@ namespace RadarConnect
             _processor.MinZ = -2.0f;
             _processor.MaxZ = 50.0f;
             this.Load += Form1_Load;
+            this.FormClosing += Form1_FormClosing; // 注册关闭事件以释放 VLC 资源
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -87,6 +98,9 @@ namespace RadarConnect
                 AddLog($"VTK 初始化失败: {ex.Message}");
                 MessageBox.Show("VTK 初始化失败，请确保已正确安装 Activiz.NET 库。\n" + ex.Message);
             }
+
+            // 初始化相机播放器
+            InitCameraPlayer();
         }
 
         private void InitGui()
@@ -101,7 +115,96 @@ namespace RadarConnect
 
             // 初始化时间选择器为当前时间
             dateTimePicker_Query.Value = DateTime.Now;
+
+            // 默认相机 IP 示例
+            txt_CameraIp.Text = "192.168.1.89";
         }
+
+        #region 相机视频流控制
+
+        private void InitCameraPlayer()
+        {
+            try
+            {
+                // 初始化 LibVLC 核心
+                Core.Initialize();
+
+                _libVLC = new LibVLC();
+                _mediaPlayer = new MediaPlayer(_libVLC);
+
+                // 动态创建 VideoView 并填充到 panel_Video 容器中
+                _videoView = new VideoView
+                {
+                    MediaPlayer = _mediaPlayer,
+                    Dock = DockStyle.Fill,
+                    BackColor = Color.Black
+                };
+
+                panel_Video.Controls.Add(_videoView);
+                AddLog("视频播放器初始化成功。");
+            }
+            catch (Exception ex)
+            {
+                AddLog($"视频播放器初始化失败: {ex.Message}");
+            }
+        }
+
+        private void btn_PlayCamera_Click(object sender, EventArgs e)
+        {
+            if (_libVLC == null)
+            {
+                MessageBox.Show("播放器未正确初始化！");
+                return;
+            }
+
+            if (!_isCameraPlaying)
+            {
+                string ip = txt_CameraIp.Text.Trim();
+                if (string.IsNullOrEmpty(ip))
+                {
+                    MessageBox.Show("请输入相机IP地址！");
+                    return;
+                }
+
+                // 根据 API 文档拼接主码流 RTSP 地址
+                string rtspUrl = $"rtsp://{ip}/stream_0";
+
+                var media = new Media(_libVLC, rtspUrl, FromType.FromLocation);
+                // 添加网络缓存参数以降低延迟和卡顿，单位为毫秒
+                media.AddOption(":network-caching=300");
+
+                _mediaPlayer.Play(media);
+                _isCameraPlaying = true;
+                btn_PlayCamera.Text = "停止视频";
+                AddLog($"开始播放相机主码流: {rtspUrl}");
+            }
+            else
+            {
+                _mediaPlayer.Stop();
+                _isCameraPlaying = false;
+                btn_PlayCamera.Text = "播放相机";
+                AddLog("已停止播放视频流。");
+            }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // 停止所有的后台工作
+            StopAllWork();
+
+            // 释放 VLC 资源，防止内存泄漏或进程卡死
+            if (_mediaPlayer != null)
+            {
+                if (_mediaPlayer.IsPlaying)
+                {
+                    _mediaPlayer.Stop();
+                }
+                _mediaPlayer.Dispose();
+            }
+            _libVLC?.Dispose();
+        }
+
+        #endregion
 
         #region 数据库查询与还原
 
@@ -418,7 +521,7 @@ namespace RadarConnect
             pkt.Add(0); pkt.Add(0);
             pkt.Add((byte)set);
             pkt.Add(cmdId);
-            if (payload != null) 
+            if (payload != null)
                 pkt.AddRange(payload);
 
             ushort len = (ushort)(pkt.Count + 4);
@@ -447,7 +550,8 @@ namespace RadarConnect
                     bool exists = false;
                     foreach (ListViewItem item in listView_Devices.Items)
                     {
-                        if (item.SubItems[1].Text == remote.Address.ToString()){ 
+                        if (item.SubItems[1].Text == remote.Address.ToString())
+                        {
                             exists = true;
                             break;
                         }

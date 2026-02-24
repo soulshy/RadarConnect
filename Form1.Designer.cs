@@ -37,13 +37,23 @@
             this.btn_SetMode = new System.Windows.Forms.Button();
             this.cbx_WorkMode = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
+
+            // 相机控制相关控件
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.txt_CameraIp = new System.Windows.Forms.TextBox();
+            this.btn_PlayCamera = new System.Windows.Forms.Button();
+            this.panel_Video = new System.Windows.Forms.Panel();
+
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.listBox_Log = new System.Windows.Forms.ListBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
             this.renderWindowControl1 = new Kitware.VTK.RenderWindowControl();
+
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -265,13 +275,62 @@
             this.label1.Size = new System.Drawing.Size(65, 12);
             this.label1.TabIndex = 16;
             this.label1.Text = "工作模式：";
+
+            // 
+            // groupBox4 (相机控制)
+            // 
+            this.groupBox4.Controls.Add(this.label4);
+            this.groupBox4.Controls.Add(this.txt_CameraIp);
+            this.groupBox4.Controls.Add(this.btn_PlayCamera);
+            this.groupBox4.Location = new System.Drawing.Point(882, 380);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(200, 100);
+            this.groupBox4.TabIndex = 5;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "相机控制";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(15, 28);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(53, 12);
+            this.label4.TabIndex = 0;
+            this.label4.Text = "相机 IP:";
+            // 
+            // txt_CameraIp
+            // 
+            this.txt_CameraIp.Location = new System.Drawing.Point(70, 25);
+            this.txt_CameraIp.Name = "txt_CameraIp";
+            this.txt_CameraIp.Size = new System.Drawing.Size(115, 21);
+            this.txt_CameraIp.TabIndex = 1;
+            // 
+            // btn_PlayCamera
+            // 
+            this.btn_PlayCamera.Location = new System.Drawing.Point(17, 60);
+            this.btn_PlayCamera.Name = "btn_PlayCamera";
+            this.btn_PlayCamera.Size = new System.Drawing.Size(168, 30);
+            this.btn_PlayCamera.TabIndex = 2;
+            this.btn_PlayCamera.Text = "播放相机";
+            this.btn_PlayCamera.UseVisualStyleBackColor = true;
+            this.btn_PlayCamera.Click += new System.EventHandler(this.btn_PlayCamera_Click);
+
+            // 
+            // panel_Video
+            // 
+            this.panel_Video.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel_Video.Location = new System.Drawing.Point(882, 490);
+            this.panel_Video.Name = "panel_Video";
+            this.panel_Video.Size = new System.Drawing.Size(200, 150);
+            this.panel_Video.TabIndex = 6;
+
             // 
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.listBox_Log);
             this.groupBox3.Location = new System.Drawing.Point(18, 218);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(733, 594);
+            this.groupBox3.Size = new System.Drawing.Size(840, 584);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "日志";
@@ -283,7 +342,7 @@
             this.listBox_Log.ItemHeight = 12;
             this.listBox_Log.Location = new System.Drawing.Point(3, 17);
             this.listBox_Log.Name = "listBox_Log";
-            this.listBox_Log.Size = new System.Drawing.Size(727, 574);
+            this.listBox_Log.Size = new System.Drawing.Size(834, 564);
             this.listBox_Log.TabIndex = 0;
             // 
             // statusStrip1
@@ -316,6 +375,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1964, 837);
+            this.Controls.Add(this.panel_Video);
+            this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.renderWindowControl1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.groupBox3);
@@ -327,6 +388,8 @@
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -362,8 +425,12 @@
         private System.Windows.Forms.ColumnHeader columnHeader4;
         private System.Windows.Forms.Button btn_Reconstruct;
         private Kitware.VTK.RenderWindowControl renderWindowControl1;
-        // 新增的控件
         private System.Windows.Forms.DateTimePicker dateTimePicker_Query;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox txt_CameraIp;
+        private System.Windows.Forms.Button btn_PlayCamera;
+        private System.Windows.Forms.Panel panel_Video;
     }
 }
