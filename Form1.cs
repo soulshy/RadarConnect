@@ -383,7 +383,8 @@ namespace RadarConnect
 
         private void EnqueueSphericalPoint(DateTime time, uint depth_mm, ushort thetaRaw, ushort phiRaw, byte reflectivity, byte tag)
         {
-            if (depth_mm == 0) return;
+            if (depth_mm == 0)
+                return;
             double thetaRad = (thetaRaw * 0.01) * (Math.PI / 180.0);
             double phiRad = (phiRaw * 0.01) * (Math.PI / 180.0);
             double r = (double)depth_mm;
@@ -417,7 +418,8 @@ namespace RadarConnect
             pkt.Add(0); pkt.Add(0);
             pkt.Add((byte)set);
             pkt.Add(cmdId);
-            if (payload != null) pkt.AddRange(payload);
+            if (payload != null) 
+                pkt.AddRange(payload);
 
             ushort len = (ushort)(pkt.Count + 4);
             byte[] lenB = BitConverter.GetBytes(len);
@@ -445,7 +447,10 @@ namespace RadarConnect
                     bool exists = false;
                     foreach (ListViewItem item in listView_Devices.Items)
                     {
-                        if (item.SubItems[1].Text == remote.Address.ToString()) { exists = true; break; }
+                        if (item.SubItems[1].Text == remote.Address.ToString()){ 
+                            exists = true;
+                            break;
+                        }
                     }
                     if (!exists)
                     {
@@ -496,7 +501,8 @@ namespace RadarConnect
 
         private void SyncRadarTime()
         {
-            if (string.IsNullOrEmpty(_currentDeviceIp)) return;
+            if (string.IsNullOrEmpty(_currentDeviceIp))
+                return;
             DateTime nowUtc = DateTime.UtcNow;
             LidarSetUtcSyncTimeRequest req = new LidarSetUtcSyncTimeRequest();
             req.year = (byte)(nowUtc.Year - 2000);
