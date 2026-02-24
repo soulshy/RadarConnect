@@ -15,6 +15,19 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.listBox_Log = new System.Windows.Forms.ListBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.btn_SetCoordinate = new System.Windows.Forms.Button();
+            this.cbx_Coordinate = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.btn_StopSample = new System.Windows.Forms.Button();
+            this.btn_StartSample = new System.Windows.Forms.Button();
+            this.btn_SetMode = new System.Windows.Forms.Button();
+            this.cbx_WorkMode = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.btn_Disconnect = new System.Windows.Forms.Button();
             this.btn_HandShake = new System.Windows.Forms.Button();
@@ -25,38 +38,168 @@
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.label3 = new System.Windows.Forms.Label();
             this.dateTimePicker_Query = new System.Windows.Forms.DateTimePicker();
             this.btn_Reconstruct = new System.Windows.Forms.Button();
-            this.btn_SetCoordinate = new System.Windows.Forms.Button();
-            this.cbx_Coordinate = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.btn_StopSample = new System.Windows.Forms.Button();
-            this.btn_StartSample = new System.Windows.Forms.Button();
-            this.btn_SetMode = new System.Windows.Forms.Button();
-            this.cbx_WorkMode = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
-
-            // 相机控制相关控件
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
             this.txt_CameraIp = new System.Windows.Forms.TextBox();
             this.btn_PlayCamera = new System.Windows.Forms.Button();
             this.panel_Video = new System.Windows.Forms.Panel();
-
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.listBox_Log = new System.Windows.Forms.ListBox();
+            this.renderWindowControl1 = new Kitware.VTK.RenderWindowControl();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
-            this.renderWindowControl1 = new Kitware.VTK.RenderWindowControl();
-
-            this.groupBox1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
-            this.groupBox4.SuspendLayout();
+            this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            this.tabPage2.SuspendLayout();
+            this.groupBox5.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
+            // 
+            // tabControl1
+            // 
+            this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(1969, 800);
+            this.tabControl1.TabIndex = 7;
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.groupBox3);
+            this.tabPage1.Controls.Add(this.groupBox2);
+            this.tabPage1.Controls.Add(this.groupBox1);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(1961, 774);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "控制与日志";
+            this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.groupBox3.Controls.Add(this.listBox_Log);
+            this.groupBox3.Location = new System.Drawing.Point(12, 218);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(864, 535);
+            this.groupBox3.TabIndex = 2;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "日志";
+            // 
+            // listBox_Log
+            // 
+            this.listBox_Log.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBox_Log.FormattingEnabled = true;
+            this.listBox_Log.ItemHeight = 12;
+            this.listBox_Log.Location = new System.Drawing.Point(3, 17);
+            this.listBox_Log.Name = "listBox_Log";
+            this.listBox_Log.Size = new System.Drawing.Size(858, 515);
+            this.listBox_Log.TabIndex = 0;
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.btn_SetCoordinate);
+            this.groupBox2.Controls.Add(this.cbx_Coordinate);
+            this.groupBox2.Controls.Add(this.label2);
+            this.groupBox2.Controls.Add(this.btn_StopSample);
+            this.groupBox2.Controls.Add(this.btn_StartSample);
+            this.groupBox2.Controls.Add(this.btn_SetMode);
+            this.groupBox2.Controls.Add(this.cbx_WorkMode);
+            this.groupBox2.Controls.Add(this.label1);
+            this.groupBox2.Location = new System.Drawing.Point(882, 12);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(200, 280);
+            this.groupBox2.TabIndex = 1;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "雷达控制";
+            // 
+            // btn_SetCoordinate
+            // 
+            this.btn_SetCoordinate.Location = new System.Drawing.Point(135, 240);
+            this.btn_SetCoordinate.Name = "btn_SetCoordinate";
+            this.btn_SetCoordinate.Size = new System.Drawing.Size(50, 23);
+            this.btn_SetCoordinate.TabIndex = 9;
+            this.btn_SetCoordinate.Text = "设置";
+            this.btn_SetCoordinate.UseVisualStyleBackColor = true;
+            this.btn_SetCoordinate.Click += new System.EventHandler(this.btn_SetCoordinate_Click);
+            // 
+            // cbx_Coordinate
+            // 
+            this.cbx_Coordinate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbx_Coordinate.FormattingEnabled = true;
+            this.cbx_Coordinate.Location = new System.Drawing.Point(17, 242);
+            this.cbx_Coordinate.Name = "cbx_Coordinate";
+            this.cbx_Coordinate.Size = new System.Drawing.Size(110, 20);
+            this.cbx_Coordinate.TabIndex = 10;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(15, 227);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(53, 12);
+            this.label2.TabIndex = 11;
+            this.label2.Text = "坐标系：";
+            // 
+            // btn_StopSample
+            // 
+            this.btn_StopSample.Location = new System.Drawing.Point(17, 156);
+            this.btn_StopSample.Name = "btn_StopSample";
+            this.btn_StopSample.Size = new System.Drawing.Size(160, 30);
+            this.btn_StopSample.TabIndex = 12;
+            this.btn_StopSample.Text = "停止采样";
+            this.btn_StopSample.UseVisualStyleBackColor = true;
+            this.btn_StopSample.Click += new System.EventHandler(this.btn_StopSample_Click_1);
+            // 
+            // btn_StartSample
+            // 
+            this.btn_StartSample.Location = new System.Drawing.Point(17, 120);
+            this.btn_StartSample.Name = "btn_StartSample";
+            this.btn_StartSample.Size = new System.Drawing.Size(160, 30);
+            this.btn_StartSample.TabIndex = 13;
+            this.btn_StartSample.Text = "开始采样";
+            this.btn_StartSample.UseVisualStyleBackColor = true;
+            this.btn_StartSample.Click += new System.EventHandler(this.btn_StartSample_Click_1);
+            // 
+            // btn_SetMode
+            // 
+            this.btn_SetMode.Location = new System.Drawing.Point(17, 75);
+            this.btn_SetMode.Name = "btn_SetMode";
+            this.btn_SetMode.Size = new System.Drawing.Size(160, 30);
+            this.btn_SetMode.TabIndex = 14;
+            this.btn_SetMode.Text = "设置工作模式";
+            this.btn_SetMode.UseVisualStyleBackColor = true;
+            this.btn_SetMode.Click += new System.EventHandler(this.btn_SetMode_Click);
+            // 
+            // cbx_WorkMode
+            // 
+            this.cbx_WorkMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbx_WorkMode.FormattingEnabled = true;
+            this.cbx_WorkMode.Location = new System.Drawing.Point(17, 45);
+            this.cbx_WorkMode.Name = "cbx_WorkMode";
+            this.cbx_WorkMode.Size = new System.Drawing.Size(160, 20);
+            this.cbx_WorkMode.TabIndex = 15;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(15, 25);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(65, 12);
+            this.label1.TabIndex = 16;
+            this.label1.Text = "工作模式：";
             // 
             // groupBox1
             // 
@@ -151,30 +294,36 @@
             this.columnHeader4.Text = "状态";
             this.columnHeader4.Width = 100;
             // 
-            // groupBox2
+            // tabPage2
             // 
-            this.groupBox2.Controls.Add(this.label3);
-            this.groupBox2.Controls.Add(this.dateTimePicker_Query);
-            this.groupBox2.Controls.Add(this.btn_Reconstruct);
-            this.groupBox2.Controls.Add(this.btn_SetCoordinate);
-            this.groupBox2.Controls.Add(this.cbx_Coordinate);
-            this.groupBox2.Controls.Add(this.label2);
-            this.groupBox2.Controls.Add(this.btn_StopSample);
-            this.groupBox2.Controls.Add(this.btn_StartSample);
-            this.groupBox2.Controls.Add(this.btn_SetMode);
-            this.groupBox2.Controls.Add(this.cbx_WorkMode);
-            this.groupBox2.Controls.Add(this.label1);
-            this.groupBox2.Location = new System.Drawing.Point(882, 12);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(200, 360);
-            this.groupBox2.TabIndex = 1;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "雷达控制";
+            this.tabPage2.Controls.Add(this.groupBox5);
+            this.tabPage2.Controls.Add(this.groupBox4);
+            this.tabPage2.Controls.Add(this.panel_Video);
+            this.tabPage2.Controls.Add(this.renderWindowControl1);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(1961, 774);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "可视化视图";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // groupBox5
+            // 
+            this.groupBox5.Controls.Add(this.label3);
+            this.groupBox5.Controls.Add(this.dateTimePicker_Query);
+            this.groupBox5.Controls.Add(this.btn_Reconstruct);
+            this.groupBox5.Location = new System.Drawing.Point(6, 6);
+            this.groupBox5.Name = "groupBox5";
+            this.groupBox5.Size = new System.Drawing.Size(420, 60);
+            this.groupBox5.TabIndex = 7;
+            this.groupBox5.TabStop = false;
+            this.groupBox5.Text = "点云还原查询";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(15, 275);
+            this.label3.Location = new System.Drawing.Point(15, 26);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(65, 12);
             this.label3.TabIndex = 19;
@@ -184,7 +333,7 @@
             // 
             this.dateTimePicker_Query.CustomFormat = "yyyy-MM-dd HH:mm:ss";
             this.dateTimePicker_Query.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dateTimePicker_Query.Location = new System.Drawing.Point(17, 292);
+            this.dateTimePicker_Query.Location = new System.Drawing.Point(85, 22);
             this.dateTimePicker_Query.Name = "dateTimePicker_Query";
             this.dateTimePicker_Query.ShowUpDown = true;
             this.dateTimePicker_Query.Size = new System.Drawing.Size(160, 21);
@@ -192,99 +341,23 @@
             // 
             // btn_Reconstruct
             // 
-            this.btn_Reconstruct.Location = new System.Drawing.Point(17, 319);
+            this.btn_Reconstruct.Location = new System.Drawing.Point(260, 20);
             this.btn_Reconstruct.Name = "btn_Reconstruct";
-            this.btn_Reconstruct.Size = new System.Drawing.Size(160, 30);
+            this.btn_Reconstruct.Size = new System.Drawing.Size(120, 30);
             this.btn_Reconstruct.TabIndex = 17;
             this.btn_Reconstruct.Text = "查询并还原点云";
             this.btn_Reconstruct.UseVisualStyleBackColor = true;
             this.btn_Reconstruct.Click += new System.EventHandler(this.btn_Reconstruct_Click);
             // 
-            // btn_SetCoordinate
+            // groupBox4
             // 
-            this.btn_SetCoordinate.Location = new System.Drawing.Point(135, 240);
-            this.btn_SetCoordinate.Name = "btn_SetCoordinate";
-            this.btn_SetCoordinate.Size = new System.Drawing.Size(50, 23);
-            this.btn_SetCoordinate.TabIndex = 9;
-            this.btn_SetCoordinate.Text = "设置";
-            this.btn_SetCoordinate.UseVisualStyleBackColor = true;
-            this.btn_SetCoordinate.Click += new System.EventHandler(this.btn_SetCoordinate_Click);
-            // 
-            // cbx_Coordinate
-            // 
-            this.cbx_Coordinate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbx_Coordinate.FormattingEnabled = true;
-            this.cbx_Coordinate.Location = new System.Drawing.Point(17, 242);
-            this.cbx_Coordinate.Name = "cbx_Coordinate";
-            this.cbx_Coordinate.Size = new System.Drawing.Size(110, 20);
-            this.cbx_Coordinate.TabIndex = 10;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(15, 227);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(53, 12);
-            this.label2.TabIndex = 11;
-            this.label2.Text = "坐标系：";
-            // 
-            // btn_StopSample
-            // 
-            this.btn_StopSample.Location = new System.Drawing.Point(17, 156);
-            this.btn_StopSample.Name = "btn_StopSample";
-            this.btn_StopSample.Size = new System.Drawing.Size(160, 30);
-            this.btn_StopSample.TabIndex = 12;
-            this.btn_StopSample.Text = "停止采样";
-            this.btn_StopSample.UseVisualStyleBackColor = true;
-            this.btn_StopSample.Click += new System.EventHandler(this.btn_StopSample_Click_1);
-            // 
-            // btn_StartSample
-            // 
-            this.btn_StartSample.Location = new System.Drawing.Point(17, 120);
-            this.btn_StartSample.Name = "btn_StartSample";
-            this.btn_StartSample.Size = new System.Drawing.Size(160, 30);
-            this.btn_StartSample.TabIndex = 13;
-            this.btn_StartSample.Text = "开始采样";
-            this.btn_StartSample.UseVisualStyleBackColor = true;
-            this.btn_StartSample.Click += new System.EventHandler(this.btn_StartSample_Click_1);
-            // 
-            // btn_SetMode
-            // 
-            this.btn_SetMode.Location = new System.Drawing.Point(17, 75);
-            this.btn_SetMode.Name = "btn_SetMode";
-            this.btn_SetMode.Size = new System.Drawing.Size(160, 30);
-            this.btn_SetMode.TabIndex = 14;
-            this.btn_SetMode.Text = "设置工作模式";
-            this.btn_SetMode.UseVisualStyleBackColor = true;
-            this.btn_SetMode.Click += new System.EventHandler(this.btn_SetMode_Click);
-            // 
-            // cbx_WorkMode
-            // 
-            this.cbx_WorkMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbx_WorkMode.FormattingEnabled = true;
-            this.cbx_WorkMode.Location = new System.Drawing.Point(17, 45);
-            this.cbx_WorkMode.Name = "cbx_WorkMode";
-            this.cbx_WorkMode.Size = new System.Drawing.Size(160, 20);
-            this.cbx_WorkMode.TabIndex = 15;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(15, 25);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(65, 12);
-            this.label1.TabIndex = 16;
-            this.label1.Text = "工作模式：";
-
-            // 
-            // groupBox4 (相机控制)
-            // 
+            this.groupBox4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox4.Controls.Add(this.label4);
             this.groupBox4.Controls.Add(this.txt_CameraIp);
             this.groupBox4.Controls.Add(this.btn_PlayCamera);
-            this.groupBox4.Location = new System.Drawing.Point(882, 380);
+            this.groupBox4.Location = new System.Drawing.Point(1022, 9);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(200, 100);
+            this.groupBox4.Size = new System.Drawing.Size(910, 60);
             this.groupBox4.TabIndex = 5;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "相机控制";
@@ -292,7 +365,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(15, 28);
+            this.label4.Location = new System.Drawing.Point(15, 26);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(53, 12);
             this.label4.TabIndex = 0;
@@ -300,58 +373,49 @@
             // 
             // txt_CameraIp
             // 
-            this.txt_CameraIp.Location = new System.Drawing.Point(70, 25);
+            this.txt_CameraIp.Location = new System.Drawing.Point(75, 22);
             this.txt_CameraIp.Name = "txt_CameraIp";
             this.txt_CameraIp.Size = new System.Drawing.Size(115, 21);
             this.txt_CameraIp.TabIndex = 1;
             // 
             // btn_PlayCamera
             // 
-            this.btn_PlayCamera.Location = new System.Drawing.Point(17, 60);
+            this.btn_PlayCamera.Location = new System.Drawing.Point(210, 20);
             this.btn_PlayCamera.Name = "btn_PlayCamera";
-            this.btn_PlayCamera.Size = new System.Drawing.Size(168, 30);
+            this.btn_PlayCamera.Size = new System.Drawing.Size(120, 30);
             this.btn_PlayCamera.TabIndex = 2;
             this.btn_PlayCamera.Text = "播放相机";
             this.btn_PlayCamera.UseVisualStyleBackColor = true;
             this.btn_PlayCamera.Click += new System.EventHandler(this.btn_PlayCamera_Click);
-
             // 
             // panel_Video
             // 
+            this.panel_Video.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.panel_Video.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel_Video.Location = new System.Drawing.Point(882, 490);
+            this.panel_Video.Location = new System.Drawing.Point(1022, 75);
             this.panel_Video.Name = "panel_Video";
-            this.panel_Video.Size = new System.Drawing.Size(200, 150);
+            this.panel_Video.Size = new System.Drawing.Size(922, 685);
             this.panel_Video.TabIndex = 6;
-
             // 
-            // groupBox3
+            // renderWindowControl1
             // 
-            this.groupBox3.Controls.Add(this.listBox_Log);
-            this.groupBox3.Location = new System.Drawing.Point(18, 218);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(840, 584);
-            this.groupBox3.TabIndex = 2;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "日志";
-            // 
-            // listBox_Log
-            // 
-            this.listBox_Log.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBox_Log.FormattingEnabled = true;
-            this.listBox_Log.ItemHeight = 12;
-            this.listBox_Log.Location = new System.Drawing.Point(3, 17);
-            this.listBox_Log.Name = "listBox_Log";
-            this.listBox_Log.Size = new System.Drawing.Size(834, 564);
-            this.listBox_Log.TabIndex = 0;
+            this.renderWindowControl1.AddTestActors = false;
+            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.renderWindowControl1.Location = new System.Drawing.Point(6, 75);
+            this.renderWindowControl1.Name = "renderWindowControl1";
+            this.renderWindowControl1.Size = new System.Drawing.Size(922, 685);
+            this.renderWindowControl1.TabIndex = 4;
+            this.renderWindowControl1.TestText = null;
             // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lbl_SampleState});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 815);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 800);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1964, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1969, 22);
             this.statusStrip1.TabIndex = 3;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -361,36 +425,27 @@
             this.lbl_SampleState.Size = new System.Drawing.Size(56, 17);
             this.lbl_SampleState.Text = "系统就绪";
             // 
-            // renderWindowControl1
-            // 
-            this.renderWindowControl1.AddTestActors = false;
-            this.renderWindowControl1.Location = new System.Drawing.Point(1100, 12);
-            this.renderWindowControl1.Name = "renderWindowControl1";
-            this.renderWindowControl1.Size = new System.Drawing.Size(850, 800);
-            this.renderWindowControl1.TabIndex = 4;
-            this.renderWindowControl1.TestText = null;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1964, 837);
-            this.Controls.Add(this.panel_Video);
-            this.Controls.Add(this.groupBox4);
-            this.Controls.Add(this.renderWindowControl1);
+            this.ClientSize = new System.Drawing.Size(1969, 822);
+            this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.statusStrip1);
-            this.Controls.Add(this.groupBox3);
-            this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.groupBox1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "Livox Radar Connect";
-            this.groupBox1.ResumeLayout(false);
+            this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
+            this.groupBox3.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.tabPage2.ResumeLayout(false);
+            this.groupBox5.ResumeLayout(false);
+            this.groupBox5.PerformLayout();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
-            this.groupBox3.ResumeLayout(false);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -400,6 +455,9 @@
 
         #endregion
 
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button btn_Disconnect;
         private System.Windows.Forms.Button btn_HandShake;
@@ -423,14 +481,15 @@
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.ColumnHeader columnHeader4;
+        private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.Button btn_Reconstruct;
-        private Kitware.VTK.RenderWindowControl renderWindowControl1;
         private System.Windows.Forms.DateTimePicker dateTimePicker_Query;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txt_CameraIp;
         private System.Windows.Forms.Button btn_PlayCamera;
+        private Kitware.VTK.RenderWindowControl renderWindowControl1;
         private System.Windows.Forms.Panel panel_Video;
     }
 }

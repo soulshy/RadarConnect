@@ -88,17 +88,6 @@ namespace RadarConnect
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-            try
-            {
-                _vtkVisualizer = new VtkVisualizer(renderWindowControl1);
-                AddLog("VTK 可视化组件初始化成功。");
-            }
-            catch (Exception ex)
-            {
-                AddLog($"VTK 初始化失败: {ex.Message}");
-                MessageBox.Show("VTK 初始化失败，请确保已正确安装 Activiz.NET 库。\n" + ex.Message);
-            }
-
             // 初始化相机播放器
             InitCameraPlayer();
         }
@@ -212,6 +201,20 @@ namespace RadarConnect
         // 数据库查询与还原
         private async void btn_Reconstruct_Click(object sender, EventArgs e)
         {
+            if (_vtkVisualizer == null)
+            {
+                try
+                {
+                    _vtkVisualizer = new VtkVisualizer(renderWindowControl1);
+                    AddLog("VTK 可视化组件初始化成功。");
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"VTK 初始化失败: {ex.Message}");
+                    MessageBox.Show("VTK 初始化失败，请确保已正确安装 Activiz.NET 库。\n" + ex.Message);
+                    return; // 初始化失败则终止查询
+                }
+            }
             // 1. 获取用户选择的【起始时间】
             DateTime selectedStartTime = dateTimePicker_Query.Value;
 
