@@ -22,7 +22,7 @@ namespace RadarConnect
 
         // 事件定义
         public event Action<byte[], IPEndPoint> OnBroadcastReceived;
-        public event Action<byte[], IPEndPoint> OnCmdAckReceived; // 新增：命令回复专用
+        public event Action<byte[], IPEndPoint> OnCmdAckReceived; //命令回复
         public event Action<byte[]> OnDataReceived;
         public event Action<string> OnError;
 
@@ -43,17 +43,14 @@ namespace RadarConnect
                 IPAddress ip = IPAddress.Parse(localIp);
 
                 // 1. 启动广播监听 (55000)
-                // 注意：这里必须复用地址，否则可能和其他雷达软件冲突
-                // 1. 启动广播监听 (55000)
-                // 【关键修改】必须绑定到 Any，否则收不到 255.255.255.255 的广播
                 _broadcastListener = new UdpClient();
                 _broadcastListener.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                _broadcastListener.Client.Bind(new IPEndPoint(IPAddress.Any, 55000)); // 改为 Any
+                _broadcastListener.Client.Bind(new IPEndPoint(IPAddress.Any, 55000));
 
                 _broadcastThread = new Thread(ReceiveBroadcastLoop) { IsBackground = true };
                 _broadcastThread.Start();
 
-                // 2. 启动命令通道 (绑定到 cmdPort, 如 50001)
+                // 2. 启动命令通道 (绑定到 cmdPort)
                 _cmdClient = new UdpClient();
                 _cmdClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 _cmdClient.Client.Bind(new IPEndPoint(ip, cmdPort));
@@ -61,7 +58,7 @@ namespace RadarConnect
                 _cmdThread = new Thread(ReceiveCmdLoop) { IsBackground = true };
                 _cmdThread.Start();
 
-                // 3. 启动数据通道 (绑定到 dataPort, 如 60000)
+                // 3. 启动数据通道 (绑定到 dataPort)
                 _dataListener = new UdpClient();
                 _dataListener.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 _dataListener.Client.ReceiveBufferSize = 1024 * 1024 * 100; // 100MB 缓冲区

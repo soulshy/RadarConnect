@@ -3,7 +3,7 @@
 namespace RadarConnect
 {
     // ==========================================
-    // 协议模型定义 - 对应 SDK livox_def.h
+    // 协议模型定义 
     // ==========================================
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -16,7 +16,7 @@ namespace RadarConnect
         public ushort imu_port;
     }
 
-    // 【新增】时间同步请求结构体
+    //时间同步请求结构体
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct LidarSetUtcSyncTimeRequest
     {

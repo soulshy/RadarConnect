@@ -55,7 +55,7 @@ namespace RadarConnect
         }
 
         // CRC32: Ethernet (Poly=0x04C11DB7 Reflected -> 0xEDB88320, Init=0x564F580A)
-        // 修正后的 CRC32 方法
+        // CRC32 方法
         public static uint Crc32(byte[] data, int length)
         {
             uint crc = 0x564F580A; // 官方 SDK 种子

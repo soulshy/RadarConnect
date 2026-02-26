@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices; // 用于内联优化
 namespace RadarConnect
 {
     /// <summary>
-    /// 优化后的点云处理器
+    /// 点云处理器
     /// </summary>
     public class PointCloudProcessor
     {
@@ -44,7 +44,7 @@ namespace RadarConnect
         // ==========================================
         // 2. ROI (Region of Interest)
         // ==========================================
-        // 比如：用于过滤地面(Z > -1.5) 或 天花板(Z < 3.0)
+        // 用于过滤地面(Z > -1.5) 或 天花板(Z < 3.0)
         public bool EnableRoiFilter = false;
         public float MinZ = -100f;
         public float MaxZ = 100f;
@@ -54,7 +54,7 @@ namespace RadarConnect
         public float MaxY = 100f;
 
         /// <summary>
-        /// 处理点云 (高性能版)
+        /// 处理点云
         /// </summary>
         /// <param name="rawPoints">原始数据源</param>
         /// <param name="outputBuffer">输出缓冲区 (传入已有的List以复用内存)</param>
@@ -93,12 +93,10 @@ namespace RadarConnect
                 if (float.IsNaN(p.X) || float.IsNaN(p.Y) || float.IsNaN(p.Z)) continue;
 
                 // --- 第三层：距离过滤 (球体) ---
-                // 优化点：使用 float 运算，避免 Math.Pow
                 float distSq = p.X * p.X + p.Y * p.Y + p.Z * p.Z;
                 if (distSq < minDSq || distSq > maxDSq) continue;
 
                 // --- 第四层：ROI 过滤 (立方体) ---
-                // 只有在开启时才判断，用于切除不需要的区域
                 if (useRoi)
                 {
                     if (p.Z < minZ || p.Z > maxZ) continue;

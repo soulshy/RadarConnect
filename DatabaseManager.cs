@@ -62,7 +62,7 @@ namespace RadarConnect
             // 1. 计算查询的时间窗口 (本地时间)
             DateTime localEndTime = localStartTime.AddSeconds(durationSeconds);
 
-            // 2. 转换为 UTC 时间 (因为数据库存的是 UTC)
+            // 2. 转换为 UTC 时间 
             // .ToUniversalTime() 会自动减去本地时区偏移
             DateTime utcStart = localStartTime.ToUniversalTime();
             DateTime utcEnd = localEndTime.ToUniversalTime();

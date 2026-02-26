@@ -51,7 +51,7 @@
         GetReturnMode = 0x07,
         SetImuFreq = 0x08,
         GetImuFreq = 0x09,
-        UpdateUtcTime = 0x0A // 【关键】时间同步指令 ID
+        UpdateUtcTime = 0x0A //时间同步指令 ID
     }
 
     public enum LidarMode : byte
