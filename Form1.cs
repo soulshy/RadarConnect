@@ -12,6 +12,8 @@ using System.Windows.Forms;
 using Kitware.VTK;
 using LibVLCSharp.Shared;
 using LibVLCSharp.WinForms;
+using System.Net.Http;
+using System.Text.RegularExpressions;
 
 namespace RadarConnect
 {
@@ -105,8 +107,8 @@ namespace RadarConnect
             // 初始化时间选择器为当前时间
             dateTimePicker_Query.Value = DateTime.Now;
 
-            // 默认相机 IP 示例
-            txt_CameraIp.Text = "192.168.1.89";
+            // 相机 IP
+            txt_CameraIp.Text = "192.168.1.168";
         }
 
         #region 相机视频流控制
@@ -138,7 +140,7 @@ namespace RadarConnect
             }
         }
 
-        private void btn_PlayCamera_Click(object sender, EventArgs e)
+        private async void btn_PlayCamera_Click(object sender, EventArgs e)
         {
             if (_libVLC == null)
             {
@@ -148,31 +150,170 @@ namespace RadarConnect
 
             if (!_isCameraPlaying)
             {
-                string ip = txt_CameraIp.Text.Trim();
-                if (string.IsNullOrEmpty(ip))
+                string inputIp = txt_CameraIp.Text.Trim();
+                if (string.IsNullOrEmpty(inputIp))
                 {
                     MessageBox.Show("请输入相机IP地址！");
                     return;
                 }
 
-                // 根据 API 文档拼接主码流 RTSP 地址
-                string rtspUrl = $"rtsp://{ip}/stream_0";
+                string ipAddress = inputIp.Contains(":") ? inputIp.Split(':')[0] : inputIp;
 
-                var media = new Media(_libVLC, rtspUrl, FromType.FromLocation);
-                // 添加网络缓存参数以降低延迟和卡顿，单位为毫秒
-                media.AddOption(":network-caching=300");
+                //改变 UI 状态，明确告诉用户正在等待接口
+                btn_PlayCamera.Enabled = false;
+                btn_PlayCamera.Text = "正在请求接口...";
+                AddLog("1. 正在调用 HTTP 接口验证相机状态...");
 
-                _mediaPlayer.Play(media);
-                _isCameraPlaying = true;
-                btn_PlayCamera.Text = "停止视频";
-                AddLog($"开始播放相机主码流: {rtspUrl}");
+                try
+                {
+                    string user = "admin";
+                    string pwdMd5 = "e10adc3949ba59abbe56e057f20f883e";
+                    string apiUrl = $"http://{ipAddress}/action/cgi_action?user={user}&pwd={pwdMd5}&action=getRtspConf";
+
+                    using (HttpClient client = new HttpClient())
+                    {
+                        client.Timeout = TimeSpan.FromSeconds(3);
+
+                        //在这里死等相机的 HTTP 响应
+                        HttpResponseMessage response = await client.GetAsync(apiUrl);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            string jsonResponse = await response.Content.ReadAsStringAsync();
+                            AddLog("2. 接口返回成功，校验配置中...");
+
+                            //等到了接口数据，判断 code 是否为 0
+                            if (jsonResponse.Contains("\"code\": 0") || jsonResponse.Contains("\"code\":0"))
+                            {
+                                int rtspPort = 554; // 默认端口
+                                Match match = Regex.Match(jsonResponse, "\"rtsp_port\":\\s*(\\d+)");
+                                if (match.Success)
+                                {
+                                    rtspPort = int.Parse(match.Groups[1].Value);
+                                }
+                                await SyncCameraTimeAsync(ipAddress, user, pwdMd5);
+                                // 3. 接口确认OK，准备让 VLC 拉流
+                                string rtspUrl = $"rtsp://{ipAddress}:{rtspPort}/stream_0";
+                                var media = new Media(_libVLC, rtspUrl, FromType.FromLocation);
+                                media.AddOption(":network-caching=300");
+                                media.AddOption(":rtsp-tcp");
+                                media.AddOption(":avcodec-hw=none");
+                                // 注册 VLC 的状态事件，监控 RTSP 的等待过程
+                                _mediaPlayer.Playing += MediaPlayer_Playing;
+                                _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
+
+                                AddLog("3. 配置检查OK，准备连接 RTSP 视频流...");
+                                btn_PlayCamera.Text = "连接 RTSP...";
+
+                                // 开始异步播放拉流
+                                _mediaPlayer.Play(media);
+                            }
+                            else
+                            {
+                                MessageBox.Show("相机返回错误代码，请检查配置！");
+                                btn_PlayCamera.Text = "播放相机";
+                                btn_PlayCamera.Enabled = true;
+                            }
+                        }
+                        else
+                        {
+                            AddLog($"接口 HTTP 请求失败，状态码: {response.StatusCode}");
+                            btn_PlayCamera.Text = "播放相机";
+                            btn_PlayCamera.Enabled = true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"连接异常: {ex.Message}");
+                    btn_PlayCamera.Text = "播放相机";
+                    btn_PlayCamera.Enabled = true;
+                }
             }
             else
             {
+                // 停止播放逻辑
                 _mediaPlayer.Stop();
+                _mediaPlayer.Playing -= MediaPlayer_Playing;
+                _mediaPlayer.EncounteredError -= MediaPlayer_EncounteredError;
+
                 _isCameraPlaying = false;
                 btn_PlayCamera.Text = "播放相机";
-                AddLog("已停止播放视频流。");
+                AddLog("已断开视频流。");
+            }
+        }
+
+        // 事件：当 VLC 成功完成 RTSP 握手，真正开始渲染画面时触发
+        private void MediaPlayer_Playing(object sender, EventArgs e)
+        {
+            // 因为是后台线程触发，需要 Invoke 回到主线程更新 UI
+            this.BeginInvoke(new Action(() =>
+            {
+                _isCameraPlaying = true;
+                btn_PlayCamera.Enabled = true;
+                btn_PlayCamera.Text = "停止视频";
+                AddLog("4. 视频流连接成功，正在播放！");
+            }));
+        }
+
+        // 事件：当 RTSP 连接失败或断开时触发
+        private void MediaPlayer_EncounteredError(object sender, EventArgs e)
+        {
+            this.BeginInvoke(new Action(() =>
+            {
+                _isCameraPlaying = false;
+                btn_PlayCamera.Enabled = true;
+                btn_PlayCamera.Text = "播放相机";
+                AddLog("视频流连接失败或已断开！");
+                MessageBox.Show("获取 RTSP 视频流失败，请检查网络或相机端口配置！");
+            }));
+        }
+
+        /// <summary>
+        /// 同步相机时间
+        /// </summary>
+        private async Task SyncCameraTimeAsync(string ipAddress, string user, string pwdMd5)
+        {
+            AddLog("正在同步相机时间...");
+            try
+            {
+
+                // --------------------------------------------------------
+                // 获取当前电脑时间的 Unix 时间戳 (秒)
+                long unixTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+                string jsonParam = $"{{\"ntp_enable\":0, \"CurTime\":{unixTimestamp}}}";
+                // --------------------------------------------------------
+
+                // 为了防止 JSON 字符串中的引号和空格在 URL 中传输报错，对其进行 UrlEncode 编码
+                string encodedJson = Uri.EscapeDataString(jsonParam);
+                string apiUrl = $"http://{ipAddress}/action/cgi_action?user={user}&pwd={pwdMd5}&action=setTime&json={encodedJson}";
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(3);
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string jsonResponse = await response.Content.ReadAsStringAsync();
+                        if (jsonResponse.Contains("\"code\": 0") || jsonResponse.Contains("\"code\":0"))
+                        {
+                            AddLog("相机时间同步成功！");
+                        }
+                        else
+                        {
+                            AddLog($"相机时间同步失败，接口返回: {jsonResponse}");
+                        }
+                    }
+                    else
+                    {
+                        AddLog($"同步时间 HTTP 请求失败，状态码: {response.StatusCode}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog($"同步相机时间异常: {ex.Message}");
             }
         }
 
