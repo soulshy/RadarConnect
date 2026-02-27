@@ -51,6 +51,7 @@
             this.renderWindowControl1 = new Kitware.VTK.RenderWindowControl();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -66,6 +67,7 @@
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
@@ -310,12 +312,13 @@
             // 
             // groupBox5
             // 
+            this.groupBox5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox5.Controls.Add(this.label3);
             this.groupBox5.Controls.Add(this.dateTimePicker_Query);
             this.groupBox5.Controls.Add(this.btn_Reconstruct);
             this.groupBox5.Location = new System.Drawing.Point(6, 6);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(420, 60);
+            this.groupBox5.Size = new System.Drawing.Size(922, 60);
             this.groupBox5.TabIndex = 7;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "点云还原查询";
@@ -357,7 +360,7 @@
             this.groupBox4.Controls.Add(this.btn_PlayCamera);
             this.groupBox4.Location = new System.Drawing.Point(1022, 9);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(910, 60);
+            this.groupBox4.Size = new System.Drawing.Size(922, 60);
             this.groupBox4.TabIndex = 5;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "相机控制";
@@ -425,6 +428,16 @@
             this.lbl_SampleState.Size = new System.Drawing.Size(56, 17);
             this.lbl_SampleState.Text = "系统就绪";
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(1961, 774);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "点云CCD融合";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -433,7 +446,9 @@
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.statusStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
             this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Livox Radar Connect";
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
@@ -491,5 +506,6 @@
         private System.Windows.Forms.Button btn_PlayCamera;
         private Kitware.VTK.RenderWindowControl renderWindowControl1;
         private System.Windows.Forms.Panel panel_Video;
+        private System.Windows.Forms.TabPage tabPage3;
     }
 }

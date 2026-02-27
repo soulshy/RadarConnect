@@ -1,19 +1,20 @@
-﻿using System;
+﻿using Kitware.VTK;
+using LibVLCSharp.Shared;
+using LibVLCSharp.WinForms;
+using Org.BouncyCastle.Utilities.Net;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Kitware.VTK;
-using LibVLCSharp.Shared;
-using LibVLCSharp.WinForms;
-using System.Net.Http;
-using System.Text.RegularExpressions;
 
 namespace RadarConnect
 {
@@ -120,7 +121,13 @@ namespace RadarConnect
                 // 初始化 LibVLC 核心
                 Core.Initialize();
 
-                _libVLC = new LibVLC();
+                _libVLC = new LibVLC(
+                  "--no-osd",               // 关闭屏幕上的提示文字
+                  "--network-caching=100",  // 全局网络缓存降低到 100 毫秒
+                  "--live-caching=100",     // 直播缓存降低到 100 毫秒
+                  "--drop-late-frames",     // 丢弃迟到的画面帧，绝不为了显示老画面而拖慢进度
+                  "--skip-frames"           // 允许跳帧以追赶真实时间
+                 );
                 _mediaPlayer = new MediaPlayer(_libVLC);
 
                 // 动态创建 VideoView 并填充到 panel_Video 容器中
@@ -169,12 +176,12 @@ namespace RadarConnect
                     string user = "admin";
                     string pwdMd5 = "e10adc3949ba59abbe56e057f20f883e";
                     string apiUrl = $"http://{ipAddress}/action/cgi_action?user={user}&pwd={pwdMd5}&action=getRtspConf";
-
+                    await SyncCameraTimeAsync(ipAddress, user, pwdMd5);
                     using (HttpClient client = new HttpClient())
                     {
                         client.Timeout = TimeSpan.FromSeconds(3);
 
-                        //在这里死等相机的 HTTP 响应
+                        //在这里等待相机的 HTTP 响应
                         HttpResponseMessage response = await client.GetAsync(apiUrl);
 
                         if (response.IsSuccessStatusCode)
@@ -191,13 +198,27 @@ namespace RadarConnect
                                 {
                                     rtspPort = int.Parse(match.Groups[1].Value);
                                 }
-                                await SyncCameraTimeAsync(ipAddress, user, pwdMd5);
                                 // 3. 接口确认OK，准备让 VLC 拉流
                                 string rtspUrl = $"rtsp://{ipAddress}:{rtspPort}/stream_0";
                                 var media = new Media(_libVLC, rtspUrl, FromType.FromLocation);
                                 media.AddOption(":network-caching=300");
+                                media.AddOption(":living-caching=100");
                                 media.AddOption(":rtsp-tcp");
                                 media.AddOption(":avcodec-hw=none");
+                                media.AddOption(":no-sout-audio");
+                                //视频流保存至本地逻辑 
+                                string recordFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CameraRecords");
+                                if (!System.IO.Directory.Exists(recordFolder))
+                                {
+                                    System.IO.Directory.CreateDirectory(recordFolder);
+                                }
+                                string fileName = $"Record_{DateTime.Now:yyyyMMdd_HHmmss}.mp4";
+                                string savePath = System.IO.Path.Combine(recordFolder, fileName).Replace("\\", "/");
+                                string soutOption = $":sout=#duplicate{{dst=display,dst=std{{access=file,mux=mp4,dst='{savePath}'}}}}";
+
+                                media.AddOption(soutOption);
+
+                                AddLog($"视频将同步录制到: {savePath}");
                                 // 注册 VLC 的状态事件，监控 RTSP 的等待过程
                                 _mediaPlayer.Playing += MediaPlayer_Playing;
                                 _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
@@ -207,6 +228,7 @@ namespace RadarConnect
 
                                 // 开始异步播放拉流
                                 _mediaPlayer.Play(media);
+                                _mediaPlayer.AspectRatio = $"{panel_Video.Width}:{panel_Video.Height}";
                             }
                             else
                             {
@@ -272,17 +294,19 @@ namespace RadarConnect
         /// <summary>
         /// 同步相机时间
         /// </summary>
+
         private async Task SyncCameraTimeAsync(string ipAddress, string user, string pwdMd5)
         {
-            AddLog("正在同步相机时间...");
+            AddLog("配置相机 NTP 服务中...");
             try
             {
-
                 // --------------------------------------------------------
-                // 获取当前电脑时间的 Unix 时间戳 (秒)
-                long unixTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
-                string jsonParam = $"{{\"ntp_enable\":0, \"CurTime\":{unixTimestamp}}}";
+                // ntpServer: NTP 服务器地址 
+                // timeInterval: 时间同步间隔 (60秒)
+                // timeZone: 时区编号 (26 代表 [UTC+08:00] 北京时间)
+                // ntp_enable: 1 代表开启 NTP 模式
                 // --------------------------------------------------------
+                string jsonParam = $"{{\"ntpServer\":\"{FIXED_LOCAL_IP}\", \"timeInterval\":30, \"timeZone\":26, \"ntp_enable\":1}}";
 
                 // 为了防止 JSON 字符串中的引号和空格在 URL 中传输报错，对其进行 UrlEncode 编码
                 string encodedJson = Uri.EscapeDataString(jsonParam);
@@ -298,22 +322,22 @@ namespace RadarConnect
                         string jsonResponse = await response.Content.ReadAsStringAsync();
                         if (jsonResponse.Contains("\"code\": 0") || jsonResponse.Contains("\"code\":0"))
                         {
-                            AddLog("相机时间同步成功！");
+                            AddLog("相机 NTP 配置成功");
                         }
                         else
                         {
-                            AddLog($"相机时间同步失败，接口返回: {jsonResponse}");
+                            AddLog($"相机 NTP 配置失败，接口返回: {jsonResponse}");
                         }
                     }
                     else
                     {
-                        AddLog($"同步时间 HTTP 请求失败，状态码: {response.StatusCode}");
+                        AddLog($"配置 NTP HTTP 请求失败，状态码: {response.StatusCode}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                AddLog($"同步相机时间异常: {ex.Message}");
+                AddLog($"配置相机 NTP 异常: {ex.Message}");
             }
         }
 
@@ -449,7 +473,7 @@ namespace RadarConnect
             }
             catch { }
 
-            req.user_ip = IPAddress.Parse(localIpStr).GetAddressBytes();
+            req.user_ip = System.Net.IPAddress.Parse(localIpStr).GetAddressBytes();
             req.data_port = LOCAL_DATA_PORT;
             req.cmd_port = LOCAL_CMD_PORT;
             req.imu_port = LOCAL_DATA_PORT;
@@ -775,5 +799,14 @@ namespace RadarConnect
         }
 
         #endregion
+        private void panel_Video_Resize(object sender, EventArgs e)
+        {
+            if (_mediaPlayer != null)
+            {
+                _mediaPlayer.AspectRatio = $"{panel_Video.Width}:{panel_Video.Height}";
+
+  
+            }
+        }
     }
 }
