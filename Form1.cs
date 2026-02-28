@@ -77,6 +77,14 @@ namespace RadarConnect
             _udpClient = new UdpCommunication();
             _dbManager = new DatabaseManager();
 
+            // 订阅数据库多线程安全结束事件
+            _dbManager.OnSaveFinished += () =>
+            {
+                this.BeginInvoke((MethodInvoker)delegate {
+                    AddLog(">>> 后台剩余点云已全部安全入库，写入线程已彻底结束。");
+                });
+            };
+
             _heartbeatTimer = new System.Windows.Forms.Timer();
             _heartbeatTimer.Interval = 1000;
             _heartbeatTimer.Tick += OnHeartbeatTimerTick;
@@ -93,7 +101,7 @@ namespace RadarConnect
             _processor.MinZ = -2.0f;
             _processor.MaxZ = 50.0f;
             this.Load += Form1_Load;
-            this.FormClosing += Form1_FormClosing; // 注册关闭事件以释放 VLC 资源
+            this.FormClosing += Form1_FormClosing;
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -135,8 +143,8 @@ namespace RadarConnect
                           "--rtsp-frame-buffer-size=2000000",
                           "--drop-late-frames",
                           "--skip-frames",
-                          "--avcodec-hw=dxva2",     // 强制使用 DXVA2 硬件解码
-                          "--vout=direct3d9"        // 强制使用 Direct3D9 渲染引擎配合 DXVA2
+                          "--avcodec-hw=dxva2",
+                          "--vout=direct3d9"
                         );
                 _mediaPlayer = new MediaPlayer(_libVLC);
 
@@ -176,7 +184,6 @@ namespace RadarConnect
 
                 string ipAddress = inputIp.Contains(":") ? inputIp.Split(':')[0] : inputIp;
 
-                //改变 UI 状态，明确告诉用户正在等待接口
                 btn_PlayCamera.Enabled = false;
                 btn_PlayCamera.Text = "正在请求接口...";
                 AddLog("1. 正在调用 HTTP 接口验证相机状态...");
@@ -191,7 +198,6 @@ namespace RadarConnect
                     {
                         client.Timeout = TimeSpan.FromSeconds(3);
 
-                        //在这里等待相机的 HTTP 响应
                         HttpResponseMessage response = await client.GetAsync(apiUrl);
 
                         if (response.IsSuccessStatusCode)
@@ -199,7 +205,6 @@ namespace RadarConnect
                             string jsonResponse = await response.Content.ReadAsStringAsync();
                             AddLog("2. 接口返回成功，校验配置中...");
 
-                            //等到了接口数据，判断 code 是否为 0
                             if (jsonResponse.Contains("\"code\": 0") || jsonResponse.Contains("\"code\":0"))
                             {
                                 int rtspPort = 554; // 默认端口
@@ -208,7 +213,7 @@ namespace RadarConnect
                                 {
                                     rtspPort = int.Parse(match.Groups[1].Value);
                                 }
-                                // 3. 接口确认OK，准备让 VLC 拉流
+
                                 string rtspUrl = $"rtsp://{ipAddress}:{rtspPort}/stream_0";
                                 var media = new Media(_libVLC, rtspUrl, FromType.FromLocation);
                                 media.AddOption(":rtsp-tcp");
@@ -216,7 +221,7 @@ namespace RadarConnect
                                 media.AddOption(":network-caching=500");
                                 media.AddOption(":live-caching=500");
                                 media.AddOption(":no-sout-audio");
-                                //视频流保存至本地逻辑 
+
                                 string recordFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CameraRecords");
                                 if (!System.IO.Directory.Exists(recordFolder))
                                 {
@@ -229,14 +234,12 @@ namespace RadarConnect
                                 media.AddOption(soutOption);
 
                                 AddLog($"视频将同步录制到: {savePath}");
-                                // 注册 VLC 的状态事件，监控 RTSP 的等待过程
                                 _mediaPlayer.Playing += MediaPlayer_Playing;
                                 _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
 
                                 AddLog("3. 配置检查OK，准备连接 RTSP 视频流...");
                                 btn_PlayCamera.Text = "连接 RTSP...";
 
-                                // 开始异步播放拉流
                                 _mediaPlayer.Play(media);
                                 _mediaPlayer.AspectRatio = $"{panel_Video.Width}:{panel_Video.Height}";
                             }
@@ -264,7 +267,6 @@ namespace RadarConnect
             }
             else
             {
-                // 停止播放逻辑
                 _mediaPlayer.Stop();
                 _mediaPlayer.Playing -= MediaPlayer_Playing;
                 _mediaPlayer.EncounteredError -= MediaPlayer_EncounteredError;
@@ -275,10 +277,8 @@ namespace RadarConnect
             }
         }
 
-        // 事件：当 VLC 成功完成 RTSP 握手，真正开始渲染画面时触发
         private void MediaPlayer_Playing(object sender, EventArgs e)
         {
-            // 因为是后台线程触发，需要 Invoke 回到主线程更新 UI
             this.BeginInvoke(new Action(() =>
             {
                 _isCameraPlaying = true;
@@ -288,7 +288,6 @@ namespace RadarConnect
             }));
         }
 
-        // 事件：当 RTSP 连接失败或断开时触发
         private void MediaPlayer_EncounteredError(object sender, EventArgs e)
         {
             this.BeginInvoke(new Action(() =>
@@ -301,24 +300,12 @@ namespace RadarConnect
             }));
         }
 
-        /// <summary>
-        /// 同步相机时间
-        /// </summary>
-
         private async Task SyncCameraTimeAsync(string ipAddress, string user, string pwdMd5)
         {
             AddLog("配置相机 NTP 服务中...");
             try
             {
-                // --------------------------------------------------------
-                // ntpServer: NTP 服务器地址 
-                // timeInterval: 时间同步间隔 (60秒)
-                // timeZone: 时区编号 (26 代表 [UTC+08:00] 北京时间)
-                // ntp_enable: 1 代表开启 NTP 模式
-                // --------------------------------------------------------
                 string jsonParam = $"{{\"ntpServer\":\"{FIXED_LOCAL_IP}\", \"timeInterval\":30, \"timeZone\":26, \"ntp_enable\":1}}";
-
-                // 为了防止 JSON 字符串中的引号和空格在 URL 中传输报错，对其进行 UrlEncode 编码
                 string encodedJson = Uri.EscapeDataString(jsonParam);
                 string apiUrl = $"http://{ipAddress}/action/cgi_action?user={user}&pwd={pwdMd5}&action=setTime&json={encodedJson}";
 
@@ -350,11 +337,14 @@ namespace RadarConnect
                 AddLog($"配置相机 NTP 异常: {ex.Message}");
             }
         }
+
         private void btn_SelectVideo_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
                 ofd.Filter = "视频文件|*.mp4;*.avi;*.mkv|所有文件|*.*";
+                // 恢复工作目录，防止 FFmpeg 由于路径问题找不到文件
+                ofd.RestoreDirectory = true;
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     txt_VideoPath.Text = ofd.FileName;
@@ -413,7 +403,6 @@ namespace RadarConnect
                 // 5. 调用传感器融合模块进行 3D->2D 投影映射
                 AddLog($"[融合] 正在将 {filteredPoints.Count} 个点投影至图像...");
 
-
                 Image fusedImage = await Task.Run(() =>
                     _sensorFusion.ProjectPointCloudToImage(extractedImagePath, filteredPoints, 30.0f));
 
@@ -432,6 +421,7 @@ namespace RadarConnect
                 btn_ExecuteFusion.Enabled = true;
             }
         }
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             // 停止所有的后台工作
@@ -453,8 +443,6 @@ namespace RadarConnect
 
         #region 数据库查询与还原
 
-        // 点击按钮触发：根据 dateTimePicker 的时间查询并显示
-        // 数据库查询与还原
         private async void btn_Reconstruct_Click(object sender, EventArgs e)
         {
             if (_vtkVisualizer == null)
@@ -468,31 +456,22 @@ namespace RadarConnect
                 {
                     AddLog($"VTK 初始化失败: {ex.Message}");
                     MessageBox.Show("VTK 初始化失败，请确保已正确安装 Activiz.NET 库。\n" + ex.Message);
-                    return; // 初始化失败则终止查询
+                    return;
                 }
             }
-            // 1. 获取用户选择的【起始时间】
             DateTime selectedStartTime = dateTimePicker_Query.Value;
-
-            // 设定查询时长为 1 秒
             double durationSeconds = 1.0;
 
-            // 显示日志
             AddLog($"[查询] 时间窗口: {selectedStartTime.ToString("HH:mm:ss")} -> +1s");
-
             btn_Reconstruct.Enabled = false;
 
             try
             {
-                // 2. 异步后台查询
                 List<PointData> pointsToRender = await Task.Run(() =>
                 {
-                    // 内部会自动处理 UTC 转换和 "不足1s查到最后" 的逻辑
                     List<PointData> rawPoints = _dbManager.GetPointsInRange(selectedStartTime, durationSeconds);
-
                     if (rawPoints == null || rawPoints.Count == 0) return null;
 
-                    // 3. 数据预处理
                     lock (_displayBuffer)
                     {
                         _processor.ApplyFilters(rawPoints, _displayBuffer);
@@ -500,7 +479,6 @@ namespace RadarConnect
                     }
                 });
 
-                // 4. UI 线程渲染
                 if (pointsToRender != null && pointsToRender.Count > 0)
                 {
                     AddLog($"[还原] 成功加载点数: {pointsToRender.Count}");
@@ -524,7 +502,8 @@ namespace RadarConnect
 
         #endregion
 
-        #region 
+        #region 控制与网络
+
         private void btn_StartListen_Click(object sender, EventArgs e)
         {
             _udpClient.Start(FIXED_LOCAL_IP, LOCAL_CMD_PORT, LOCAL_DATA_PORT);
@@ -564,7 +543,6 @@ namespace RadarConnect
             }
             catch
             {
-
             }
             req.user_ip = System.Net.IPAddress.Parse(localIpStr).GetAddressBytes();
             req.data_port = LOCAL_DATA_PORT;
@@ -602,11 +580,11 @@ namespace RadarConnect
             {
                 MessageBox.Show("未选中设备！", "提示");
                 AddLog(">>> 操作失败：未选中设备");
-                return; 
+                return;
             }
             SendControlCommand(CmdSet.General, 0x06, null);
             StopAllWork();
-            AddLog(">>> 请求断开");
+            AddLog(">>> 连接断开");
             listView_Devices.SelectedItems[0].SubItems[3].Text = "未连接";
         }
 
@@ -631,7 +609,7 @@ namespace RadarConnect
 
         #endregion
 
-        #region 
+        #region 数据处理
 
         private void ProcessPointCloud(byte[] data)
         {
@@ -886,14 +864,54 @@ namespace RadarConnect
             SendControlCommand(CmdSet.Lidar, (byte)LidarCmdId.UpdateUtcTime, payload);
         }
 
+        // ==========================================
+        // 日志系统
+        // ==========================================
+        private static readonly object _logLock = new object();
+
         private void AddLog(string msg)
         {
             if (listBox_Log.InvokeRequired)
                 listBox_Log.BeginInvoke((MethodInvoker)delegate { AddLog(msg); });
             else
             {
-                listBox_Log.Items.Add($"[{DateTime.Now.ToString("HH:mm:ss")}] {msg}");
+                // 1. 格式化日志内容
+                string logLine = $"[{DateTime.Now.ToString("HH:mm:ss")}] {msg}";
+
+                // 2. 更新 UI 界面
+                listBox_Log.Items.Add(logLine);
                 listBox_Log.TopIndex = listBox_Log.Items.Count - 1;
+
+                // 3. 异步写入到文件，不阻塞界面
+                Task.Run(() => WriteLogToFile(logLine));
+            }
+        }
+
+        /// <summary>
+        /// 将日志内容追加到本地文件中
+        /// </summary>
+        private void WriteLogToFile(string logLine)
+        {
+            try
+            {
+                string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+                if (!Directory.Exists(logDir))
+                {
+                    Directory.CreateDirectory(logDir);
+                }
+
+                // 每天生成一个新的日志文件
+                string logFile = Path.Combine(logDir, $"Log_{DateTime.Now:yyyyMMdd}.txt");
+
+                // 使用锁防止多线程读写冲突
+                lock (_logLock)
+                {
+                    File.AppendAllText(logFile, logLine + Environment.NewLine);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"写日志文件失败: {ex.Message}");
             }
         }
 

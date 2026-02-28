@@ -39,19 +39,28 @@ namespace RadarConnect
                 // FFmpeg 参数: -ss 定位时间, -i 输入, -vframes 1 提取一帧, -q:v 2 高画质输出
                 string arguments = $"-ss {offset.TotalSeconds:F3} -i \"{videoPath}\" -vframes 1 -q:v 2 -y \"{outImagePath}\"";
 
+                string ffmpegPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg.exe");
+
                 ProcessStartInfo psi = new ProcessStartInfo
                 {
-                    FileName = "ffmpeg", // 确保 ffmpeg.exe 在程序目录或环境变量中
+                    FileName = ffmpegPath,
                     Arguments = arguments,
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardError = true,
-                    RedirectStandardOutput = true
+                    RedirectStandardOutput = false
                 };
 
                 using (Process process = Process.Start(psi))
                 {
-                    process.WaitForExit(5000); // 超时保护
+                    string ffmpegLog = process.StandardError.ReadToEnd();
+
+                    process.WaitForExit(5000);
+
+                    if (!File.Exists(outImagePath))
+                    {
+                        throw new Exception($"FFmpeg 未生成图片！\n偏移时间: {offset.TotalSeconds}秒\nFFmpeg底层日志: {ffmpegLog}");
+                    }
                 }
 
                 return outImagePath;
