@@ -562,8 +562,10 @@ namespace RadarConnect
                     }
                 }
             }
-            catch { }
+            catch
+            {
 
+            }
             req.user_ip = System.Net.IPAddress.Parse(localIpStr).GetAddressBytes();
             req.data_port = LOCAL_DATA_PORT;
             req.cmd_port = LOCAL_CMD_PORT;
@@ -596,6 +598,12 @@ namespace RadarConnect
 
         private void btn_Disconnect_Click_1(object sender, EventArgs e)
         {
+            if (listView_Devices.SelectedItems.Count == 0)
+            {
+                MessageBox.Show("未选中设备！", "提示");
+                AddLog(">>> 操作失败：未选中设备");
+                return; 
+            }
             SendControlCommand(CmdSet.General, 0x06, null);
             StopAllWork();
             AddLog(">>> 请求断开");
@@ -890,12 +898,5 @@ namespace RadarConnect
         }
 
         #endregion
-        private void panel_Video_Resize(object sender, EventArgs e)
-        {
-            if (_mediaPlayer != null)
-            {
-                _mediaPlayer.AspectRatio = $"{panel_Video.Width}:{panel_Video.Height}";
-            }
-        }
     }
 }
