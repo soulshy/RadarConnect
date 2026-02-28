@@ -49,9 +49,17 @@
             this.btn_PlayCamera = new System.Windows.Forms.Button();
             this.panel_Video = new System.Windows.Forms.Panel();
             this.renderWindowControl1 = new Kitware.VTK.RenderWindowControl();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.btn_ExecuteFusion = new System.Windows.Forms.Button();
+            this.btn_SelectVideo = new System.Windows.Forms.Button();
+            this.txt_VideoPath = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.dateTimePicker_Fusion = new System.Windows.Forms.DateTimePicker();
+            this.label5 = new System.Windows.Forms.Label();
+            this.pictureBox_FusionResult = new System.Windows.Forms.PictureBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -60,6 +68,9 @@
             this.tabPage2.SuspendLayout();
             this.groupBox5.SuspendLayout();
             this.groupBox4.SuspendLayout();
+            this.tabPage3.SuspendLayout();
+            this.groupBox6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_FusionResult)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -90,7 +101,7 @@
             // 
             // groupBox3
             // 
-            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
             | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBox3.Controls.Add(this.listBox_Log);
             this.groupBox3.Location = new System.Drawing.Point(12, 218);
@@ -403,14 +414,113 @@
             // renderWindowControl1
             // 
             this.renderWindowControl1.AddTestActors = false;
-            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.renderWindowControl1.Location = new System.Drawing.Point(6, 75);
             this.renderWindowControl1.Name = "renderWindowControl1";
             this.renderWindowControl1.Size = new System.Drawing.Size(922, 685);
             this.renderWindowControl1.TabIndex = 4;
             this.renderWindowControl1.TestText = null;
+            // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.pictureBox_FusionResult);
+            this.tabPage3.Controls.Add(this.groupBox6);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(1961, 774);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "点云CCD融合";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // groupBox6
+            // 
+            this.groupBox6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox6.Controls.Add(this.btn_ExecuteFusion);
+            this.groupBox6.Controls.Add(this.btn_SelectVideo);
+            this.groupBox6.Controls.Add(this.txt_VideoPath);
+            this.groupBox6.Controls.Add(this.label6);
+            this.groupBox6.Controls.Add(this.dateTimePicker_Fusion);
+            this.groupBox6.Controls.Add(this.label5);
+            this.groupBox6.Location = new System.Drawing.Point(8, 6);
+            this.groupBox6.Name = "groupBox6";
+            this.groupBox6.Size = new System.Drawing.Size(1945, 60);
+            this.groupBox6.TabIndex = 0;
+            this.groupBox6.TabStop = false;
+            this.groupBox6.Text = "离线融合控制";
+            // 
+            // btn_ExecuteFusion
+            // 
+            this.btn_ExecuteFusion.Location = new System.Drawing.Point(750, 18);
+            this.btn_ExecuteFusion.Name = "btn_ExecuteFusion";
+            this.btn_ExecuteFusion.Size = new System.Drawing.Size(100, 30);
+            this.btn_ExecuteFusion.TabIndex = 5;
+            this.btn_ExecuteFusion.Text = "执行融合";
+            this.btn_ExecuteFusion.UseVisualStyleBackColor = true;
+            this.btn_ExecuteFusion.Click += new System.EventHandler(this.btn_ExecuteFusion_Click);
+            // 
+            // btn_SelectVideo
+            // 
+            this.btn_SelectVideo.Location = new System.Drawing.Point(647, 20);
+            this.btn_SelectVideo.Name = "btn_SelectVideo";
+            this.btn_SelectVideo.Size = new System.Drawing.Size(80, 25);
+            this.btn_SelectVideo.TabIndex = 4;
+            this.btn_SelectVideo.Text = "选择视频...";
+            this.btn_SelectVideo.UseVisualStyleBackColor = true;
+            this.btn_SelectVideo.Click += new System.EventHandler(this.btn_SelectVideo_Click);
+            // 
+            // txt_VideoPath
+            // 
+            this.txt_VideoPath.Location = new System.Drawing.Point(341, 22);
+            this.txt_VideoPath.Name = "txt_VideoPath";
+            this.txt_VideoPath.ReadOnly = true;
+            this.txt_VideoPath.Size = new System.Drawing.Size(300, 21);
+            this.txt_VideoPath.TabIndex = 3;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(270, 26);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(65, 12);
+            this.label6.TabIndex = 2;
+            this.label6.Text = "视频路径：";
+            // 
+            // dateTimePicker_Fusion
+            // 
+            this.dateTimePicker_Fusion.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+            this.dateTimePicker_Fusion.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dateTimePicker_Fusion.Location = new System.Drawing.Point(86, 22);
+            this.dateTimePicker_Fusion.Name = "dateTimePicker_Fusion";
+            this.dateTimePicker_Fusion.ShowUpDown = true;
+            this.dateTimePicker_Fusion.Size = new System.Drawing.Size(160, 21);
+            this.dateTimePicker_Fusion.TabIndex = 1;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(15, 26);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(65, 12);
+            this.label5.TabIndex = 0;
+            this.label5.Text = "目标时间：";
+            // 
+            // pictureBox_FusionResult
+            // 
+            this.pictureBox_FusionResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pictureBox_FusionResult.BackColor = System.Drawing.Color.Black;
+            this.pictureBox_FusionResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBox_FusionResult.Location = new System.Drawing.Point(8, 72);
+            this.pictureBox_FusionResult.Name = "pictureBox_FusionResult";
+            this.pictureBox_FusionResult.Size = new System.Drawing.Size(1945, 694);
+            this.pictureBox_FusionResult.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox_FusionResult.TabIndex = 1;
+            this.pictureBox_FusionResult.TabStop = false;
             // 
             // statusStrip1
             // 
@@ -427,16 +537,6 @@
             this.lbl_SampleState.Name = "lbl_SampleState";
             this.lbl_SampleState.Size = new System.Drawing.Size(56, 17);
             this.lbl_SampleState.Text = "系统就绪";
-            // 
-            // tabPage3
-            // 
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1961, 774);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "点云CCD融合";
-            this.tabPage3.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -461,6 +561,10 @@
             this.groupBox5.PerformLayout();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
+            this.tabPage3.ResumeLayout(false);
+            this.groupBox6.ResumeLayout(false);
+            this.groupBox6.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_FusionResult)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -507,5 +611,13 @@
         private Kitware.VTK.RenderWindowControl renderWindowControl1;
         private System.Windows.Forms.Panel panel_Video;
         private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.GroupBox groupBox6;
+        private System.Windows.Forms.Button btn_ExecuteFusion;
+        private System.Windows.Forms.Button btn_SelectVideo;
+        private System.Windows.Forms.TextBox txt_VideoPath;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.DateTimePicker dateTimePicker_Fusion;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.PictureBox pictureBox_FusionResult;
     }
 }

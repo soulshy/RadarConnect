@@ -15,6 +15,9 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
+using System.Diagnostics;
+
 
 namespace RadarConnect
 {
@@ -54,6 +57,9 @@ namespace RadarConnect
 
         // 预处理复用缓冲区
         private List<PointData> _displayBuffer = new List<PointData>(300000);
+
+        private VideoProcessor _videoProcessor = new VideoProcessor();
+        private SensorFusion _sensorFusion = new SensorFusion();
 
         // ==========================================
         // 相机视频播放器变量
@@ -344,7 +350,88 @@ namespace RadarConnect
                 AddLog($"配置相机 NTP 异常: {ex.Message}");
             }
         }
+        private void btn_SelectVideo_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "视频文件|*.mp4;*.avi;*.mkv|所有文件|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    txt_VideoPath.Text = ofd.FileName;
+                }
+            }
+        }
 
+        private async void btn_ExecuteFusion_Click(object sender, EventArgs e)
+        {
+            string videoPath = txt_VideoPath.Text.Trim();
+            if (!File.Exists(videoPath))
+            {
+                MessageBox.Show("请先选择有效的视频文件！");
+                return;
+            }
+
+            DateTime targetTime = dateTimePicker_Fusion.Value;
+            btn_ExecuteFusion.Enabled = false;
+            AddLog($"[融合] 开始处理目标时间: {targetTime:yyyy-MM-dd HH:mm:ss}");
+
+            try
+            {
+                // 1. 视频时间轴计算
+                DateTime videoStartTime = _videoProcessor.ParseVideoStartTime(Path.GetFileName(videoPath));
+                TimeSpan offset = targetTime - videoStartTime;
+                if (offset.TotalSeconds < 0)
+                {
+                    MessageBox.Show("所选时间早于视频的开始录制时间，请重新选择！");
+                    return;
+                }
+
+                // 2. 调用 FFmpeg 抽帧模块
+                AddLog($"[融合] 正在抽帧，视频偏移: {offset.TotalSeconds:F3} 秒...");
+                string extractedImagePath = await _videoProcessor.ExtractFrameAsync(videoPath, offset);
+
+                if (!File.Exists(extractedImagePath))
+                {
+                    AddLog("[融合] FFmpeg 抽帧失败。请确认程序目录下存在 ffmpeg.exe。");
+                    return;
+                }
+
+                // 3. 调用数据库模块获取 1 秒的点云数据
+                AddLog("[融合] 正在提取点云数据...");
+                List<PointData> rawPoints = await Task.Run(() => _dbManager.GetPointsInRange(targetTime, 1.0));
+
+                if (rawPoints == null || rawPoints.Count == 0)
+                {
+                    AddLog("[融合] 数据库中该时间段无点云数据。");
+                    return;
+                }
+
+                // 4. 点云预处理 (过滤/降采样)
+                List<PointData> filteredPoints = new List<PointData>();
+                _processor.ApplyFilters(rawPoints, filteredPoints);
+
+                // 5. 调用传感器融合模块进行 3D->2D 投影映射
+                AddLog($"[融合] 正在将 {filteredPoints.Count} 个点投影至图像...");
+
+
+                Image fusedImage = await Task.Run(() =>
+                    _sensorFusion.ProjectPointCloudToImage(extractedImagePath, filteredPoints, 30.0f));
+
+                // 6. UI 更新
+                if (pictureBox_FusionResult.Image != null) pictureBox_FusionResult.Image.Dispose();
+                pictureBox_FusionResult.Image = fusedImage;
+
+                AddLog("[融合] 融合完成！");
+            }
+            catch (Exception ex)
+            {
+                AddLog($"[融合] 发生异常: {ex.Message}");
+            }
+            finally
+            {
+                btn_ExecuteFusion.Enabled = true;
+            }
+        }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             // 停止所有的后台工作
