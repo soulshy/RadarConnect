@@ -122,12 +122,16 @@ namespace RadarConnect
                 Core.Initialize();
 
                 _libVLC = new LibVLC(
-                  "--no-osd",               // 关闭屏幕上的提示文字
-                  "--network-caching=100",  // 全局网络缓存降低到 100 毫秒
-                  "--live-caching=100",     // 直播缓存降低到 100 毫秒
-                  "--drop-late-frames",     // 丢弃迟到的画面帧，绝不为了显示老画面而拖慢进度
-                  "--skip-frames"           // 允许跳帧以追赶真实时间
-                 );
+                          "--no-osd",
+                          "--rtsp-tcp",
+                          "--network-caching=300",
+                          "--live-caching=300",
+                          "--rtsp-frame-buffer-size=2000000",
+                          "--drop-late-frames",
+                          "--skip-frames",
+                          "--avcodec-hw=dxva2",     // 强制使用 DXVA2 硬件解码
+                          "--vout=direct3d9"        // 强制使用 Direct3D9 渲染引擎配合 DXVA2
+                        );
                 _mediaPlayer = new MediaPlayer(_libVLC);
 
                 // 动态创建 VideoView 并填充到 panel_Video 容器中
@@ -201,10 +205,10 @@ namespace RadarConnect
                                 // 3. 接口确认OK，准备让 VLC 拉流
                                 string rtspUrl = $"rtsp://{ipAddress}:{rtspPort}/stream_0";
                                 var media = new Media(_libVLC, rtspUrl, FromType.FromLocation);
-                                media.AddOption(":network-caching=300");
-                                media.AddOption(":living-caching=100");
                                 media.AddOption(":rtsp-tcp");
-                                media.AddOption(":avcodec-hw=none");
+                                media.AddOption(":rtsp-frame-buffer-size=2000000");
+                                media.AddOption(":network-caching=500");
+                                media.AddOption(":live-caching=500");
                                 media.AddOption(":no-sout-audio");
                                 //视频流保存至本地逻辑 
                                 string recordFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CameraRecords");
@@ -804,8 +808,6 @@ namespace RadarConnect
             if (_mediaPlayer != null)
             {
                 _mediaPlayer.AspectRatio = $"{panel_Video.Width}:{panel_Video.Height}";
-
-  
             }
         }
     }
