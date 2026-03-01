@@ -46,12 +46,12 @@ namespace RadarConnect
         // ==========================================
         // 用于过滤地面(Z > -1.5) 或 天花板(Z < 3.0)
         public bool EnableRoiFilter = false;
-        public float MinZ = -100f;
-        public float MaxZ = 100f;
-        public float MinX = -100f;
-        public float MaxX = 100f;
-        public float MinY = -100f;
-        public float MaxY = 100f;
+        public float MinZ = -500f;
+        public float MaxZ = 500f;
+        public float MinX = -500f;
+        public float MaxX = 500f;
+        public float MinY = -500f;
+        public float MaxY = 500f;
 
         /// <summary>
         /// 处理点云

@@ -13,7 +13,7 @@ namespace RadarConnect
         // 相机内参 (Camera Intrinsics)
         public float Fx { get; set; } = 1200f;
         public float Fy { get; set; } = 1200f;
-        public float Cx { get; set; } = 960f;  
+        public float Cx { get; set; } = 960f;
         public float Cy { get; set; } = 540f;
 
         /// <summary>
@@ -25,11 +25,24 @@ namespace RadarConnect
             // 使用 FileStream 加载避免文件长期锁定
             using (FileStream fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read))
             {
-                bmp = new Bitmap(fs);
+                using (Image tempImg = Image.FromStream(fs))
+                {
+                    // 【修复核心】创建一个新的非索引格式 Bitmap (Format32bppArgb)
+                    // 这样即使源图是 OpenCV 生成的灰度图（索引格式），也能创建 Graphics 对象进行绘制
+                    bmp = new Bitmap(tempImg.Width, tempImg.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    using (Graphics gTemp = Graphics.FromImage(bmp))
+                    {
+                        gTemp.DrawImage(tempImg, 0, 0);
+                    }
+                }
             }
 
+            // 现在可以安全地在 bmp 上创建 Graphics 对象
             using (Graphics g = Graphics.FromImage(bmp))
             {
+                // 设置高品质绘图参数
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
                 foreach (var p in points)
                 {
                     // --- 外参变换 (Extrinsics [R|T]) ---
@@ -51,6 +64,7 @@ namespace RadarConnect
                         Color ptColor = GetColorByDepth(p.Depth, maxDepth);
                         using (SolidBrush brush = new SolidBrush(ptColor))
                         {
+                            // 绘制点云，圆点大小设为 3x3
                             g.FillEllipse(brush, u - 1, v - 1, 3, 3);
                         }
                     }

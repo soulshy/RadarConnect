@@ -60,6 +60,7 @@ namespace RadarConnect
 
         private VideoProcessor _videoProcessor = new VideoProcessor();
         private SensorFusion _sensorFusion = new SensorFusion();
+        private ImageProcessor _imageProcessor = new ImageProcessor();
 
         // ==========================================
         // 相机视频播放器变量
@@ -379,6 +380,8 @@ namespace RadarConnect
                 // 2. 调用 FFmpeg 抽帧模块
                 AddLog($"[融合] 正在抽帧，视频偏移: {offset.TotalSeconds:F3} 秒...");
                 string extractedImagePath = await _videoProcessor.ExtractFrameAsync(videoPath, offset);
+                AddLog("[融合] 正在使用 OpenCV 进行图像增强与去噪...");
+                string processedPath = await _imageProcessor.ProcessImageAsync(extractedImagePath, 15, 1.2, true);
 
                 if (!File.Exists(extractedImagePath))
                 {
@@ -404,8 +407,7 @@ namespace RadarConnect
                 AddLog($"[融合] 正在将 {filteredPoints.Count} 个点投影至图像...");
 
                 Image fusedImage = await Task.Run(() =>
-                    _sensorFusion.ProjectPointCloudToImage(extractedImagePath, filteredPoints, 30.0f));
-
+             _sensorFusion.ProjectPointCloudToImage(processedPath, filteredPoints, 30.0f)); 
                 // 6. UI 更新
                 if (pictureBox_FusionResult.Image != null) pictureBox_FusionResult.Image.Dispose();
                 pictureBox_FusionResult.Image = fusedImage;
