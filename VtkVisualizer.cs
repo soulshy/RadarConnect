@@ -80,6 +80,7 @@ namespace RadarConnect
             // 4. 让 VTK 自动计算包围盒并缩放距离，保证所有点云刚好显示在画面中央
             _renderer.ResetCamera();
             // ========================================================
+            camera.Zoom(3);
 
             _renderWindow.Render();
         }
