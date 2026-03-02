@@ -18,7 +18,6 @@ using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
 
-
 namespace RadarConnect
 {
     public partial class Form1 : Form
@@ -104,6 +103,7 @@ namespace RadarConnect
             this.Load += Form1_Load;
             this.FormClosing += Form1_FormClosing;
         }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             // 初始化相机播放器
@@ -119,6 +119,10 @@ namespace RadarConnect
             if (cbx_Coordinate.Items.Count == 0)
                 cbx_Coordinate.Items.AddRange(new object[] { "直角坐标", "球坐标" });
             cbx_Coordinate.SelectedIndex = 0;
+
+            if (cbx_ScanPattern.Items.Count == 0)
+                cbx_ScanPattern.Items.AddRange(new object[] { "非重复扫描", "重复扫描" });
+            cbx_ScanPattern.SelectedIndex = 0;
 
             // 初始化时间选择器为当前时间
             dateTimePicker_Query.Value = DateTime.Now;
@@ -407,7 +411,7 @@ namespace RadarConnect
                 AddLog($"[融合] 正在将 {filteredPoints.Count} 个点投影至图像...");
 
                 Image fusedImage = await Task.Run(() =>
-             _sensorFusion.ProjectPointCloudToImage(processedPath, filteredPoints, 30.0f)); 
+             _sensorFusion.ProjectPointCloudToImage(processedPath, filteredPoints, 30.0f));
                 // 6. UI 更新
                 if (pictureBox_FusionResult.Image != null) pictureBox_FusionResult.Image.Dispose();
                 pictureBox_FusionResult.Image = fusedImage;
@@ -501,12 +505,9 @@ namespace RadarConnect
                 btn_Reconstruct.Enabled = true;
             }
         }
-        // ==========================================
-        // 新增：保存点云图为图片的事件处理器
-        // ==========================================
+
         private void btn_SaveImage_Click(object sender, EventArgs e)
         {
-            // 确保已经初始化并渲染过点云
             if (_vtkVisualizer == null)
             {
                 MessageBox.Show("请先执行【查询并还原点云】后再保存图片！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -517,7 +518,6 @@ namespace RadarConnect
             {
                 sfd.Title = "保存点云截图";
                 sfd.Filter = "PNG 图片|*.png|所有文件|*.*";
-                // 默认文件名带上时间戳
                 sfd.FileName = $"PointCloud_{DateTime.Now:yyyyMMdd_HHmmss}.png";
                 sfd.RestoreDirectory = true;
 
@@ -525,7 +525,6 @@ namespace RadarConnect
                 {
                     try
                     {
-                        // 调用在 VtkVisualizer 中写好的方法
                         _vtkVisualizer.SaveScreenshot(sfd.FileName);
                         AddLog($"[截图] 点云图片已成功保存至: {sfd.FileName}");
                         MessageBox.Show("图片保存成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -646,9 +645,43 @@ namespace RadarConnect
             SendControlCommand(CmdSet.General, (byte)GeneralCmdId.CoordinateSystem, new byte[] { coordVal });
         }
 
+        // ==========================================
+        // 扫描模式指令
+        // ==========================================
+        private void btn_SetScanPattern_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(_currentDeviceIp))
+            {
+                MessageBox.Show("请先握手连接并选中雷达设备！");
+                return;
+            }
+
+            // 获取下拉框选择的模式 (0 = NoneRepetitive, 1 = Repetitive)
+            byte patternVal = (byte)cbx_ScanPattern.SelectedIndex;
+
+            // 构造 KeyValueParam 载荷 (总长度 5 字节)
+            byte[] payload = new byte[5];
+
+            // Key = 2 (kKeyScanPattern)，占 2 字节 (小端序)
+            payload[0] = 0x02;
+            payload[1] = 0x00;
+
+            // Length = 1 (Value的长度)，占 2 字节 (小端序)
+            payload[2] = 0x01;
+            payload[3] = 0x00;
+
+            // Value = 模式值
+            payload[4] = patternVal;
+
+            // 下发通用指令集(0x00)，命令ID为 0x0B (设置设备参数)
+            SendControlCommand(CmdSet.General, 0x0B, payload);
+
+            AddLog($"已发送切换扫描模式指令 -> {(patternVal == 0 ? "非重复扫描" : "重复扫描")},机器重启中，请稍后进行采样");
+        }
+
         #endregion
 
-        #region 数据处理
+        #region 数据处理与回环
 
         private void ProcessPointCloud(byte[] data)
         {
@@ -884,6 +917,14 @@ namespace RadarConnect
                 {
                     AddLog(">>> 工作模式设置指令已返回");
                 }
+                else if (cmdSet == (byte)CmdSet.General && cmdId == 0x0B)
+                {
+                    byte retCode = (data.Length > 11) ? data[11] : (byte)255;
+                    if (retCode == 0)
+                        AddLog(">>> 扫描模式切换成功");
+                    else
+                        AddLog($">>> 扫描模式切换失败，硬件返回错误码: {retCode}");
+                }
             });
         }
 
@@ -926,9 +967,6 @@ namespace RadarConnect
             }
         }
 
-        /// <summary>
-        /// 将日志内容追加到本地文件中
-        /// </summary>
         private void WriteLogToFile(string logLine)
         {
             try
@@ -939,10 +977,8 @@ namespace RadarConnect
                     Directory.CreateDirectory(logDir);
                 }
 
-                // 每天生成一个新的日志文件
                 string logFile = Path.Combine(logDir, $"Log_{DateTime.Now:yyyyMMdd}.txt");
 
-                // 使用锁防止多线程读写冲突
                 lock (_logLock)
                 {
                     File.AppendAllText(logFile, logLine + Environment.NewLine);
@@ -953,7 +989,6 @@ namespace RadarConnect
                 System.Diagnostics.Debug.WriteLine($"写日志文件失败: {ex.Message}");
             }
         }
-
         #endregion
     }
 }

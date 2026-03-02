@@ -19,6 +19,8 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.listBox_Log = new System.Windows.Forms.ListBox();
+            this.btn_SetScanPattern = new System.Windows.Forms.Button();
+            this.cbx_ScanPattern = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.btn_SetCoordinate = new System.Windows.Forms.Button();
             this.cbx_Coordinate = new System.Windows.Forms.ComboBox();
@@ -51,6 +53,7 @@
             this.panel_Video = new System.Windows.Forms.Panel();
             this.renderWindowControl1 = new Kitware.VTK.RenderWindowControl();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.pictureBox_FusionResult = new System.Windows.Forms.PictureBox();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.btn_ExecuteFusion = new System.Windows.Forms.Button();
             this.btn_SelectVideo = new System.Windows.Forms.Button();
@@ -58,7 +61,6 @@
             this.label6 = new System.Windows.Forms.Label();
             this.dateTimePicker_Fusion = new System.Windows.Forms.DateTimePicker();
             this.label5 = new System.Windows.Forms.Label();
-            this.pictureBox_FusionResult = new System.Windows.Forms.PictureBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
             this.tabControl1.SuspendLayout();
@@ -70,8 +72,8 @@
             this.groupBox5.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.tabPage3.SuspendLayout();
-            this.groupBox6.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_FusionResult)).BeginInit();
+            this.groupBox6.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -102,7 +104,7 @@
             // 
             // groupBox3
             // 
-            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBox3.Controls.Add(this.listBox_Log);
             this.groupBox3.Location = new System.Drawing.Point(12, 218);
@@ -122,6 +124,25 @@
             this.listBox_Log.Size = new System.Drawing.Size(858, 515);
             this.listBox_Log.TabIndex = 0;
             // 
+            // btn_SetScanPattern
+            // 
+            this.btn_SetScanPattern.Location = new System.Drawing.Point(17, 227);
+            this.btn_SetScanPattern.Name = "btn_SetScanPattern";
+            this.btn_SetScanPattern.Size = new System.Drawing.Size(160, 25);
+            this.btn_SetScanPattern.TabIndex = 21;
+            this.btn_SetScanPattern.Text = "设置扫描模式";
+            this.btn_SetScanPattern.UseVisualStyleBackColor = true;
+            this.btn_SetScanPattern.Click += new System.EventHandler(this.btn_SetScanPattern_Click);
+            // 
+            // cbx_ScanPattern
+            // 
+            this.cbx_ScanPattern.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbx_ScanPattern.FormattingEnabled = true;
+            this.cbx_ScanPattern.Location = new System.Drawing.Point(17, 201);
+            this.cbx_ScanPattern.Name = "cbx_ScanPattern";
+            this.cbx_ScanPattern.Size = new System.Drawing.Size(160, 20);
+            this.cbx_ScanPattern.TabIndex = 20;
+            // 
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.btn_SetCoordinate);
@@ -132,16 +153,18 @@
             this.groupBox2.Controls.Add(this.btn_SetMode);
             this.groupBox2.Controls.Add(this.cbx_WorkMode);
             this.groupBox2.Controls.Add(this.label1);
+            this.groupBox2.Controls.Add(this.btn_SetScanPattern);
+            this.groupBox2.Controls.Add(this.cbx_ScanPattern);
             this.groupBox2.Location = new System.Drawing.Point(882, 12);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(200, 280);
+            this.groupBox2.Size = new System.Drawing.Size(209, 359);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "雷达控制";
             // 
             // btn_SetCoordinate
             // 
-            this.btn_SetCoordinate.Location = new System.Drawing.Point(135, 240);
+            this.btn_SetCoordinate.Location = new System.Drawing.Point(133, 282);
             this.btn_SetCoordinate.Name = "btn_SetCoordinate";
             this.btn_SetCoordinate.Size = new System.Drawing.Size(50, 23);
             this.btn_SetCoordinate.TabIndex = 9;
@@ -153,7 +176,7 @@
             // 
             this.cbx_Coordinate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbx_Coordinate.FormattingEnabled = true;
-            this.cbx_Coordinate.Location = new System.Drawing.Point(17, 242);
+            this.cbx_Coordinate.Location = new System.Drawing.Point(17, 285);
             this.cbx_Coordinate.Name = "cbx_Coordinate";
             this.cbx_Coordinate.Size = new System.Drawing.Size(110, 20);
             this.cbx_Coordinate.TabIndex = 10;
@@ -161,7 +184,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(15, 227);
+            this.label2.Location = new System.Drawing.Point(15, 267);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(53, 12);
             this.label2.TabIndex = 11;
@@ -426,8 +449,8 @@
             // renderWindowControl1
             // 
             this.renderWindowControl1.AddTestActors = false;
-            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.renderWindowControl1.Location = new System.Drawing.Point(6, 75);
             this.renderWindowControl1.Name = "renderWindowControl1";
@@ -447,9 +470,23 @@
             this.tabPage3.Text = "点云CCD融合";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
+            // pictureBox_FusionResult
+            // 
+            this.pictureBox_FusionResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pictureBox_FusionResult.BackColor = System.Drawing.Color.Black;
+            this.pictureBox_FusionResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBox_FusionResult.Location = new System.Drawing.Point(8, 72);
+            this.pictureBox_FusionResult.Name = "pictureBox_FusionResult";
+            this.pictureBox_FusionResult.Size = new System.Drawing.Size(1945, 694);
+            this.pictureBox_FusionResult.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox_FusionResult.TabIndex = 1;
+            this.pictureBox_FusionResult.TabStop = false;
+            // 
             // groupBox6
             // 
-            this.groupBox6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.groupBox6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox6.Controls.Add(this.btn_ExecuteFusion);
             this.groupBox6.Controls.Add(this.btn_SelectVideo);
@@ -520,20 +557,6 @@
             this.label5.TabIndex = 0;
             this.label5.Text = "目标时间：";
             // 
-            // pictureBox_FusionResult
-            // 
-            this.pictureBox_FusionResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.pictureBox_FusionResult.BackColor = System.Drawing.Color.Black;
-            this.pictureBox_FusionResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBox_FusionResult.Location = new System.Drawing.Point(8, 72);
-            this.pictureBox_FusionResult.Name = "pictureBox_FusionResult";
-            this.pictureBox_FusionResult.Size = new System.Drawing.Size(1945, 694);
-            this.pictureBox_FusionResult.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox_FusionResult.TabIndex = 1;
-            this.pictureBox_FusionResult.TabStop = false;
-            // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -574,9 +597,9 @@
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             this.tabPage3.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_FusionResult)).EndInit();
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_FusionResult)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -632,5 +655,7 @@
         private System.Windows.Forms.DateTimePicker dateTimePicker_Fusion;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.PictureBox pictureBox_FusionResult;
+        private System.Windows.Forms.ComboBox cbx_ScanPattern;
+        private System.Windows.Forms.Button btn_SetScanPattern;
     }
 }

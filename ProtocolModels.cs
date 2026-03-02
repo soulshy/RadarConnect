@@ -77,4 +77,10 @@ namespace RadarConnect
         public byte reflectivity;
         public byte tag; // 扩展信息
     }
+
+    public enum LidarScanPattern : byte
+    {
+        NoneRepetitive = 0, // 非重复扫描模式 (花瓣扫描)
+        Repetitive = 1      // 重复扫描模式 (线性扫描)
+    }
 }
