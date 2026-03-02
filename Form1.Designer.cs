@@ -40,6 +40,7 @@
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.btn_SaveImage = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.dateTimePicker_Query = new System.Windows.Forms.DateTimePicker();
             this.btn_Reconstruct = new System.Windows.Forms.Button();
@@ -324,6 +325,7 @@
             // groupBox5
             // 
             this.groupBox5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox5.Controls.Add(this.btn_SaveImage);
             this.groupBox5.Controls.Add(this.label3);
             this.groupBox5.Controls.Add(this.dateTimePicker_Query);
             this.groupBox5.Controls.Add(this.btn_Reconstruct);
@@ -333,6 +335,16 @@
             this.groupBox5.TabIndex = 7;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "点云还原查询";
+            // 
+            // btn_SaveImage
+            // 
+            this.btn_SaveImage.Location = new System.Drawing.Point(390, 20);
+            this.btn_SaveImage.Name = "btn_SaveImage";
+            this.btn_SaveImage.Size = new System.Drawing.Size(120, 30);
+            this.btn_SaveImage.TabIndex = 20;
+            this.btn_SaveImage.Text = "保存为图片";
+            this.btn_SaveImage.UseVisualStyleBackColor = true;
+            this.btn_SaveImage.Click += new System.EventHandler(this.btn_SaveImage_Click);
             // 
             // label3
             // 
@@ -604,6 +616,7 @@
         private System.Windows.Forms.Button btn_Reconstruct;
         private System.Windows.Forms.DateTimePicker dateTimePicker_Query;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button btn_SaveImage;
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txt_CameraIp;

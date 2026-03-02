@@ -68,6 +68,33 @@ namespace RadarConnect
             _renderWindow.Render();
         }
 
+        //截取当前渲染窗口并保存为图片
+        public void SaveScreenshot(string filePath)
+        {
+            if (_renderWindow == null) return;
+
+            // 强制刷新渲染一次，确保画面是最新的
+            _renderWindow.Render();
+
+            // 使用 vtkWindowToImageFilter 提取渲染窗口的图像数据
+            vtkWindowToImageFilter windowToImageFilter = vtkWindowToImageFilter.New();
+            windowToImageFilter.SetInput(_renderWindow);
+            windowToImageFilter.SetInputBufferTypeToRGB();
+            // 设为 Off 可以从后台缓冲读取，防止被其他操作系统窗口遮挡时截到别的窗口
+            windowToImageFilter.ReadFrontBufferOff();
+            windowToImageFilter.Update();
+
+            // 使用 vtkPNGWriter 写入为 PNG 文件
+            vtkPNGWriter writer = vtkPNGWriter.New();
+            writer.SetFileName(filePath);
+            writer.SetInputConnection(windowToImageFilter.GetOutputPort());
+            writer.Write();
+
+            // 释放不再使用的非托管资源
+            writer.Dispose();
+            windowToImageFilter.Dispose();
+        }
+
         private byte[] GetColorFromIntensity(byte val)
         {
             byte r = 0, g = 0, b = 0;

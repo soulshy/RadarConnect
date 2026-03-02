@@ -501,6 +501,43 @@ namespace RadarConnect
                 btn_Reconstruct.Enabled = true;
             }
         }
+        // ==========================================
+        // 新增：保存点云图为图片的事件处理器
+        // ==========================================
+        private void btn_SaveImage_Click(object sender, EventArgs e)
+        {
+            // 确保已经初始化并渲染过点云
+            if (_vtkVisualizer == null)
+            {
+                MessageBox.Show("请先执行【查询并还原点云】后再保存图片！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Title = "保存点云截图";
+                sfd.Filter = "PNG 图片|*.png|所有文件|*.*";
+                // 默认文件名带上时间戳
+                sfd.FileName = $"PointCloud_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+                sfd.RestoreDirectory = true;
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        // 调用在 VtkVisualizer 中写好的方法
+                        _vtkVisualizer.SaveScreenshot(sfd.FileName);
+                        AddLog($"[截图] 点云图片已成功保存至: {sfd.FileName}");
+                        MessageBox.Show("图片保存成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        AddLog($"[截图] 保存失败: {ex.Message}");
+                        MessageBox.Show($"保存失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
 
         #endregion
 
