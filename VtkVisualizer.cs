@@ -64,11 +64,27 @@ namespace RadarConnect
             _currentActor.GetProperty().SetPointSize(2);
 
             _renderer.AddActor(_currentActor);
+
+            // ==================== 视角设置核心逻辑 ====================
+            vtkCamera camera = _renderer.GetActiveCamera();
+
+            // 1. 设置相机看向的目标点
+            camera.SetFocalPoint(0, 0, 0);
+
+            // 2. 将相机放到 X 轴的负半轴上，从而绕到点云的正前方
+            camera.SetPosition(-100, 0, 0);
+
+            // 3. 保持 Z轴 朝上不变
+            camera.SetViewUp(0, 0, 1);
+
+            // 4. 让 VTK 自动计算包围盒并缩放距离，保证所有点云刚好显示在画面中央
             _renderer.ResetCamera();
+            // ========================================================
+
             _renderWindow.Render();
         }
 
-        //截取当前渲染窗口并保存为图片
+        // 截取当前渲染窗口并保存为图片
         public void SaveScreenshot(string filePath)
         {
             if (_renderWindow == null) return;
