@@ -348,7 +348,7 @@ namespace RadarConnect
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
                 ofd.Filter = "视频文件|*.mp4;*.avi;*.mkv|所有文件|*.*";
-                // 恢复工作目录，防止 FFmpeg 由于路径问题找不到文件
+                //防止 FFmpeg 由于路径问题找不到文件
                 ofd.RestoreDirectory = true;
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
@@ -384,37 +384,46 @@ namespace RadarConnect
                 // 2. 调用 FFmpeg 抽帧模块
                 AddLog($"[融合] 正在抽帧，视频偏移: {offset.TotalSeconds:F3} 秒...");
                 string extractedImagePath = await _videoProcessor.ExtractFrameAsync(videoPath, offset);
-                AddLog("[融合] 正在使用 OpenCV 进行图像增强与去噪...");
-                string processedPath = await _imageProcessor.ProcessImageAsync(extractedImagePath, 15, 1.2, true);
-
                 if (!File.Exists(extractedImagePath))
                 {
                     AddLog("[融合] FFmpeg 抽帧失败。请确认程序目录下存在 ffmpeg.exe。");
                     return;
                 }
 
-                // 3. 调用数据库模块获取 1 秒的点云数据
+                // 3. 调用 OpenCV 处理获取内存矩阵 Mat
+                AddLog("[融合] 正在使用 OpenCV 进行图像增强与去噪...");
+                OpenCvSharp.Mat processedMat = await _imageProcessor.ProcessImageAsync(extractedImagePath, 15, 1.2, true);
+
+                // 4. 调用数据库模块获取 1 秒的点云数据
                 AddLog("[融合] 正在提取点云数据...");
                 List<PointData> rawPoints = await Task.Run(() => _dbManager.GetPointsInRange(targetTime, 1.0));
 
                 if (rawPoints == null || rawPoints.Count == 0)
                 {
                     AddLog("[融合] 数据库中该时间段无点云数据。");
+                    processedMat.Dispose();
                     return;
                 }
 
-                // 4. 点云预处理 (过滤/降采样)
+                // 5. 点云预处理 (过滤/降采样)
                 List<PointData> filteredPoints = new List<PointData>();
                 _processor.ApplyFilters(rawPoints, filteredPoints);
 
-                // 5. 调用传感器融合模块进行 3D->2D 投影映射
+                // 6. 调用传感器融合模块进行 3D->2D 投影映射
                 AddLog($"[融合] 正在将 {filteredPoints.Count} 个点投影至图像...");
+                OpenCvSharp.Mat fusedMat = await Task.Run(() => _sensorFusion.ProjectPointCloudToImage(processedMat, filteredPoints, 30.0f));
 
-                Image fusedImage = await Task.Run(() =>
-             _sensorFusion.ProjectPointCloudToImage(processedPath, filteredPoints, 30.0f));
-                // 6. UI 更新
-                if (pictureBox_FusionResult.Image != null) pictureBox_FusionResult.Image.Dispose();
-                pictureBox_FusionResult.Image = fusedImage;
+                OpenCvSharp.Cv2.ImEncode(".bmp", fusedMat, out byte[] imgBuf);
+                using (MemoryStream ms = new MemoryStream(imgBuf))
+                {
+                    Image fusedImage = Image.FromStream(ms);
+                    if (pictureBox_FusionResult.Image != null) pictureBox_FusionResult.Image.Dispose();
+                    pictureBox_FusionResult.Image = fusedImage;
+                }
+
+                // 8. 释放非托管内存，防止内存泄漏
+                fusedMat.Dispose();
+                File.Delete(extractedImagePath); // 清理抽帧的临时图片
 
                 AddLog("[融合] 融合完成！");
             }
