@@ -6,13 +6,25 @@ namespace RadarConnect
 {
     public class SensorFusion
     {
+        // --- 1. 相机内参 (Camera Intrinsics) ---
         public float Fx { get; set; } = 1200f;
         public float Fy { get; set; } = 1200f;
         public float Cx { get; set; } = 960f;
         public float Cy { get; set; } = 540f;
 
-        // 畸变系数：k1, k2, p1, p2, k3
+        // --- 2. 相机畸变系数 (Distortion Coefficients) ---
         public double[] DistCoeffs { get; set; } = new double[] { 0, 0, 0, 0, 0 };
+
+        // --- 3. 真实的相机外参 (Camera Extrinsics) ---
+        // 3x3 旋转矩阵 (Rotation Matrix)，默认设为单位矩阵
+        public double[,] R { get; set; } = new double[3, 3] {
+            { 1, 0, 0 },
+            { 0, 1, 0 },
+            { 0, 0, 1 }
+        };
+
+        // 3x1 平移向量 (Translation Vector)，单位通常为米(m)
+        public double[] T { get; set; } = new double[3] { 0, 0, 0 };
 
         private readonly Scalar[] _colorLut = new Scalar[256];
 
@@ -42,15 +54,21 @@ namespace RadarConnect
 
             foreach (var p in points)
             {
-                float X_c = -p.Y;
-                float Y_c = -p.Z;
-                float Z_c = p.X;
+                // ==========================================
+                // 核心修改：真正的外参矩阵运算 ( P_c = R * P_l + T )
+                // ==========================================
+                double X_c = R[0, 0] * p.X + R[0, 1] * p.Y + R[0, 2] * p.Z + T[0];
+                double Y_c = R[1, 0] * p.X + R[1, 1] * p.Y + R[1, 2] * p.Z + T[1];
+                double Z_c = R[2, 0] * p.X + R[2, 1] * p.Y + R[2, 2] * p.Z + T[2];
 
+                // 剔除位于相机背后的点云
                 if (Z_c <= 0.2f) continue;
 
+                // --- 归一化相机平面 ---
                 double x = X_c / Z_c;
                 double y = Y_c / Z_c;
 
+                // --- 畸变校正 (Distortion) ---
                 double r2 = x * x + y * y;
                 double r4 = r2 * r2;
                 double r6 = r2 * r4;
@@ -58,14 +76,17 @@ namespace RadarConnect
                 double x_distorted = x * (1 + k1 * r2 + k2 * r4 + k3 * r6) + 2 * p1 * x * y + p2 * (r2 + 2 * x * x);
                 double y_distorted = y * (1 + k1 * r2 + k2 * r4 + k3 * r6) + p1 * (r2 + 2 * y * y) + 2 * p2 * x * y;
 
+                // --- 内参投影映射到像素坐标系 ---
                 int u = (int)(Fx * x_distorted + Cx);
                 int v = (int)(Fy * y_distorted + Cy);
 
+                // 判断是否在画面内并绘制
                 if (u >= 0 && u < img.Width && v >= 0 && v < img.Height)
                 {
                     float depthRatio = Math.Max(0, Math.Min(p.Depth / maxDepth, 1.0f));
                     int lutIndex = (int)(depthRatio * 255);
                     Scalar ptColor = _colorLut[lutIndex];
+
                     Cv2.Circle(img, new OpenCvSharp.Point(u, v), 1, ptColor, -1, LineTypes.AntiAlias);
                 }
             }
