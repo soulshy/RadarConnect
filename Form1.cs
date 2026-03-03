@@ -999,5 +999,80 @@ namespace RadarConnect
             }
         }
         #endregion
+
+        private async void btn_ShowRaw_Click(object sender, EventArgs e)
+        {
+            // 1. 确保 VTK 已经初始化 
+            if (_vtkVisualizer == null)
+            {
+                try
+                {
+                    _vtkVisualizer = new VtkVisualizer(renderWindowControl1);
+                    AddLog("VTK 可视化组件初始化成功。");
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"VTK 初始化失败: {ex.Message}");
+                    MessageBox.Show("VTK 初始化失败，请确保已正确安装 Activiz.NET 库。\n" + ex.Message);
+                    return;
+                }
+            }
+
+            DateTime selectedStartTime = dateTimePicker_Query.Value;
+            double durationSeconds = 1.0;
+
+            AddLog($"[查询原始数据] 时间窗口: {selectedStartTime.ToString("HH:mm:ss")} -> +1s");
+
+            // 禁用当前触发事件的按钮，防止重复点击
+            if (sender is System.Windows.Forms.Button btn)
+            {
+                btn.Enabled = false;
+            }
+
+            try
+            {
+                // 2. 异步获取数据，跳过 ROI 和降采样，但必须剔除 NaN
+                List<PointData> rawPointsToRender = await Task.Run(() =>
+                {
+                    // 从数据库拉取这一秒内的所有原始点
+                    List<PointData> rawPoints = _dbManager.GetPointsInRange(selectedStartTime, durationSeconds);
+                    if (rawPoints == null || rawPoints.Count == 0) return new List<PointData>();
+
+                   
+                    // 这一步是为了防止 VTK 渲染器在计算深度着色时因为 NaN 而崩溃
+                    List<PointData> safeRawPoints = new List<PointData>(rawPoints.Count);
+                    for (int i = 0; i < rawPoints.Count; i++)
+                    {
+                        var p = rawPoints[i];
+                        // 剔除无效坐标点
+                        if (float.IsNaN(p.X) || float.IsNaN(p.Y) || float.IsNaN(p.Z)) continue;
+
+                        safeRawPoints.Add(p);
+                    }
+
+                    return safeRawPoints;
+                });
+
+                // 3. 渲染原始数据 (只要传入 Render，就会自动应用深度着色)
+                if (rawPointsToRender != null && rawPointsToRender.Count > 0)
+                {
+                    AddLog($"[原始还原] 成功加载原始点数: {rawPointsToRender.Count}");
+                    _vtkVisualizer.Render(rawPointsToRender);
+                }
+                else
+                {
+                    AddLog("[警告] 该时间段内无有效的原始数据！");
+                    MessageBox.Show($"未找到 {selectedStartTime.ToString("HH:mm:ss")} 这一秒内的有效数据。\n请确认：\n1. 数据库中是否有该时段记录？\n2. 是否存在 8小时 时差问题？");
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog($"[错误] {ex.Message}");
+            }
+            finally
+            {
+                btn_ShowRaw.Enabled = true;
+            }
+        }
     }
 }

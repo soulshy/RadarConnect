@@ -19,8 +19,6 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.listBox_Log = new System.Windows.Forms.ListBox();
-            this.btn_SetScanPattern = new System.Windows.Forms.Button();
-            this.cbx_ScanPattern = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.btn_SetCoordinate = new System.Windows.Forms.Button();
             this.cbx_Coordinate = new System.Windows.Forms.ComboBox();
@@ -30,6 +28,8 @@
             this.btn_SetMode = new System.Windows.Forms.Button();
             this.cbx_WorkMode = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.btn_SetScanPattern = new System.Windows.Forms.Button();
+            this.cbx_ScanPattern = new System.Windows.Forms.ComboBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.btn_Disconnect = new System.Windows.Forms.Button();
             this.btn_HandShake = new System.Windows.Forms.Button();
@@ -63,6 +63,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
+            this.btn_ShowRaw = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -123,25 +124,6 @@
             this.listBox_Log.Name = "listBox_Log";
             this.listBox_Log.Size = new System.Drawing.Size(858, 515);
             this.listBox_Log.TabIndex = 0;
-            // 
-            // btn_SetScanPattern
-            // 
-            this.btn_SetScanPattern.Location = new System.Drawing.Point(17, 227);
-            this.btn_SetScanPattern.Name = "btn_SetScanPattern";
-            this.btn_SetScanPattern.Size = new System.Drawing.Size(160, 25);
-            this.btn_SetScanPattern.TabIndex = 21;
-            this.btn_SetScanPattern.Text = "设置扫描模式";
-            this.btn_SetScanPattern.UseVisualStyleBackColor = true;
-            this.btn_SetScanPattern.Click += new System.EventHandler(this.btn_SetScanPattern_Click);
-            // 
-            // cbx_ScanPattern
-            // 
-            this.cbx_ScanPattern.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbx_ScanPattern.FormattingEnabled = true;
-            this.cbx_ScanPattern.Location = new System.Drawing.Point(17, 201);
-            this.cbx_ScanPattern.Name = "cbx_ScanPattern";
-            this.cbx_ScanPattern.Size = new System.Drawing.Size(160, 20);
-            this.cbx_ScanPattern.TabIndex = 20;
             // 
             // groupBox2
             // 
@@ -237,6 +219,25 @@
             this.label1.Size = new System.Drawing.Size(65, 12);
             this.label1.TabIndex = 16;
             this.label1.Text = "工作模式：";
+            // 
+            // btn_SetScanPattern
+            // 
+            this.btn_SetScanPattern.Location = new System.Drawing.Point(17, 227);
+            this.btn_SetScanPattern.Name = "btn_SetScanPattern";
+            this.btn_SetScanPattern.Size = new System.Drawing.Size(160, 25);
+            this.btn_SetScanPattern.TabIndex = 21;
+            this.btn_SetScanPattern.Text = "设置扫描模式";
+            this.btn_SetScanPattern.UseVisualStyleBackColor = true;
+            this.btn_SetScanPattern.Click += new System.EventHandler(this.btn_SetScanPattern_Click);
+            // 
+            // cbx_ScanPattern
+            // 
+            this.cbx_ScanPattern.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbx_ScanPattern.FormattingEnabled = true;
+            this.cbx_ScanPattern.Location = new System.Drawing.Point(17, 201);
+            this.cbx_ScanPattern.Name = "cbx_ScanPattern";
+            this.cbx_ScanPattern.Size = new System.Drawing.Size(160, 20);
+            this.cbx_ScanPattern.TabIndex = 20;
             // 
             // groupBox1
             // 
@@ -348,6 +349,7 @@
             // groupBox5
             // 
             this.groupBox5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox5.Controls.Add(this.btn_ShowRaw);
             this.groupBox5.Controls.Add(this.btn_SaveImage);
             this.groupBox5.Controls.Add(this.label3);
             this.groupBox5.Controls.Add(this.dateTimePicker_Query);
@@ -573,6 +575,16 @@
             this.lbl_SampleState.Size = new System.Drawing.Size(56, 17);
             this.lbl_SampleState.Text = "系统就绪";
             // 
+            // btn_ShowRaw
+            // 
+            this.btn_ShowRaw.Location = new System.Drawing.Point(525, 19);
+            this.btn_ShowRaw.Name = "btn_ShowRaw";
+            this.btn_ShowRaw.Size = new System.Drawing.Size(120, 30);
+            this.btn_ShowRaw.TabIndex = 21;
+            this.btn_ShowRaw.Text = "原始点云";
+            this.btn_ShowRaw.UseVisualStyleBackColor = true;
+            this.btn_ShowRaw.Click += new System.EventHandler(this.btn_ShowRaw_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -657,5 +669,6 @@
         private System.Windows.Forms.PictureBox pictureBox_FusionResult;
         private System.Windows.Forms.ComboBox cbx_ScanPattern;
         private System.Windows.Forms.Button btn_SetScanPattern;
+        private System.Windows.Forms.Button btn_ShowRaw;
     }
 }
