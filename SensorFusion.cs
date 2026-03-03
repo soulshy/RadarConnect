@@ -46,7 +46,7 @@ namespace RadarConnect
         }
 
         /// <summary>
-        /// 直接在内存中的 OpenCV Mat 对象上投影 3D 点云
+        ///  OpenCV Mat 对象上投影 3D 点云
         /// </summary>
         public Mat ProjectPointCloudToImage(Mat img, List<PointData> points, float maxDepth = 30.0f)
         {
@@ -55,7 +55,7 @@ namespace RadarConnect
             foreach (var p in points)
             {
                 // ==========================================
-                // 核心修改：真正的外参矩阵运算 ( P_c = R * P_l + T )
+                // 真正的外参矩阵运算 ( P_c = R * P_l + T )
                 // ==========================================
                 double X_c = R[0, 0] * p.X + R[0, 1] * p.Y + R[0, 2] * p.Z + T[0];
                 double Y_c = R[1, 0] * p.X + R[1, 1] * p.Y + R[1, 2] * p.Z + T[1];
