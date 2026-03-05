@@ -1074,5 +1074,70 @@ namespace RadarConnect
                 btn_ShowRaw.Enabled = true;
             }
         }
+
+        private async void btn_SaveBEV_Click(object sender, EventArgs e)
+        {
+            // 获取当前面板上选择的时间
+            DateTime selectedStartTime = dateTimePicker_Query.Value;
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Title = "保存高保真原始点云正视图";
+                sfd.Filter = "PNG 图片|*.png|所有文件|*.*";
+                sfd.FileName = $"PointCloud_RawFrontView_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+                sfd.RestoreDirectory = true;
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    // 临时禁用按钮防止重复点击
+                    if (sender is Button btn) btn.Enabled = false;
+
+                    try
+                    {
+                        AddLog($"[转换] 正在从数据库提取 {selectedStartTime:HH:mm:ss} 的原始点云，请稍候...");
+
+                        // 1. 异步从数据库拉取 1 秒内的绝对原始点云数据
+                        List<PointData> rawPoints = await Task.Run(() =>
+                        {
+                            return _dbManager.GetPointsInRange(selectedStartTime, 1.0);
+                        });
+
+                        if (rawPoints == null || rawPoints.Count == 0)
+                        {
+                            MessageBox.Show("当前时间段没有原始点云数据！请确认时间是否正确。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+
+                        AddLog($"[转换] 成功提取 {rawPoints.Count} 个原始点，正在生成 1920x1080 投影图...");
+
+                        // 2. 异步执行投影绘图（传入原始数据 rawPoints，而不是 _displayBuffer）
+                        using (Bitmap flattenedBmp = await Task.Run(() => ElevationProjector.CreateFrontViewImage(rawPoints, 1920, 1080)))
+                        {
+                            if (flattenedBmp != null)
+                            {
+                                flattenedBmp.Save(sfd.FileName, System.Drawing.Imaging.ImageFormat.Png);
+                                AddLog($"[截图] 原始点云投影图已成功保存至: {sfd.FileName}");
+                                MessageBox.Show("原始点云投影图保存成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                            else
+                            {
+                                MessageBox.Show("生成投影图失败：有效数据不足或存在极端异常坐标。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        AddLog($"[截图] 保存失败: {ex.Message}");
+                        MessageBox.Show($"保存失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        // 恢复按钮状态
+                        if (sender is Button btn_SaveBEVn)
+                            btn_SaveBEV.Enabled = true;
+                    }
+                }
+            }
+        }
     }
 }

@@ -42,6 +42,7 @@
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.btn_ShowRaw = new System.Windows.Forms.Button();
             this.btn_SaveImage = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.dateTimePicker_Query = new System.Windows.Forms.DateTimePicker();
@@ -63,7 +64,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
-            this.btn_ShowRaw = new System.Windows.Forms.Button();
+            this.btn_SaveBEV = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -349,6 +350,7 @@
             // groupBox5
             // 
             this.groupBox5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox5.Controls.Add(this.btn_SaveBEV);
             this.groupBox5.Controls.Add(this.btn_ShowRaw);
             this.groupBox5.Controls.Add(this.btn_SaveImage);
             this.groupBox5.Controls.Add(this.label3);
@@ -360,6 +362,16 @@
             this.groupBox5.TabIndex = 7;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "点云还原查询";
+            // 
+            // btn_ShowRaw
+            // 
+            this.btn_ShowRaw.Location = new System.Drawing.Point(525, 19);
+            this.btn_ShowRaw.Name = "btn_ShowRaw";
+            this.btn_ShowRaw.Size = new System.Drawing.Size(120, 30);
+            this.btn_ShowRaw.TabIndex = 21;
+            this.btn_ShowRaw.Text = "原始点云";
+            this.btn_ShowRaw.UseVisualStyleBackColor = true;
+            this.btn_ShowRaw.Click += new System.EventHandler(this.btn_ShowRaw_Click);
             // 
             // btn_SaveImage
             // 
@@ -575,15 +587,15 @@
             this.lbl_SampleState.Size = new System.Drawing.Size(56, 17);
             this.lbl_SampleState.Text = "系统就绪";
             // 
-            // btn_ShowRaw
+            // btn_SaveBEV
             // 
-            this.btn_ShowRaw.Location = new System.Drawing.Point(525, 19);
-            this.btn_ShowRaw.Name = "btn_ShowRaw";
-            this.btn_ShowRaw.Size = new System.Drawing.Size(120, 30);
-            this.btn_ShowRaw.TabIndex = 21;
-            this.btn_ShowRaw.Text = "原始点云";
-            this.btn_ShowRaw.UseVisualStyleBackColor = true;
-            this.btn_ShowRaw.Click += new System.EventHandler(this.btn_ShowRaw_Click);
+            this.btn_SaveBEV.Location = new System.Drawing.Point(651, 19);
+            this.btn_SaveBEV.Name = "btn_SaveBEV";
+            this.btn_SaveBEV.Size = new System.Drawing.Size(120, 30);
+            this.btn_SaveBEV.TabIndex = 22;
+            this.btn_SaveBEV.Text = "保存为鸟瞰图";
+            this.btn_SaveBEV.UseVisualStyleBackColor = true;
+            this.btn_SaveBEV.Click += new System.EventHandler(this.btn_SaveBEV_Click);
             // 
             // Form1
             // 
@@ -670,5 +682,6 @@
         private System.Windows.Forms.ComboBox cbx_ScanPattern;
         private System.Windows.Forms.Button btn_SetScanPattern;
         private System.Windows.Forms.Button btn_ShowRaw;
+        private System.Windows.Forms.Button btn_SaveBEV;
     }
 }
