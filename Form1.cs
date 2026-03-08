@@ -373,7 +373,7 @@ namespace RadarConnect
             try
             {
                 // 1. 视频时间轴计算
-                DateTime videoStartTime = _videoProcessor.ParseVideoStartTime(Path.GetFileName(videoPath));
+                DateTime videoStartTime = _videoProcessor.ParseVideoStartTime(System.IO.Path.GetFileName(videoPath));
                 TimeSpan offset = targetTime - videoStartTime;
                 if (offset.TotalSeconds < 0)
                 {
@@ -405,25 +405,32 @@ namespace RadarConnect
                     return;
                 }
 
-                // 5. 点云预处理 (过滤/降采样)
-                List<PointData> filteredPoints = new List<PointData>();
-                _processor.ApplyFilters(rawPoints, filteredPoints);
+                // 5. 【修改点】不使用过滤器，直接提取有效的原始点云
+                List<PointData> validRawPoints = new List<PointData>(rawPoints.Count);
+                foreach (var p in rawPoints)
+                {
+                    // 剔除 NaN 无效坐标，防止引发 OpenCV 绘图崩溃
+                    if (!float.IsNaN(p.X) && !float.IsNaN(p.Y) && !float.IsNaN(p.Z))
+                    {
+                        validRawPoints.Add(p);
+                    }
+                }
 
-                // 6. 调用传感器融合模块进行 3D->2D 投影映射
-                AddLog($"[融合] 正在将 {filteredPoints.Count} 个点投影至图像...");
-                OpenCvSharp.Mat fusedMat = await Task.Run(() => _sensorFusion.ProjectPointCloudToImage(processedMat, filteredPoints, 30.0f));
+                // 6. 调用传感器融合模块进行 3D->2D 投影映射 (不再需要硬编码 30.0f)
+                AddLog($"[融合] 正在将 {validRawPoints.Count} 个原始点投影至图像...");
+                OpenCvSharp.Mat fusedMat = await Task.Run(() => _sensorFusion.ProjectPointCloudToImage(processedMat, validRawPoints));
 
                 OpenCvSharp.Cv2.ImEncode(".bmp", fusedMat, out byte[] imgBuf);
-                using (MemoryStream ms = new MemoryStream(imgBuf))
+                using (System.IO.MemoryStream ms = new System.IO.MemoryStream(imgBuf))
                 {
-                    Image fusedImage = Image.FromStream(ms);
+                    System.Drawing.Image fusedImage = System.Drawing.Image.FromStream(ms);
                     if (pictureBox_FusionResult.Image != null) pictureBox_FusionResult.Image.Dispose();
                     pictureBox_FusionResult.Image = fusedImage;
                 }
 
                 // 8. 释放非托管内存，防止内存泄漏
                 fusedMat.Dispose();
-                File.Delete(extractedImagePath); // 清理抽帧的临时图片
+                System.IO.File.Delete(extractedImagePath); // 清理抽帧的临时图片
 
                 AddLog("[融合] 融合完成！");
             }
@@ -1135,6 +1142,78 @@ namespace RadarConnect
                         // 恢复按钮状态
                         if (sender is Button btn_SaveBEVn)
                             btn_SaveBEV.Enabled = true;
+                    }
+                }
+            }
+        }
+        private async void btn_LoadPcd_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                // 1. 修改 Filter，使其同时支持 .pcd 和 .las 文件
+                ofd.Filter = "点云文件 (*.pcd;*.las)|*.pcd;*.las|PCD 文件 (*.pcd)|*.pcd|LAS 文件 (*.las)|*.las|所有文件 (*.*)|*.*";
+                ofd.Title = "选择离线点云文件进行投影";
+                ofd.RestoreDirectory = true;
+
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    // 禁用按钮防止重复点击
+                    btn_LoadPcd.Enabled = false;
+
+                    try
+                    {
+                        string fileName = System.IO.Path.GetFileName(ofd.FileName);
+                        AddLog($"[离线投影] 正在解析点云文件: {fileName}");
+
+                        // 2. 调用修改后的 PointCloudReader，变量名也相应改为 cloudPoints
+                        List<PointData> cloudPoints = await Task.Run(() => PointCloudReader.Read(ofd.FileName));
+
+                        if (cloudPoints == null || cloudPoints.Count == 0)
+                        {
+                            MessageBox.Show("该文件中没有解析到有效的点云数据！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+
+                        AddLog($"[离线投影] 解析成功，共 {cloudPoints.Count} 个点，正在生成正视图...");
+
+                        // 3. 异步投影为图像，传入解析出的点云列表
+                        // 默认生成 1920x1080 尺寸的图像，可根据需要调整
+                        using (System.Drawing.Bitmap projectedImg = await Task.Run(() => ElevationProjector.CreateFrontViewImage(cloudPoints, 1920, 1080)))
+                        {
+                            if (projectedImg != null)
+                            {
+                                // 将结果输出到 tabPage3 的 pictureBox_FusionResult 中展示
+                                if (pictureBox_FusionResult.Image != null)
+                                {
+                                    pictureBox_FusionResult.Image.Dispose();
+                                }
+                                pictureBox_FusionResult.Image = new System.Drawing.Bitmap(projectedImg);
+
+                                // 自动保存投影结果到与原点云文件相同的目录下
+                                string savePath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(ofd.FileName), $"Projected_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+                                projectedImg.Save(savePath, System.Drawing.Imaging.ImageFormat.Png);
+
+                                AddLog($"[离线投影] 投影完成！图片已自动保存至: {savePath}");
+
+                                // 自动切换到“点云CCD融合”选项卡以展示图片
+                                tabControl1.SelectedTab = tabPage3;
+                            }
+                            else
+                            {
+                                AddLog("[离线投影] 生成图像失败：有效数据不足或由于阈值过滤导致无坐标点。");
+                                MessageBox.Show("生成投影图失败，点云范围异常或超出预设视野。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        AddLog($"[错误] 处理点云文件发生异常: {ex.Message}");
+                        MessageBox.Show($"解析或投影失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        // 恢复按钮状态
+                        btn_LoadPcd.Enabled = true;
                     }
                 }
             }

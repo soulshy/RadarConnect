@@ -78,6 +78,7 @@
             this.groupBox6.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
+            this.btn_LoadPcd = new System.Windows.Forms.Button();
             // 
             // tabControl1
             // 
@@ -163,6 +164,16 @@
             this.cbx_Coordinate.Name = "cbx_Coordinate";
             this.cbx_Coordinate.Size = new System.Drawing.Size(110, 20);
             this.cbx_Coordinate.TabIndex = 10;
+            // 
+            // btn_LoadPcd
+            // 
+            this.btn_LoadPcd.Location = new System.Drawing.Point(860, 18); // 紧挨着"执行融合"按钮右侧
+            this.btn_LoadPcd.Name = "btn_LoadPcd";
+            this.btn_LoadPcd.Size = new System.Drawing.Size(120, 30);
+            this.btn_LoadPcd.TabIndex = 6;
+            this.btn_LoadPcd.Text = "加载并投影PCD";
+            this.btn_LoadPcd.UseVisualStyleBackColor = true;
+            this.btn_LoadPcd.Click += new System.EventHandler(this.btn_LoadPcd_Click);
             // 
             // label2
             // 
@@ -628,7 +639,7 @@
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
-
+            this.groupBox6.Controls.Add(this.btn_LoadPcd);
         }
 
         #endregion
@@ -683,5 +694,6 @@
         private System.Windows.Forms.Button btn_SetScanPattern;
         private System.Windows.Forms.Button btn_ShowRaw;
         private System.Windows.Forms.Button btn_SaveBEV;
+        private System.Windows.Forms.Button btn_LoadPcd;
     }
 }

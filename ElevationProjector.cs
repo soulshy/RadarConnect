@@ -14,9 +14,10 @@ namespace RadarConnect
         {
             if (points == null || points.Count == 0) return null;
 
-            // 1. 获取物理边界，这次使用 Y(左右宽度) 和 Z(上下高度) 作为画板的 XY 轴
+            // 1. 获取物理边界，增加对 X(深度) 的极值获取，用于彩色映射归一化
             float minY = float.MaxValue, maxY = float.MinValue;
             float minZ = float.MaxValue, maxZ = float.MinValue;
+            float minX = float.MaxValue, maxX = float.MinValue;
 
             foreach (var p in points)
             {
@@ -31,15 +32,18 @@ namespace RadarConnect
                 if (p.Y > maxY) maxY = p.Y;
                 if (p.Z < minZ) minZ = p.Z;
                 if (p.Z > maxZ) maxZ = p.Z;
+                if (p.X < minX) minX = p.X;
+                if (p.X > maxX) maxX = p.X;
             }
 
             if (maxY - minY < 0.1f) maxY = minY + 1.0f;
             if (maxZ - minZ < 0.1f) maxZ = minZ + 1.0f;
+            if (maxX - minX < 0.1f) maxX = minX + 1.0f;
 
             float rangeY = maxY - minY;
             float rangeZ = maxZ - minZ;
 
-            // 2. 计算缩放系数，保持真实物理比例 (门不会被拉宽或压扁)
+            // 2. 计算缩放系数，保持真实物理比例              
             float scaleY = (float)canvasWidth / rangeY;
             float scaleZ = (float)canvasHeight / rangeZ;
             float scale = Math.Min(scaleY, scaleZ) * 0.95f;
@@ -83,12 +87,22 @@ namespace RadarConnect
 
                             int idx = v * stride + u * 3;
 
-                            // 保留灰度反射率逻辑
-                            byte intensity = Math.Max((byte)80, p.Reflectivity);
+                            // 6. 归一化深度 (0.0 ~ 1.0)
+                            float ratio = (p.X - minX) / (maxX - minX);
+                            ratio = Math.Max(0f, Math.Min(1f, ratio));
 
-                            ptr[idx] = intensity;
-                            ptr[idx + 1] = intensity;
-                            ptr[idx + 2] = intensity;
+                            // Jet Colormap 算法（近红远蓝）
+                            float r = ClampColor(1.5f - Math.Abs(4.0f * (1.0f - ratio) - 3.0f));
+                            float g = ClampColor(1.5f - Math.Abs(4.0f * (1.0f - ratio) - 2.0f));
+                            float b = ClampColor(1.5f - Math.Abs(4.0f * (1.0f - ratio) - 1.0f));
+
+                            // 结合反射率微调亮度 (保留原有质感，反射率越高越亮，最低保持一定亮度防止纯黑)
+                            float intensityFactor = Math.Max(0.5f, p.Reflectivity / 255.0f * 1.5f);
+
+                            // 写入像素。注意：Format24bppRgb 在内存中的顺序是 B, G, R
+                            ptr[idx] = (byte)Math.Min(255, (b * 255 * intensityFactor));     // Blue
+                            ptr[idx + 1] = (byte)Math.Min(255, (g * 255 * intensityFactor)); // Green
+                            ptr[idx + 2] = (byte)Math.Min(255, (r * 255 * intensityFactor)); // Red
                         }
                     }
                 }
@@ -96,6 +110,14 @@ namespace RadarConnect
             bmp.UnlockBits(bmpData);
 
             return bmp;
+        }
+
+        // 辅助方法：限制颜色范围在 0~1 之间
+        private static float ClampColor(float val)
+        {
+            if (val < 0f) return 0f;
+            if (val > 1f) return 1f;
+            return val;
         }
     }
 }

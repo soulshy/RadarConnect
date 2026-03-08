@@ -236,6 +236,7 @@
     </Compile>
     <Compile Include="ImageProcessor.cs" />
     <Compile Include="ElevationProjector.cs" />
+    <Compile Include="PointCloudReader.cs" />
     <Compile Include="PointCloudProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

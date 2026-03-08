@@ -7,24 +7,27 @@ namespace RadarConnect
     public class SensorFusion
     {
         // --- 1. 相机内参 (Camera Intrinsics) ---
-        public float Fx { get; set; } = 1200f;
-        public float Fy { get; set; } = 1200f;
-        public float Cx { get; set; } = 960f;
-        public float Cy { get; set; } = 540f;
+        // 焦距 (Focal Length)
+        public float Fx { get; set; } = 1878.4f;
+        public float Fy { get; set; } = 1878.0f;
+        // 主点 (Principal Point)
+        public float Cx { get; set; } = 980.4468f;
+        public float Cy { get; set; } = 550.5467f;
 
         // --- 2. 相机畸变系数 (Distortion Coefficients) ---
-        public double[] DistCoeffs { get; set; } = new double[] { 0, 0, 0, 0, 0 };
+        // k1, k2, p1, p2, k3 (图片中未提供 k3，默认为 0)
+        public double[] DistCoeffs { get; set; } = new double[] { -0.0889, -0.0206, 0.0, 0.0, 0.0 };
 
         // --- 3. 真实的相机外参 (Camera Extrinsics) ---
-        // 3x3 旋转矩阵 (Rotation Matrix)，默认设为单位矩阵
+        // 3x3 旋转矩阵 (Rotation Matrix) 代表雷达坐标系相对于相机坐标系的旋转姿态
         public double[,] R { get; set; } = new double[3, 3] {
-            { 1, 0, 0 },
-            { 0, 1, 0 },
-            { 0, 0, 1 }
+            { 0.0277, -0.9996,  0.0039 },
+            { -0.0390, -0.0050, -0.9992 },
+            { 0.9989,  0.0275, -0.0391 }
         };
 
-        // 3x1 平移向量 (Translation Vector)，单位通常为米(m)
-        public double[] T { get; set; } = new double[3] { 0, 0, 0 };
+        // 3x1 平移向量 (Translation Vector) 
+        public double[] T { get; set; } = new double[3] { 0.1269, 0.1474, 0.0530 };
 
         private readonly Scalar[] _colorLut = new Scalar[256];
 
@@ -48,9 +51,25 @@ namespace RadarConnect
         /// <summary>
         ///  OpenCV Mat 对象上投影 3D 点云
         /// </summary>
-        public Mat ProjectPointCloudToImage(Mat img, List<PointData> points, float maxDepth = 30.0f)
+        /// <summary>
+        ///  OpenCV Mat 对象上投影 3D 点云 (动态深度着色)
+        /// </summary>
+        public Mat ProjectPointCloudToImage(Mat img, List<PointData> points)
         {
             double k1 = DistCoeffs[0], k2 = DistCoeffs[1], p1 = DistCoeffs[2], p2 = DistCoeffs[3], k3 = DistCoeffs[4];
+
+            // ==============================================================
+            // 1. 获取当前帧真实的深度极值，用于动态颜色映射，彻底解决全蓝问题
+            // ==============================================================
+            float minDepth = float.MaxValue;
+            float maxDepth = float.MinValue;
+            foreach (var p in points)
+            {
+                if (p.Depth < minDepth) minDepth = p.Depth;
+                if (p.Depth > maxDepth) maxDepth = p.Depth;
+            }
+            // 防止画面里只有一个点导致除零异常
+            if (maxDepth - minDepth < 0.1f) maxDepth = minDepth + 1.0f;
 
             foreach (var p in points)
             {
@@ -83,14 +102,31 @@ namespace RadarConnect
                 // 判断是否在画面内并绘制
                 if (u >= 0 && u < img.Width && v >= 0 && v < img.Height)
                 {
-                    float depthRatio = Math.Max(0, Math.Min(p.Depth / maxDepth, 1.0f));
-                    int lutIndex = (int)(depthRatio * 255);
-                    Scalar ptColor = _colorLut[lutIndex];
+                    // ================== Jet Colormap 彩色映射 ==================
+                    // 将深度归一化到 0.0 ~ 1.0 之间
+                    float ratio = (p.Depth - minDepth) / (maxDepth - minDepth);
+                    ratio = Math.Max(0f, Math.Min(1f, ratio));
+
+                    // 近红远蓝 公式计算
+                    float r = ClampColor(1.5f - Math.Abs(4.0f * (1.0f - ratio) - 3.0f));
+                    float g = ClampColor(1.5f - Math.Abs(4.0f * (1.0f - ratio) - 2.0f));
+                    float b = ClampColor(1.5f - Math.Abs(4.0f * (1.0f - ratio) - 1.0f));
+
+                    // OpenCV中颜色结构体 Scalar 的顺序是 (Blue, Green, Red)
+                    Scalar ptColor = new Scalar(b * 255, g * 255, r * 255);
 
                     Cv2.Circle(img, new OpenCvSharp.Point(u, v), 1, ptColor, -1, LineTypes.AntiAlias);
                 }
             }
             return img;
+        }
+
+        // 辅助函数：将颜色限制在合法范围内
+        private float ClampColor(float val)
+        {
+            if (val < 0f) return 0f;
+            if (val > 1f) return 1f;
+            return val;
         }
     }
 }
