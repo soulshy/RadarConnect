@@ -65,6 +65,7 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
             this.btn_SaveBEV = new System.Windows.Forms.Button();
+            this.btn_LoadPcd = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -78,7 +79,6 @@
             this.groupBox6.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
-            this.btn_LoadPcd = new System.Windows.Forms.Button();
             // 
             // tabControl1
             // 
@@ -107,7 +107,7 @@
             // 
             // groupBox3
             // 
-            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
             | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBox3.Controls.Add(this.listBox_Log);
             this.groupBox3.Location = new System.Drawing.Point(12, 218);
@@ -164,16 +164,6 @@
             this.cbx_Coordinate.Name = "cbx_Coordinate";
             this.cbx_Coordinate.Size = new System.Drawing.Size(110, 20);
             this.cbx_Coordinate.TabIndex = 10;
-            // 
-            // btn_LoadPcd
-            // 
-            this.btn_LoadPcd.Location = new System.Drawing.Point(860, 18); // 紧挨着"执行融合"按钮右侧
-            this.btn_LoadPcd.Name = "btn_LoadPcd";
-            this.btn_LoadPcd.Size = new System.Drawing.Size(120, 30);
-            this.btn_LoadPcd.TabIndex = 6;
-            this.btn_LoadPcd.Text = "加载并投影PCD";
-            this.btn_LoadPcd.UseVisualStyleBackColor = true;
-            this.btn_LoadPcd.Click += new System.EventHandler(this.btn_LoadPcd_Click);
             // 
             // label2
             // 
@@ -474,8 +464,8 @@
             // renderWindowControl1
             // 
             this.renderWindowControl1.AddTestActors = false;
-            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.renderWindowControl1.Location = new System.Drawing.Point(6, 75);
             this.renderWindowControl1.Name = "renderWindowControl1";
@@ -497,8 +487,8 @@
             // 
             // pictureBox_FusionResult
             // 
-            this.pictureBox_FusionResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.pictureBox_FusionResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBox_FusionResult.BackColor = System.Drawing.Color.Black;
             this.pictureBox_FusionResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -511,7 +501,7 @@
             // 
             // groupBox6
             // 
-            this.groupBox6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBox6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox6.Controls.Add(this.btn_ExecuteFusion);
             this.groupBox6.Controls.Add(this.btn_SelectVideo);
@@ -519,6 +509,7 @@
             this.groupBox6.Controls.Add(this.label6);
             this.groupBox6.Controls.Add(this.dateTimePicker_Fusion);
             this.groupBox6.Controls.Add(this.label5);
+            this.groupBox6.Controls.Add(this.btn_LoadPcd);
             this.groupBox6.Location = new System.Drawing.Point(8, 6);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(1945, 60);
@@ -608,6 +599,16 @@
             this.btn_SaveBEV.UseVisualStyleBackColor = true;
             this.btn_SaveBEV.Click += new System.EventHandler(this.btn_SaveBEV_Click);
             // 
+            // btn_LoadPcd
+            // 
+            this.btn_LoadPcd.Location = new System.Drawing.Point(860, 18);
+            this.btn_LoadPcd.Name = "btn_LoadPcd";
+            this.btn_LoadPcd.Size = new System.Drawing.Size(120, 30);
+            this.btn_LoadPcd.TabIndex = 6;
+            this.btn_LoadPcd.Text = "加载并投影PCD";
+            this.btn_LoadPcd.UseVisualStyleBackColor = true;
+            this.btn_LoadPcd.Click += new System.EventHandler(this.btn_LoadPcd_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -639,7 +640,7 @@
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
-            this.groupBox6.Controls.Add(this.btn_LoadPcd);
+
         }
 
         #endregion
