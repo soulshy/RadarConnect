@@ -1007,6 +1007,199 @@ namespace RadarConnect
         }
         #endregion
 
+        #region 焦距增加或减小
+
+
+        private async Task SendPtzCommandAsync(int ptzCmd, int speed = 50)
+        {
+            string inputIp = txt_CameraIp.Text.Trim();
+            if (string.IsNullOrEmpty(inputIp))
+            {
+                MessageBox.Show("请输入相机IP地址！");
+                return;
+            }
+
+            // 处理带端口的 IP
+            string ipAddress = inputIp.Contains(":") ? inputIp.Split(':')[0] : inputIp;
+
+            // 默认账户及密码，与 InitCameraPlayer 保持一致
+            string user = "admin";
+            string pwdMd5 = "e10adc3949ba59abbe56e057f20f883e";
+
+            // 构造 JSON 参数，文档规定 channel 固定为 0
+            string jsonParam = $"{{\"speed_h\": {speed}, \"speed_v\": {speed}, \"channel\": 0, \"ptz_cmd\": {ptzCmd}}}";
+            string encodedJson = Uri.EscapeDataString(jsonParam);
+            string apiUrl = $"http://{ipAddress}/action/cgi_action?user={user}&pwd={pwdMd5}&action=setPtzControl&json={encodedJson}";
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(3);
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string jsonResponse = await response.Content.ReadAsStringAsync();
+                        if (jsonResponse.Contains("\"code\": 0") || jsonResponse.Contains("\"code\":0"))
+                        {
+                            AddLog($"[PTZ] 指令发送成功: Cmd={ptzCmd}");
+                        }
+                        else
+                        {
+                            AddLog($"[PTZ] 指令失败，返回: {jsonResponse}");
+                        }
+                    }
+                    else
+                    {
+                        AddLog($"[PTZ] HTTP 请求失败，状态码: {response.StatusCode}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog($"[PTZ] 控制异常: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region OSD 水印恢复
+
+        /// <summary>
+        /// 恢复摄像头画面上的时间和名称水印
+        /// </summary>
+        private async Task EnableCameraOsdAsync()
+        {
+            string inputIp = txt_CameraIp.Text.Trim();
+            if (string.IsNullOrEmpty(inputIp))
+            {
+                MessageBox.Show("请输入相机IP地址！");
+                return;
+            }
+
+            string ipAddress = inputIp.Contains(":") ? inputIp.Split(':')[0] : inputIp;
+            string user = "admin";
+            string pwdMd5 = "e10adc3949ba59abbe56e057f20f883e";
+
+            // 构造 JSON 参数：将所有开关设为 1
+            // show_date: 1 开启日期, show_time: 1 开启时间
+            string jsonParam = "{" +
+                "\"show_date\": 1, " +
+                "\"show_time\": 1, " +
+                "\"show_week\": 1, " +
+                "\"font_size\": 1, " +
+                "\"title_list\": [" +
+                    "{\"show_title\": 1, \"title\": \"IPCamera\", \"title_pos_x\": 556, \"title_pos_y\": 546}, " +
+                    "{\"show_title\": 0, \"title\": \" \", \"title_pos_x\": 556, \"title_pos_y\": 506}, " +
+                    "{\"show_title\": 0, \"title\": \" \", \"title_pos_x\": 556, \"title_pos_y\": 466}, " +
+                    "{\"show_title\": 0, \"title\": \" \", \"title_pos_x\": 556, \"title_pos_y\": 426}" +
+                "]" +
+            "}";
+
+            string encodedJson = Uri.EscapeDataString(jsonParam);
+            string apiUrl = $"http://{ipAddress}/action/cgi_action?user={user}&pwd={pwdMd5}&action=setOsdConf&json={encodedJson}";
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(3);
+                    AddLog("[OSD] 正在恢复水印显示...");
+
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string jsonResponse = await response.Content.ReadAsStringAsync();
+                        if (jsonResponse.Contains("\"code\": 0") || jsonResponse.Contains("\"code\":0"))
+                        {
+                            AddLog("[OSD] 水印已恢复！");
+                        }
+                        else
+                        {
+                            AddLog($"[OSD] 恢复失败: {jsonResponse}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog($"[OSD] 异常: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region OSD 水印去除
+
+        /// <summary>
+        /// 关闭摄像头画面上的时间和名称水印
+        /// </summary>
+        private async Task DisableCameraOsdAsync()
+        {
+            string inputIp = txt_CameraIp.Text.Trim();
+            if (string.IsNullOrEmpty(inputIp))
+            {
+                MessageBox.Show("请输入相机IP地址！", "提示");
+                return;
+            }
+
+            string ipAddress = inputIp.Contains(":") ? inputIp.Split(':')[0] : inputIp;
+            string user = "admin";
+            string pwdMd5 = "e10adc3949ba59abbe56e057f20f883e";
+
+            // 构造 JSON 参数，根据文档：
+            // show_date: 0 关闭日期, show_time: 0 关闭时间, show_week: 0 关闭星期
+            // title_list: 包含4个标题配置，将它们的 show_title 全设为 0 (关闭显示)
+            string jsonParam = "{" +
+                "\"show_date\": 0, " +
+                "\"show_time\": 0, " +
+                "\"show_week\": 0, " +
+                "\"title_list\": [" +
+                    "{\"show_title\": 0}, " +
+                    "{\"show_title\": 0}, " +
+                    "{\"show_title\": 0}, " +
+                    "{\"show_title\": 0}" +
+                "]" +
+            "}";
+
+            string encodedJson = Uri.EscapeDataString(jsonParam);
+            string apiUrl = $"http://{ipAddress}/action/cgi_action?user={user}&pwd={pwdMd5}&action=setOsdConf&json={encodedJson}";
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(3);
+                    AddLog("[OSD] 正在发送关闭水印指令...");
+
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string jsonResponse = await response.Content.ReadAsStringAsync();
+                        if (jsonResponse.Contains("\"code\": 0") || jsonResponse.Contains("\"code\":0"))
+                        {
+                            AddLog("[OSD] 水印已成功关闭！现在抓拍的图片将是纯净画面。");
+                        }
+                        else
+                        {
+                            AddLog($"[OSD] 关闭水印失败，返回: {jsonResponse}");
+                        }
+                    }
+                    else
+                    {
+                        AddLog($"[OSD] HTTP 请求失败，状态码: {response.StatusCode}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog($"[OSD] 控制异常: {ex.Message}");
+            }
+        }
+
+        #endregion
+
         private async void btn_ShowRaw_Click(object sender, EventArgs e)
         {
             // 1. 确保 VTK 已经初始化 
@@ -1217,6 +1410,106 @@ namespace RadarConnect
                     }
                 }
             }
+        }
+
+        private async void btn_ZoomIn_MouseDown(object sender, MouseEventArgs e)
+        {
+            await SendPtzCommandAsync(9, 50);
+        }
+
+        private async void btn_ZoomOut_MouseDown(object sender, MouseEventArgs e)
+        {
+            await SendPtzCommandAsync(10, 50); 
+        }
+
+        private async void btn_ZoomIn_MouseUp(object sender, MouseEventArgs e)
+        {
+            await SendPtzCommandAsync(21, 50);
+        }
+
+        private async void btn_ZoomOut_MouseUp(object sender, MouseEventArgs e)
+        {
+            await SendPtzCommandAsync(21, 50);
+        }
+
+        private async void btn_Snapshot_Click(object sender, EventArgs e)
+        {
+            string inputIp = txt_CameraIp.Text.Trim();
+            if (string.IsNullOrEmpty(inputIp))
+            {
+                MessageBox.Show("请输入相机IP地址！", "提示");
+                return;
+            }
+
+            // 提取纯IP
+            string ipAddress = inputIp.Contains(":") ? inputIp.Split(':')[0] : inputIp;
+
+            // 构造抓拍接口 URL。根据文档，不指定 fmt 参数时默认返回 jpg。
+            string apiUrl = $"http://{ipAddress}/action/cgi_images";
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(3); 
+
+                    AddLog("[抓拍] 正在请求抓拍...");
+
+                    // 发送 GET 请求获取图片流
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // 将返回内容读取为字节数组 (Byte Array)
+                        byte[] imageBytes = await response.Content.ReadAsByteArrayAsync();
+
+                        // 确保图片数据不为空
+                        if (imageBytes != null && imageBytes.Length > 0)
+                        {
+                            // 在程序运行目录下创建一个名为 Snapshots 的文件夹
+                            string saveFolder = Path.Combine(Application.StartupPath, "Snapshots");
+                            if (!Directory.Exists(saveFolder))
+                            {
+                                Directory.CreateDirectory(saveFolder);
+                            }
+
+                            // 使用当前时间戳作为文件名，避免覆盖
+                            string fileName = $"Snap_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
+                            string savePath = Path.Combine(saveFolder, fileName);
+
+                            // 写入本地文件
+                            File.WriteAllBytes(savePath, imageBytes);
+
+                            AddLog($"[抓拍] 成功！已保存至: {fileName}");
+
+                            
+                            MessageBox.Show($"抓拍成功！\n保存路径：{savePath}", "抓拍成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            AddLog("[抓拍] 失败：返回的图片数据为空。");
+                        }
+                    }
+                    else
+                    {
+                        AddLog($"[抓拍] HTTP 请求失败，状态码: {response.StatusCode}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog($"[抓拍] 发生异常: {ex.Message}");
+            }
+        }
+
+        private async void btn_RemoveOsd_Click(object sender, EventArgs e)
+        {
+            await DisableCameraOsdAsync();
+        }
+
+        private async void btn_EnableOsd_Click_1(object sender, EventArgs e)
+        {
+            await EnableCameraOsdAsync();
         }
     }
 }

@@ -17,6 +17,12 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this.btn_EnableOsd = new System.Windows.Forms.Button();
+            this.btn_RemoveOsd = new System.Windows.Forms.Button();
+            this.btn_Snapshot = new System.Windows.Forms.Button();
+            this.btn_ZoomOut = new System.Windows.Forms.Button();
+            this.btn_ZoomIn = new System.Windows.Forms.Button();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.listBox_Log = new System.Windows.Forms.ListBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -42,6 +48,7 @@
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.btn_SaveBEV = new System.Windows.Forms.Button();
             this.btn_ShowRaw = new System.Windows.Forms.Button();
             this.btn_SaveImage = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
@@ -62,12 +69,12 @@
             this.label6 = new System.Windows.Forms.Label();
             this.dateTimePicker_Fusion = new System.Windows.Forms.DateTimePicker();
             this.label5 = new System.Windows.Forms.Label();
+            this.btn_LoadPcd = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
-            this.btn_SaveBEV = new System.Windows.Forms.Button();
-            this.btn_LoadPcd = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            this.groupBox7.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -89,25 +96,92 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1969, 800);
+            this.tabControl1.Size = new System.Drawing.Size(2057, 800);
             this.tabControl1.TabIndex = 7;
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.groupBox7);
             this.tabPage1.Controls.Add(this.groupBox3);
             this.tabPage1.Controls.Add(this.groupBox2);
             this.tabPage1.Controls.Add(this.groupBox1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1961, 774);
+            this.tabPage1.Size = new System.Drawing.Size(2049, 774);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "控制与日志";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // groupBox7
+            // 
+            this.groupBox7.Controls.Add(this.btn_EnableOsd);
+            this.groupBox7.Controls.Add(this.btn_RemoveOsd);
+            this.groupBox7.Controls.Add(this.btn_Snapshot);
+            this.groupBox7.Controls.Add(this.btn_ZoomOut);
+            this.groupBox7.Controls.Add(this.btn_ZoomIn);
+            this.groupBox7.Location = new System.Drawing.Point(882, 391);
+            this.groupBox7.Name = "groupBox7";
+            this.groupBox7.Size = new System.Drawing.Size(209, 359);
+            this.groupBox7.TabIndex = 3;
+            this.groupBox7.TabStop = false;
+            this.groupBox7.Text = "相机控制";
+            // 
+            // btn_EnableOsd
+            // 
+            this.btn_EnableOsd.Location = new System.Drawing.Point(118, 208);
+            this.btn_EnableOsd.Name = "btn_EnableOsd";
+            this.btn_EnableOsd.Size = new System.Drawing.Size(75, 23);
+            this.btn_EnableOsd.TabIndex = 4;
+            this.btn_EnableOsd.Text = "恢复水印";
+            this.btn_EnableOsd.UseVisualStyleBackColor = true;
+            this.btn_EnableOsd.Click += new System.EventHandler(this.btn_EnableOsd_Click_1);
+            // 
+            // btn_RemoveOsd
+            // 
+            this.btn_RemoveOsd.Location = new System.Drawing.Point(20, 208);
+            this.btn_RemoveOsd.Name = "btn_RemoveOsd";
+            this.btn_RemoveOsd.Size = new System.Drawing.Size(75, 23);
+            this.btn_RemoveOsd.TabIndex = 3;
+            this.btn_RemoveOsd.Text = "去除水印";
+            this.btn_RemoveOsd.UseVisualStyleBackColor = true;
+            this.btn_RemoveOsd.Click += new System.EventHandler(this.btn_RemoveOsd_Click);
+            // 
+            // btn_Snapshot
+            // 
+            this.btn_Snapshot.Location = new System.Drawing.Point(118, 81);
+            this.btn_Snapshot.Name = "btn_Snapshot";
+            this.btn_Snapshot.Size = new System.Drawing.Size(75, 23);
+            this.btn_Snapshot.TabIndex = 2;
+            this.btn_Snapshot.Text = "抓拍";
+            this.btn_Snapshot.UseVisualStyleBackColor = true;
+            this.btn_Snapshot.Click += new System.EventHandler(this.btn_Snapshot_Click);
+            // 
+            // btn_ZoomOut
+            // 
+            this.btn_ZoomOut.Location = new System.Drawing.Point(17, 116);
+            this.btn_ZoomOut.Name = "btn_ZoomOut";
+            this.btn_ZoomOut.Size = new System.Drawing.Size(75, 23);
+            this.btn_ZoomOut.TabIndex = 1;
+            this.btn_ZoomOut.Text = "焦距减小";
+            this.btn_ZoomOut.UseVisualStyleBackColor = true;
+            this.btn_ZoomOut.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btn_ZoomOut_MouseDown);
+            this.btn_ZoomOut.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btn_ZoomOut_MouseUp);
+            // 
+            // btn_ZoomIn
+            // 
+            this.btn_ZoomIn.Location = new System.Drawing.Point(17, 51);
+            this.btn_ZoomIn.Name = "btn_ZoomIn";
+            this.btn_ZoomIn.Size = new System.Drawing.Size(75, 23);
+            this.btn_ZoomIn.TabIndex = 0;
+            this.btn_ZoomIn.Text = "焦距放大";
+            this.btn_ZoomIn.UseVisualStyleBackColor = true;
+            this.btn_ZoomIn.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btn_ZoomIn_MouseDown);
+            this.btn_ZoomIn.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btn_ZoomIn_MouseUp);
+            // 
             // groupBox3
             // 
-            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBox3.Controls.Add(this.listBox_Log);
             this.groupBox3.Location = new System.Drawing.Point(12, 218);
@@ -343,7 +417,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1961, 774);
+            this.tabPage2.Size = new System.Drawing.Size(2049, 774);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "可视化视图";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -357,12 +431,22 @@
             this.groupBox5.Controls.Add(this.label3);
             this.groupBox5.Controls.Add(this.dateTimePicker_Query);
             this.groupBox5.Controls.Add(this.btn_Reconstruct);
-            this.groupBox5.Location = new System.Drawing.Point(6, 6);
+            this.groupBox5.Location = new System.Drawing.Point(8, 6);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(922, 60);
+            this.groupBox5.Size = new System.Drawing.Size(1008, 60);
             this.groupBox5.TabIndex = 7;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "点云还原查询";
+            // 
+            // btn_SaveBEV
+            // 
+            this.btn_SaveBEV.Location = new System.Drawing.Point(651, 19);
+            this.btn_SaveBEV.Name = "btn_SaveBEV";
+            this.btn_SaveBEV.Size = new System.Drawing.Size(120, 30);
+            this.btn_SaveBEV.TabIndex = 22;
+            this.btn_SaveBEV.Text = "保存为鸟瞰图";
+            this.btn_SaveBEV.UseVisualStyleBackColor = true;
+            this.btn_SaveBEV.Click += new System.EventHandler(this.btn_SaveBEV_Click);
             // 
             // btn_ShowRaw
             // 
@@ -419,7 +503,7 @@
             this.groupBox4.Controls.Add(this.label4);
             this.groupBox4.Controls.Add(this.txt_CameraIp);
             this.groupBox4.Controls.Add(this.btn_PlayCamera);
-            this.groupBox4.Location = new System.Drawing.Point(1022, 9);
+            this.groupBox4.Location = new System.Drawing.Point(1110, 9);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(922, 60);
             this.groupBox4.TabIndex = 5;
@@ -456,7 +540,7 @@
             // 
             this.panel_Video.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.panel_Video.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel_Video.Location = new System.Drawing.Point(1022, 75);
+            this.panel_Video.Location = new System.Drawing.Point(1110, 75);
             this.panel_Video.Name = "panel_Video";
             this.panel_Video.Size = new System.Drawing.Size(922, 685);
             this.panel_Video.TabIndex = 6;
@@ -464,12 +548,12 @@
             // renderWindowControl1
             // 
             this.renderWindowControl1.AddTestActors = false;
-            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.renderWindowControl1.Location = new System.Drawing.Point(6, 75);
             this.renderWindowControl1.Name = "renderWindowControl1";
-            this.renderWindowControl1.Size = new System.Drawing.Size(922, 685);
+            this.renderWindowControl1.Size = new System.Drawing.Size(1010, 685);
             this.renderWindowControl1.TabIndex = 4;
             this.renderWindowControl1.TestText = null;
             // 
@@ -480,28 +564,28 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1961, 774);
+            this.tabPage3.Size = new System.Drawing.Size(2049, 774);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "点云CCD融合";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
             // pictureBox_FusionResult
             // 
-            this.pictureBox_FusionResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.pictureBox_FusionResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBox_FusionResult.BackColor = System.Drawing.Color.Black;
             this.pictureBox_FusionResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pictureBox_FusionResult.Location = new System.Drawing.Point(8, 72);
             this.pictureBox_FusionResult.Name = "pictureBox_FusionResult";
-            this.pictureBox_FusionResult.Size = new System.Drawing.Size(1945, 694);
+            this.pictureBox_FusionResult.Size = new System.Drawing.Size(2033, 694);
             this.pictureBox_FusionResult.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox_FusionResult.TabIndex = 1;
             this.pictureBox_FusionResult.TabStop = false;
             // 
             // groupBox6
             // 
-            this.groupBox6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.groupBox6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox6.Controls.Add(this.btn_ExecuteFusion);
             this.groupBox6.Controls.Add(this.btn_SelectVideo);
@@ -512,7 +596,7 @@
             this.groupBox6.Controls.Add(this.btn_LoadPcd);
             this.groupBox6.Location = new System.Drawing.Point(8, 6);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(1945, 60);
+            this.groupBox6.Size = new System.Drawing.Size(2033, 60);
             this.groupBox6.TabIndex = 0;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "离线融合控制";
@@ -573,32 +657,6 @@
             this.label5.TabIndex = 0;
             this.label5.Text = "目标时间：";
             // 
-            // statusStrip1
-            // 
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.lbl_SampleState});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 800);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1969, 22);
-            this.statusStrip1.TabIndex = 3;
-            this.statusStrip1.Text = "statusStrip1";
-            // 
-            // lbl_SampleState
-            // 
-            this.lbl_SampleState.Name = "lbl_SampleState";
-            this.lbl_SampleState.Size = new System.Drawing.Size(56, 17);
-            this.lbl_SampleState.Text = "系统就绪";
-            // 
-            // btn_SaveBEV
-            // 
-            this.btn_SaveBEV.Location = new System.Drawing.Point(651, 19);
-            this.btn_SaveBEV.Name = "btn_SaveBEV";
-            this.btn_SaveBEV.Size = new System.Drawing.Size(120, 30);
-            this.btn_SaveBEV.TabIndex = 22;
-            this.btn_SaveBEV.Text = "保存为鸟瞰图";
-            this.btn_SaveBEV.UseVisualStyleBackColor = true;
-            this.btn_SaveBEV.Click += new System.EventHandler(this.btn_SaveBEV_Click);
-            // 
             // btn_LoadPcd
             // 
             this.btn_LoadPcd.Location = new System.Drawing.Point(860, 18);
@@ -609,11 +667,27 @@
             this.btn_LoadPcd.UseVisualStyleBackColor = true;
             this.btn_LoadPcd.Click += new System.EventHandler(this.btn_LoadPcd_Click);
             // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.lbl_SampleState});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 800);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(2057, 22);
+            this.statusStrip1.TabIndex = 3;
+            this.statusStrip1.Text = "statusStrip1";
+            // 
+            // lbl_SampleState
+            // 
+            this.lbl_SampleState.Name = "lbl_SampleState";
+            this.lbl_SampleState.Size = new System.Drawing.Size(56, 17);
+            this.lbl_SampleState.Text = "系统就绪";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1969, 822);
+            this.ClientSize = new System.Drawing.Size(2057, 822);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.statusStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -623,6 +697,7 @@
             this.Text = "Livox Radar Connect";
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
+            this.groupBox7.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
@@ -696,5 +771,11 @@
         private System.Windows.Forms.Button btn_ShowRaw;
         private System.Windows.Forms.Button btn_SaveBEV;
         private System.Windows.Forms.Button btn_LoadPcd;
+        private System.Windows.Forms.GroupBox groupBox7;
+        private System.Windows.Forms.Button btn_ZoomOut;
+        private System.Windows.Forms.Button btn_ZoomIn;
+        private System.Windows.Forms.Button btn_Snapshot;
+        private System.Windows.Forms.Button btn_EnableOsd;
+        private System.Windows.Forms.Button btn_RemoveOsd;
     }
 }
