@@ -53,6 +53,7 @@ namespace RadarConnect
 
         // VTK 可视化包装器
         private VtkVisualizer _vtkVisualizer;
+        private VtkVisualizer _vtkVisualizer2;
 
         // 预处理复用缓冲区
         private List<PointData> _displayBuffer = new List<PointData>(300000);
@@ -108,6 +109,8 @@ namespace RadarConnect
         {
             // 初始化相机播放器
             InitCameraPlayer();
+            InitDepthCompletionUI();
+            SetupSplitScreen();
         }
 
         private void InitGui()
@@ -131,6 +134,17 @@ namespace RadarConnect
             txt_CameraIp.Text = "192.168.1.168";
         }
 
+        private void InitDepthCompletionUI()
+        {
+            // 触发按钮
+            btn_CompleteDepth = new Button();
+            btn_CompleteDepth.Text = "执行深度补全并渲染";
+            btn_CompleteDepth.Location = new System.Drawing.Point(15, 95);
+            btn_CompleteDepth.Size = new System.Drawing.Size(150, 40);
+            btn_CompleteDepth.Click += btn_CompleteDepth_Click; // 绑定事件
+            // 添加到第二页
+            tabPage2.Controls.Add(groupBox_DepthCompletion);
+        }
         #region 相机视频流控制
 
         private void InitCameraPlayer()
@@ -1510,6 +1524,106 @@ namespace RadarConnect
         private async void btn_EnableOsd_Click_1(object sender, EventArgs e)
         {
             await EnableCameraOsdAsync();
+        }
+
+        private async void btn_CompleteDepth_Click(object sender, EventArgs e)
+        {
+            // 初始化右侧的独立 VTK 渲染实例
+            if (_vtkVisualizer2 == null)
+            {
+                try
+                {
+                    _vtkVisualizer2 = new VtkVisualizer(renderWindowControl2);
+                    AddLog("右侧 VTK 可视化组件初始化成功。");
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"右侧 VTK 初始化失败: {ex.Message}");
+                    MessageBox.Show("VTK 初始化失败，请确保已正确安装 Activiz.NET 库。\n" + ex.Message);
+                    return;
+                }
+            }
+
+            DateTime selectedStartTime = dateTimePicker_Query.Value;
+
+            Button currentBtn = sender as Button;
+            if (currentBtn != null) currentBtn.Enabled = false;
+
+            AddLog($"[深度补全] 正在提取 {selectedStartTime:HH:mm:ss} 的点云并进行深度补全计算...");
+
+            try
+            {
+                List<PointData> completedPointsToRender = await Task.Run(() =>
+                {
+                    List<PointData> rawPoints = _dbManager.GetPointsInRange(selectedStartTime, 1.0);
+                    if (rawPoints == null || rawPoints.Count == 0) return new List<PointData>();
+
+                    List<PointData> safePoints = new List<PointData>(rawPoints.Count);
+                    foreach (var p in rawPoints)
+                    {
+                        if (!float.IsNaN(p.X) && !float.IsNaN(p.Y) && !float.IsNaN(p.Z) && p.X > 0.1f)
+                        {
+                            safePoints.Add(p);
+                        }
+                    }
+                    return DepthCompleter.CompleteDepth(safePoints);
+                });
+
+                if (completedPointsToRender != null && completedPointsToRender.Count > 0)
+                {
+                    AddLog($"[深度补全] 重建出 {completedPointsToRender.Count} 个致密点，正在交由右侧 VTK 屏幕渲染...");
+                    // 调用右侧的渲染器进行显示，保留左侧的原始画面
+                    _vtkVisualizer2.Render(completedPointsToRender);
+                }
+                else
+                {
+                    AddLog("[警告] 该时间段内无有效的点云数据，补全失败！");
+                    MessageBox.Show($"未找到 {selectedStartTime:HH:mm:ss} 的点云数据。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog($"[错误] 深度补全发生异常: {ex.Message}");
+            }
+            finally
+            {
+                // 恢复按钮状态
+                if (currentBtn != null) currentBtn.Enabled = true;
+            }
+        }
+        // [新增] 专门处理双屏排版和分界线的方法
+        private void SetupSplitScreen()
+        {
+            // 1. 创建一个左右均分 50/50 的表格容器
+            TableLayoutPanel tlp = new TableLayoutPanel();
+            tlp.ColumnCount = 2;
+            tlp.RowCount = 1;
+            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlp.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            // 2. 将容器放在按键下方，并支持跟随窗口放大自动拉伸
+            tlp.Location = new System.Drawing.Point(6, 75);
+            tlp.Size = new System.Drawing.Size(tabPage2.Width - 15, tabPage2.Height - 85);
+            tlp.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+            // 3. 关键：设置凹陷边框，自动产生一条灰色的 3D 完美中界线！
+            tlp.CellBorderStyle = TableLayoutPanelCellBorderStyle.Inset;
+
+            // 4. 重置原有两个黑屏的死板约束，并设置它们填满所在的格子
+            renderWindowControl1.Anchor = AnchorStyles.None;
+            renderWindowControl2.Anchor = AnchorStyles.None;
+            renderWindowControl1.Dock = DockStyle.Fill;
+            renderWindowControl2.Dock = DockStyle.Fill;
+
+            // 5. 将显示屏装入表格
+            tabPage2.Controls.Remove(renderWindowControl1);
+            tabPage2.Controls.Remove(renderWindowControl2);
+            tlp.Controls.Add(renderWindowControl1, 0, 0); // 装入左侧格子
+            tlp.Controls.Add(renderWindowControl2, 1, 0); // 装入右侧格子
+
+            // 6. 将处理好的整个双屏结构挂载回视图
+            tabPage2.Controls.Add(tlp);
         }
     }
 }

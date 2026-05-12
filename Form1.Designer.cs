@@ -46,6 +46,11 @@
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.panel_Video = new System.Windows.Forms.Panel();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.txt_CameraIp = new System.Windows.Forms.TextBox();
+            this.btn_PlayCamera = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.btn_SaveBEV = new System.Windows.Forms.Button();
@@ -54,12 +59,10 @@
             this.label3 = new System.Windows.Forms.Label();
             this.dateTimePicker_Query = new System.Windows.Forms.DateTimePicker();
             this.btn_Reconstruct = new System.Windows.Forms.Button();
-            this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.txt_CameraIp = new System.Windows.Forms.TextBox();
-            this.btn_PlayCamera = new System.Windows.Forms.Button();
-            this.panel_Video = new System.Windows.Forms.Panel();
+            this.groupBox_DepthCompletion = new System.Windows.Forms.GroupBox();
+            this.btn_CompleteDepth = new System.Windows.Forms.Button();
             this.renderWindowControl1 = new Kitware.VTK.RenderWindowControl();
+            this.renderWindowControl2 = new Kitware.VTK.RenderWindowControl();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.pictureBox_FusionResult = new System.Windows.Forms.PictureBox();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
@@ -78,9 +81,10 @@
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.groupBox5.SuspendLayout();
-            this.groupBox4.SuspendLayout();
+            this.groupBox_DepthCompletion.SuspendLayout();
             this.tabPage3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_FusionResult)).BeginInit();
             this.groupBox6.SuspendLayout();
@@ -410,10 +414,60 @@
             this.columnHeader4.Text = "状态";
             this.columnHeader4.Width = 100;
             // 
+            // panel_Video
+            // 
+            this.panel_Video.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel_Video.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel_Video.Location = new System.Drawing.Point(1110, 75);
+            this.panel_Video.Name = "panel_Video";
+            this.panel_Video.Size = new System.Drawing.Size(922, 685);
+            this.panel_Video.TabIndex = 6;
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox4.Controls.Add(this.label4);
+            this.groupBox4.Controls.Add(this.txt_CameraIp);
+            this.groupBox4.Controls.Add(this.btn_PlayCamera);
+            this.groupBox4.Location = new System.Drawing.Point(1110, 9);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(922, 60);
+            this.groupBox4.TabIndex = 5;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "相机控制";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(15, 26);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(53, 12);
+            this.label4.TabIndex = 0;
+            this.label4.Text = "相机 IP:";
+            // 
+            // txt_CameraIp
+            // 
+            this.txt_CameraIp.Location = new System.Drawing.Point(75, 22);
+            this.txt_CameraIp.Name = "txt_CameraIp";
+            this.txt_CameraIp.Size = new System.Drawing.Size(115, 21);
+            this.txt_CameraIp.TabIndex = 1;
+            // 
+            // btn_PlayCamera
+            // 
+            this.btn_PlayCamera.Location = new System.Drawing.Point(210, 20);
+            this.btn_PlayCamera.Name = "btn_PlayCamera";
+            this.btn_PlayCamera.Size = new System.Drawing.Size(120, 30);
+            this.btn_PlayCamera.TabIndex = 2;
+            this.btn_PlayCamera.Text = "播放相机";
+            this.btn_PlayCamera.UseVisualStyleBackColor = true;
+            this.btn_PlayCamera.Click += new System.EventHandler(this.btn_PlayCamera_Click);
+            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.groupBox5);
+            this.tabPage2.Controls.Add(this.groupBox_DepthCompletion);
             this.tabPage2.Controls.Add(this.renderWindowControl1);
+            this.tabPage2.Controls.Add(this.renderWindowControl2);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
@@ -424,7 +478,6 @@
             // 
             // groupBox5
             // 
-            this.groupBox5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox5.Controls.Add(this.btn_SaveBEV);
             this.groupBox5.Controls.Add(this.btn_ShowRaw);
             this.groupBox5.Controls.Add(this.btn_SaveImage);
@@ -433,7 +486,7 @@
             this.groupBox5.Controls.Add(this.btn_Reconstruct);
             this.groupBox5.Location = new System.Drawing.Point(8, 6);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(1008, 60);
+            this.groupBox5.Size = new System.Drawing.Size(1010, 60);
             this.groupBox5.TabIndex = 7;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "点云还原查询";
@@ -497,65 +550,50 @@
             this.btn_Reconstruct.UseVisualStyleBackColor = true;
             this.btn_Reconstruct.Click += new System.EventHandler(this.btn_Reconstruct_Click);
             // 
-            // groupBox4
+            // groupBox_DepthCompletion
             // 
-            this.groupBox4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox4.Controls.Add(this.label4);
-            this.groupBox4.Controls.Add(this.txt_CameraIp);
-            this.groupBox4.Controls.Add(this.btn_PlayCamera);
-            this.groupBox4.Location = new System.Drawing.Point(1110, 9);
-            this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(922, 60);
-            this.groupBox4.TabIndex = 5;
-            this.groupBox4.TabStop = false;
-            this.groupBox4.Text = "相机控制";
+            this.groupBox_DepthCompletion.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox_DepthCompletion.Controls.Add(this.btn_CompleteDepth);
+            this.groupBox_DepthCompletion.Location = new System.Drawing.Point(1030, 6);
+            this.groupBox_DepthCompletion.Name = "groupBox_DepthCompletion";
+            this.groupBox_DepthCompletion.Size = new System.Drawing.Size(1010, 60);
+            this.groupBox_DepthCompletion.TabIndex = 8;
+            this.groupBox_DepthCompletion.TabStop = false;
+            this.groupBox_DepthCompletion.Text = "深度补全";
             // 
-            // label4
+            // btn_CompleteDepth
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(15, 26);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(53, 12);
-            this.label4.TabIndex = 0;
-            this.label4.Text = "相机 IP:";
-            // 
-            // txt_CameraIp
-            // 
-            this.txt_CameraIp.Location = new System.Drawing.Point(75, 22);
-            this.txt_CameraIp.Name = "txt_CameraIp";
-            this.txt_CameraIp.Size = new System.Drawing.Size(115, 21);
-            this.txt_CameraIp.TabIndex = 1;
-            // 
-            // btn_PlayCamera
-            // 
-            this.btn_PlayCamera.Location = new System.Drawing.Point(210, 20);
-            this.btn_PlayCamera.Name = "btn_PlayCamera";
-            this.btn_PlayCamera.Size = new System.Drawing.Size(120, 30);
-            this.btn_PlayCamera.TabIndex = 2;
-            this.btn_PlayCamera.Text = "播放相机";
-            this.btn_PlayCamera.UseVisualStyleBackColor = true;
-            this.btn_PlayCamera.Click += new System.EventHandler(this.btn_PlayCamera_Click);
-            // 
-            // panel_Video
-            // 
-            this.panel_Video.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel_Video.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel_Video.Location = new System.Drawing.Point(1110, 75);
-            this.panel_Video.Name = "panel_Video";
-            this.panel_Video.Size = new System.Drawing.Size(922, 685);
-            this.panel_Video.TabIndex = 6;
+            this.btn_CompleteDepth.Location = new System.Drawing.Point(15, 20);
+            this.btn_CompleteDepth.Name = "btn_CompleteDepth";
+            this.btn_CompleteDepth.Size = new System.Drawing.Size(150, 30);
+            this.btn_CompleteDepth.TabIndex = 23;
+            this.btn_CompleteDepth.Text = "执行深度补全并渲染";
+            this.btn_CompleteDepth.UseVisualStyleBackColor = true;
+            this.btn_CompleteDepth.Click += new System.EventHandler(this.btn_CompleteDepth_Click);
             // 
             // renderWindowControl1
             // 
             this.renderWindowControl1.AddTestActors = false;
-            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.renderWindowControl1.Location = new System.Drawing.Point(6, 75);
+            this.renderWindowControl1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.renderWindowControl1.Location = new System.Drawing.Point(8, 75);
             this.renderWindowControl1.Name = "renderWindowControl1";
             this.renderWindowControl1.Size = new System.Drawing.Size(1010, 685);
             this.renderWindowControl1.TabIndex = 4;
             this.renderWindowControl1.TestText = null;
+            // 
+            // renderWindowControl2
+            // 
+            this.renderWindowControl2.AddTestActors = false;
+            this.renderWindowControl2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.renderWindowControl2.Location = new System.Drawing.Point(1045, 75);
+            this.renderWindowControl2.Name = "renderWindowControl2";
+            this.renderWindowControl2.Size = new System.Drawing.Size(995, 685);
+            this.renderWindowControl2.TabIndex = 9;
+            this.renderWindowControl2.TestText = null;
             // 
             // tabPage3
             // 
@@ -702,11 +740,12 @@
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox1.ResumeLayout(false);
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.tabPage2.ResumeLayout(false);
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
-            this.groupBox4.ResumeLayout(false);
-            this.groupBox4.PerformLayout();
+            this.groupBox_DepthCompletion.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_FusionResult)).EndInit();
             this.groupBox6.ResumeLayout(false);
@@ -756,6 +795,7 @@
         private System.Windows.Forms.TextBox txt_CameraIp;
         private System.Windows.Forms.Button btn_PlayCamera;
         private Kitware.VTK.RenderWindowControl renderWindowControl1;
+        private Kitware.VTK.RenderWindowControl renderWindowControl2;
         private System.Windows.Forms.Panel panel_Video;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.GroupBox groupBox6;
@@ -777,5 +817,7 @@
         private System.Windows.Forms.Button btn_Snapshot;
         private System.Windows.Forms.Button btn_EnableOsd;
         private System.Windows.Forms.Button btn_RemoveOsd;
+        private System.Windows.Forms.GroupBox groupBox_DepthCompletion;
+        private System.Windows.Forms.Button btn_CompleteDepth;
     }
 }
