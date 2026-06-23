@@ -419,7 +419,7 @@ namespace RadarConnect
                     return;
                 }
 
-                // 5. 【修改点】不使用过滤器，直接提取有效的原始点云
+                // 5.不使用过滤器，直接提取有效的原始点云
                 List<PointData> validRawPoints = new List<PointData>(rawPoints.Count);
                 foreach (var p in rawPoints)
                 {
@@ -1591,7 +1591,7 @@ namespace RadarConnect
                 if (currentBtn != null) currentBtn.Enabled = true;
             }
         }
-        // [新增] 专门处理双屏排版和分界线的方法
+        //专门处理双屏排版和分界线的方法
         private void SetupSplitScreen()
         {
             // 1. 创建一个左右均分 50/50 的表格容器
