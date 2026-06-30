@@ -240,6 +240,7 @@
     <Compile Include="PointCloudReader.cs" />
     <Compile Include="PointCloudProcessor.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="PtzUdpController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProtocolModels.cs" />
     <Compile Include="ProtocolUtils.cs" />

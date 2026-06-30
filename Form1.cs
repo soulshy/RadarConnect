@@ -70,10 +70,15 @@ namespace RadarConnect
         private VideoView _videoView;
         private bool _isCameraPlaying = false;
 
+        // ==========================================
+        // UDP 云台控制
+        // ==========================================
+        private PtzUdpController _ptzController;
+
         public Form1()
         {
             InitializeComponent();
-            InitGui();
+            InitPtzPage();
 
             _udpClient = new UdpCommunication();
             _dbManager = new DatabaseManager();
@@ -101,50 +106,14 @@ namespace RadarConnect
             _processor.EnableRoiFilter = true;
             _processor.MinZ = -2.0f;
             _processor.MaxZ = 50.0f;
-            this.Load += Form1_Load;
-            this.FormClosing += Form1_FormClosing;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             // 初始化相机播放器
             InitCameraPlayer();
-            InitDepthCompletionUI();
-            SetupSplitScreen();
         }
 
-        private void InitGui()
-        {
-            if (cbx_WorkMode.Items.Count == 0)
-                cbx_WorkMode.Items.AddRange(new object[] { "正常模式", "省电模式", "待机模式" });
-            cbx_WorkMode.SelectedIndex = 0;
-
-            if (cbx_Coordinate.Items.Count == 0)
-                cbx_Coordinate.Items.AddRange(new object[] { "直角坐标", "球坐标" });
-            cbx_Coordinate.SelectedIndex = 0;
-
-            if (cbx_ScanPattern.Items.Count == 0)
-                cbx_ScanPattern.Items.AddRange(new object[] { "非重复扫描", "重复扫描" });
-            cbx_ScanPattern.SelectedIndex = 0;
-
-            // 初始化时间选择器为当前时间
-            dateTimePicker_Query.Value = DateTime.Now;
-
-            // 相机 IP
-            txt_CameraIp.Text = "192.168.1.168";
-        }
-
-        private void InitDepthCompletionUI()
-        {
-            // 触发按钮
-            btn_CompleteDepth = new Button();
-            btn_CompleteDepth.Text = "执行深度补全并渲染";
-            btn_CompleteDepth.Location = new System.Drawing.Point(15, 95);
-            btn_CompleteDepth.Size = new System.Drawing.Size(150, 40);
-            btn_CompleteDepth.Click += btn_CompleteDepth_Click; // 绑定事件
-            // 添加到第二页
-            tabPage2.Controls.Add(groupBox_DepthCompletion);
-        }
         #region 相机视频流控制
 
         private void InitCameraPlayer()
@@ -462,6 +431,7 @@ namespace RadarConnect
         {
             // 停止所有的后台工作
             StopAllWork();
+            _ptzController?.Dispose();
 
             // 释放 VLC 资源，防止内存泄漏或进程卡死
             if (_mediaPlayer != null)
@@ -1252,7 +1222,7 @@ namespace RadarConnect
                     List<PointData> rawPoints = _dbManager.GetPointsInRange(selectedStartTime, durationSeconds);
                     if (rawPoints == null || rawPoints.Count == 0) return new List<PointData>();
 
-                   
+
                     // 这一步是为了防止 VTK 渲染器在计算深度着色时因为 NaN 而崩溃
                     List<PointData> safeRawPoints = new List<PointData>(rawPoints.Count);
                     for (int i = 0; i < rawPoints.Count; i++)
@@ -1433,7 +1403,7 @@ namespace RadarConnect
 
         private async void btn_ZoomOut_MouseDown(object sender, MouseEventArgs e)
         {
-            await SendPtzCommandAsync(10, 50); 
+            await SendPtzCommandAsync(10, 50);
         }
 
         private async void btn_ZoomIn_MouseUp(object sender, MouseEventArgs e)
@@ -1465,7 +1435,7 @@ namespace RadarConnect
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    client.Timeout = TimeSpan.FromSeconds(3); 
+                    client.Timeout = TimeSpan.FromSeconds(3);
 
                     AddLog("[抓拍] 正在请求抓拍...");
 
@@ -1496,7 +1466,7 @@ namespace RadarConnect
 
                             AddLog($"[抓拍] 成功！已保存至: {fileName}");
 
-                            
+
                             MessageBox.Show($"抓拍成功！\n保存路径：{savePath}", "抓拍成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                         else
@@ -1591,39 +1561,800 @@ namespace RadarConnect
                 if (currentBtn != null) currentBtn.Enabled = true;
             }
         }
-        //专门处理双屏排版和分界线的方法
-        private void SetupSplitScreen()
+
+        #region UDP 云台控制
+
+        private sealed class PtzSupplementCommandOption
         {
-            // 1. 创建一个左右均分 50/50 的表格容器
-            TableLayoutPanel tlp = new TableLayoutPanel();
-            tlp.ColumnCount = 2;
-            tlp.RowCount = 1;
-            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tlp.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            public PtzSupplementCommandOption(string key, string text)
+            {
+                Key = key;
+                Text = text;
+            }
 
-            // 2. 将容器放在按键下方，并支持跟随窗口放大自动拉伸
-            tlp.Location = new System.Drawing.Point(6, 75);
-            tlp.Size = new System.Drawing.Size(tabPage2.Width - 15, tabPage2.Height - 85);
-            tlp.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            public string Key { get; }
+            public string Text { get; }
 
-            // 3. 关键：设置凹陷边框，自动产生一条灰色的 3D 完美中界线！
-            tlp.CellBorderStyle = TableLayoutPanelCellBorderStyle.Inset;
+            public override string ToString()
+            {
+                return Text;
+            }
+        }
 
-            // 4. 重置原有两个黑屏的死板约束，并设置它们填满所在的格子
-            renderWindowControl1.Anchor = AnchorStyles.None;
-            renderWindowControl2.Anchor = AnchorStyles.None;
-            renderWindowControl1.Dock = DockStyle.Fill;
-            renderWindowControl2.Dock = DockStyle.Fill;
+        private void InitPtzPage()
+        {
+            if (_ptzController == null)
+            {
+                _ptzController = new PtzUdpController();
+                _ptzController.PacketReceived += HandlePtzPacketReceived;
+                _ptzController.ErrorReceived += (msg) => PtzLog("[错误] " + msg);
+            }
 
-            // 5. 将显示屏装入表格
-            tabPage2.Controls.Remove(renderWindowControl1);
-            tabPage2.Controls.Remove(renderWindowControl2);
-            tlp.Controls.Add(renderWindowControl1, 0, 0); // 装入左侧格子
-            tlp.Controls.Add(renderWindowControl2, 1, 0); // 装入右侧格子
+            LoadPtzSupplementCommands();
+            PtzLog("云台 UDP 页面已初始化。默认目标 192.168.8.200:6666，地址 1。");
+        }
 
-            // 6. 将处理好的整个双屏结构挂载回视图
-            tabPage2.Controls.Add(tlp);
+        private void LoadPtzSupplementCommands()
+        {
+            if (cmb_PtzSupplementCommand == null || cmb_PtzSupplementCommand.Items.Count > 0)
+                return;
+
+            AddPtzSupplementCommand("dir_left_up", "5.1.1 左上持续转动");
+            AddPtzSupplementCommand("dir_right_up", "5.1.1 右上持续转动");
+            AddPtzSupplementCommand("dir_left_down", "5.1.1 左下持续转动");
+            AddPtzSupplementCommand("dir_right_down", "5.1.1 右下持续转动");
+            AddPtzSupplementCommand("query_h_angle", "5.1.3 查询水平角度");
+            AddPtzSupplementCommand("query_v_angle", "5.1.3 查询垂直角度");
+            AddPtzSupplementCommand("power_1_on", "5.1.5 电源1打开");
+            AddPtzSupplementCommand("power_2_on", "5.1.5 电源2打开");
+            AddPtzSupplementCommand("power_1_off", "5.1.5 电源1关闭");
+            AddPtzSupplementCommand("power_2_off", "5.1.5 电源2关闭");
+
+            AddPtzSupplementCommand("area_video_ha", "5.2.1.1 当前水平写入 HA 边界");
+            AddPtzSupplementCommand("area_video_hb", "5.2.1.1 当前水平写入 HB 边界");
+            AddPtzSupplementCommand("area_video_va", "5.2.1.1 当前垂直写入 VA 边界");
+            AddPtzSupplementCommand("area_video_vb", "5.2.1.1 当前垂直写入 VB 边界");
+            AddPtzSupplementCommand("area_set_speed", "5.2.1.3 配置区域扫描转速");
+            AddPtzSupplementCommand("area_set_time", "5.2.1.4 配置区域停止时间");
+            AddPtzSupplementCommand("area_enable", "5.2.1.5 使能当前区域");
+            AddPtzSupplementCommand("area_disable", "5.2.1.5 禁用当前区域");
+            AddPtzSupplementCommand("area_start_single", "5.2.1.6 开启单区域扫描");
+            AddPtzSupplementCommand("area_pause", "5.2.1.6 暂停区域扫描");
+            AddPtzSupplementCommand("area_continue", "5.2.1.6 恢复区域扫描");
+            AddPtzSupplementCommand("area_mode_step", "5.2.1.6 设置单步扫描模式");
+            AddPtzSupplementCommand("area_mode_continuous", "5.2.1.6 设置连续扫描模式");
+            AddPtzSupplementCommand("area_save", "5.2.1.7 保存区域扫描数据");
+            AddPtzSupplementCommand("area_query", "5.2.1.8 查询当前区域配置");
+            AddPtzSupplementCommand("area_end_return_on", "5.2.1.9 开启区域结束回传");
+            AddPtzSupplementCommand("area_end_return_off", "5.2.1.9 关闭区域结束回传");
+            AddPtzSupplementCommand("area_step_return_on", "5.2.1.9 开启单步到位回传");
+            AddPtzSupplementCommand("area_step_return_off", "5.2.1.9 关闭单步到位回传");
+
+            AddPtzSupplementCommand("preset_set_by_angle", "5.2.2.1 按目标角度设置预置位");
+            AddPtzSupplementCommand("preset_set_time", "5.2.2.2 设置预置位驻留时间");
+            AddPtzSupplementCommand("preset_set_speed", "5.2.2.3 设置预置位扫描速度");
+            AddPtzSupplementCommand("preset_pause", "5.2.2.4 暂停预置位扫描");
+            AddPtzSupplementCommand("preset_continue", "5.2.2.4 恢复预置位扫描");
+            AddPtzSupplementCommand("preset_end_return_on", "5.2.2.5 开启预置扫描结束回传");
+            AddPtzSupplementCommand("preset_end_return_off", "5.2.2.5 关闭预置扫描结束回传");
+            AddPtzSupplementCommand("preset_arrive_return_on", "5.2.2.5 开启预置扫描到位回传");
+            AddPtzSupplementCommand("preset_arrive_return_off", "5.2.2.5 关闭预置扫描到位回传");
+            AddPtzSupplementCommand("preset_call_return_on", "5.2.2.5 开启调用预置位到位回传");
+            AddPtzSupplementCommand("preset_call_return_off", "5.2.2.5 关闭调用预置位到位回传");
+
+            AddPtzSupplementCommand("ack_on", "5.2.3 开启指令回复");
+            AddPtzSupplementCommand("ack_off", "5.2.3 关闭指令回复");
+            AddPtzSupplementCommand("zero_h_current", "5.2.4 当前水平设为 0 位");
+            AddPtzSupplementCommand("zero_v_current", "5.2.4 当前垂直设为 0 位");
+            AddPtzSupplementCommand("zero_hv_current", "5.2.4 当前水平/垂直设为 0 位");
+            AddPtzSupplementCommand("zero_h_angle", "5.2.4 按水平角设置 0 位");
+            AddPtzSupplementCommand("zero_v_angle", "5.2.4 按垂直角设置 0 位");
+            AddPtzSupplementCommand("zero_delete", "5.2.4 删除水平/垂直 0 位");
+            AddPtzSupplementCommand("return_zero", "回到 0 位(H=0°, V=0°)");
+            AddPtzSupplementCommand("query_temperature", "5.2.7 查询工作温度");
+            AddPtzSupplementCommand("query_voltage", "5.2.8 查询工作电压");
+            AddPtzSupplementCommand("query_current", "5.2.9 查询工作电流");
+            AddPtzSupplementCommand("query_h_speed", "5.2.11 查询水平转速");
+            AddPtzSupplementCommand("query_v_speed", "5.2.11 查询垂直转速");
+            AddPtzSupplementCommand("query_all_speed", "5.2.11 查询全部转速");
+            AddPtzSupplementCommand("speed_realtime_on", "5.2.11 开启转速实时回传");
+            AddPtzSupplementCommand("speed_realtime_off", "5.2.11 关闭转速实时回传");
+            AddPtzSupplementCommand("reboot", "5.2.12 云台复位重启");
+            AddPtzSupplementCommand("self_check", "5.2.13 云台全范围自检");
+            AddPtzSupplementCommand("locate_return_on", "5.2.15 开启角度定位回传");
+            AddPtzSupplementCommand("locate_return_off", "5.2.15 关闭角度定位回传");
+
+            cmb_PtzSupplementCommand.SelectedIndex = 0;
+        }
+
+        private void AddPtzSupplementCommand(string key, string text)
+        {
+            cmb_PtzSupplementCommand.Items.Add(new PtzSupplementCommandOption(key, text));
+        }
+
+        private void btn_PtzOpen_Click(object sender, EventArgs e)
+        {
+            OpenPtzUdp();
+        }
+
+        private void btn_PtzClose_Click(object sender, EventArgs e)
+        {
+            _ptzController?.Close();
+            lbl_PtzStatus.Text = "状态: 已关闭";
+            PtzLog("UDP 已关闭。");
+        }
+
+        private void btn_PtzRawSend_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] input = PtzProtocol.ParseHex(txt_PtzRawHex.Text);
+                byte[] data;
+
+                if (input.Length == 4)
+                {
+                    data = PtzProtocol.Build(GetPtzAddress(), input[0], input[1], input[2], input[3]);
+                }
+                else if (input.Length == 5)
+                {
+                    data = PtzProtocol.Build(input[0], input[1], input[2], input[3], input[4]);
+                }
+                else if (input.Length == 6 && input[0] == PtzProtocol.Header)
+                {
+                    data = PtzProtocol.Build(input[1], input[2], input[3], input[4], input[5]);
+                }
+                else if (input.Length == 7)
+                {
+                    data = input;
+                    PtzPacket packet;
+                    if (!PtzPacket.TryParse(data, 0, out packet))
+                    {
+                        MessageBox.Show("完整帧校验失败，请检查校验码。", "云台指令", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("高级指令长度必须是 4、5、6 或 7 字节。", "云台指令", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                PtzSendBytes("高级指令", data);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("高级指令格式错误: " + ex.Message, "云台指令", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private bool OpenPtzUdp()
+        {
+            try
+            {
+                string localIp = txt_PtzLocalIp.Text.Trim();
+                int localPort = (int)nud_PtzLocalPort.Value;
+                _ptzController.Open(localIp, localPort);
+                lbl_PtzStatus.Text = localPort == 0 ? "状态: 已打开(随机本地端口)" : $"状态: 已打开({localPort})";
+                PtzLog($"UDP 已打开，本地 {localIp}:{localPort}。");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                lbl_PtzStatus.Text = "状态: 打开失败";
+                MessageBox.Show("打开云台 UDP 失败: " + ex.Message, "云台UDP", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                PtzLog("[错误] 打开 UDP 失败: " + ex.Message);
+                return false;
+            }
+        }
+
+        private bool EnsurePtzUdpOpen()
+        {
+            if (_ptzController != null && _ptzController.IsOpen)
+                return true;
+
+            return OpenPtzUdp();
+        }
+
+        private byte GetPtzAddress()
+        {
+            return (byte)nud_PtzAddress.Value;
+        }
+
+        private byte GetPtzHSpeedByte()
+        {
+            return PtzProtocol.EncodeSpeed10(nud_PtzHSpeed.Value);
+        }
+
+        private byte GetPtzVSpeedByte()
+        {
+            return PtzProtocol.EncodeSpeed10(nud_PtzVSpeed.Value);
+        }
+
+        private void PtzSendCommand(string label, byte data1, byte data2, byte data3, byte data4)
+        {
+            byte[] packet = PtzProtocol.Build(GetPtzAddress(), data1, data2, data3, data4);
+            PtzSendBytes(label, packet);
+        }
+
+        private void PtzSendBytes(string label, byte[] packet)
+        {
+            try
+            {
+                if (!EnsurePtzUdpOpen())
+                    return;
+
+                string ip = txt_PtzIp.Text.Trim();
+                int port = (int)nud_PtzPort.Value;
+                _ptzController.Send(packet, ip, port);
+                PtzLog($"发送[{label}] -> {ip}:{port}  {PtzProtocol.ToHex(packet)}");
+            }
+            catch (Exception ex)
+            {
+                PtzLog("[错误] 发送失败: " + ex.Message);
+                MessageBox.Show("发送云台指令失败: " + ex.Message, "云台UDP", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void PtzSendStop()
+        {
+            PtzSendCommand("停止转动", 0x00, 0x00, 0x00, 0x00);
+        }
+
+        private void PtzSendDirection(byte command, bool useHSpeed, bool useVSpeed)
+        {
+            byte hSpeed = useHSpeed ? GetPtzHSpeedByte() : (byte)0x00;
+            byte vSpeed = useVSpeed ? GetPtzVSpeedByte() : (byte)0x00;
+            PtzSendCommand("方向控制", 0x00, command, hSpeed, vSpeed);
+        }
+
+        private void PtzSendLocate(bool horizontal)
+        {
+            decimal angle = horizontal ? nud_PtzHAngle.Value : nud_PtzVAngle.Value;
+            ushort encoded = PtzProtocol.EncodeAngle100(angle);
+            byte high = PtzProtocol.HighByte(encoded);
+            byte low = PtzProtocol.LowByte(encoded);
+
+            if (chk_PtzUseSpeedLocate.Checked)
+            {
+                if (horizontal)
+                    PtzSendCommand("水平速度定位", 0x4b, GetPtzHSpeedByte(), high, low);
+                else
+                    PtzSendCommand("垂直速度定位", 0x4d, GetPtzVSpeedByte(), high, low);
+            }
+            else
+            {
+                if (horizontal)
+                    PtzSendCommand("水平角度定位", 0x00, 0x4b, high, low);
+                else
+                    PtzSendCommand("垂直角度定位", 0x00, 0x4d, high, low);
+            }
+        }
+
+        private void PtzSendPreset(byte command, string label)
+        {
+            PtzSendCommand(label, 0x00, command, 0x00, (byte)nud_PtzPreset.Value);
+        }
+
+        private void PtzSendAngleDataCommand(string label, byte data1, byte data2, decimal angle)
+        {
+            ushort encoded = PtzProtocol.EncodeAngle100(angle);
+            PtzSendCommand(label, data1, data2, PtzProtocol.HighByte(encoded), PtzProtocol.LowByte(encoded));
+        }
+
+        private void PtzSendUInt16Command(string label, byte data1, byte data2, int value)
+        {
+            ushort encoded = PtzProtocol.EncodeUInt16(value, label);
+            PtzSendCommand(label, data1, data2, PtzProtocol.HighByte(encoded), PtzProtocol.LowByte(encoded));
+        }
+
+        private void PtzSendAreaBoundariesByAngle()
+        {
+            byte area = (byte)nud_PtzArea.Value;
+            PtzSendAngleDataCommand("区域HA角度边界", 0xf7, area, nud_PtzAreaHStart.Value);
+            PtzSendAngleDataCommand("区域HB角度边界", 0xf8, area, nud_PtzAreaHEnd.Value);
+            PtzSendAngleDataCommand("区域VA角度边界", 0xf9, area, nud_PtzAreaVStart.Value);
+            PtzSendAngleDataCommand("区域VB角度边界", 0xfa, area, nud_PtzAreaVEnd.Value);
+        }
+
+        private void PtzSendAreaIntervals()
+        {
+            byte area = (byte)nud_PtzArea.Value;
+            PtzSendAngleDataCommand("区域水平间隔", 0xfb, area, nud_PtzAreaHInterval.Value);
+            PtzSendAngleDataCommand("区域垂直间隔", 0xfc, area, nud_PtzAreaVInterval.Value);
+        }
+
+        private void PtzSendZeroByAngle(bool horizontal)
+        {
+            decimal angle = horizontal ? nud_PtzHAngle.Value : nud_PtzVAngle.Value;
+            ushort encoded = PtzProtocol.EncodeAngle100(angle);
+            PtzSendCommand(horizontal ? "按水平角设置0位" : "按垂直角设置0位",
+                0xe3,
+                horizontal ? (byte)0x04 : (byte)0x05,
+                PtzProtocol.HighByte(encoded),
+                PtzProtocol.LowByte(encoded));
+        }
+
+        private void PtzSendReturnZero()
+        {
+            const byte zeroHigh = 0x00;
+            const byte zeroLow = 0x00;
+
+            if (chk_PtzUseSpeedLocate.Checked)
+            {
+                PtzSendCommand("水平回零(带速度)", 0x4b, GetPtzHSpeedByte(), zeroHigh, zeroLow);
+                Thread.Sleep(50);
+                PtzSendCommand("垂直回零(带速度)", 0x4d, GetPtzVSpeedByte(), zeroHigh, zeroLow);
+            }
+            else
+            {
+                PtzSendCommand("水平回零", 0x00, 0x4b, zeroHigh, zeroLow);
+                Thread.Sleep(50);
+                PtzSendCommand("垂直回零", 0x00, 0x4d, zeroHigh, zeroLow);
+            }
+        }
+
+        private byte GetPtzArea()
+        {
+            return (byte)nud_PtzArea.Value;
+        }
+
+        private byte GetPtzPreset()
+        {
+            return (byte)nud_PtzPreset.Value;
+        }
+
+        private void PtzSendPresetByAngle()
+        {
+            byte preset = GetPtzPreset();
+            ushort hAngle = PtzProtocol.EncodeAngle100(nud_PtzHAngle.Value);
+            ushort vAngle = PtzProtocol.EncodeAngle100(nud_PtzVAngle.Value);
+
+            PtzSendCommand("按水平角设置预置位", 0xe4, preset, PtzProtocol.HighByte(hAngle), PtzProtocol.LowByte(hAngle));
+            Thread.Sleep(50);
+            PtzSendCommand("按垂直角设置预置位", 0xe5, preset, PtzProtocol.HighByte(vAngle), PtzProtocol.LowByte(vAngle));
+        }
+
+        private bool ConfirmPtzDangerousCommand(string commandName)
+        {
+            DialogResult result = MessageBox.Show(
+                $"确认发送“{commandName}”指令？",
+                "云台指令确认",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            return result == DialogResult.Yes;
+        }
+
+        private void ExecutePtzSupplementCommand(string key)
+        {
+            byte area = GetPtzArea();
+            byte preset = GetPtzPreset();
+
+            switch (key)
+            {
+                case "dir_left_up":
+                    PtzSendDirection(0x0c, true, true);
+                    break;
+                case "dir_right_up":
+                    PtzSendDirection(0x0a, true, true);
+                    break;
+                case "dir_left_down":
+                    PtzSendDirection(0x14, true, true);
+                    break;
+                case "dir_right_down":
+                    PtzSendDirection(0x12, true, true);
+                    break;
+                case "query_h_angle":
+                    PtzSendCommand("查询水平角度", 0x00, 0x51, 0x00, 0x00);
+                    break;
+                case "query_v_angle":
+                    PtzSendCommand("查询垂直角度", 0x00, 0x53, 0x00, 0x00);
+                    break;
+                case "power_1_on":
+                    PtzSendCommand("电源1打开", 0x00, 0x09, 0x00, 0x03);
+                    break;
+                case "power_2_on":
+                    PtzSendCommand("电源2打开", 0x00, 0x09, 0x00, 0x04);
+                    break;
+                case "power_1_off":
+                    PtzSendCommand("电源1关闭", 0x00, 0x0b, 0x00, 0x03);
+                    break;
+                case "power_2_off":
+                    PtzSendCommand("电源2关闭", 0x00, 0x0b, 0x00, 0x04);
+                    break;
+
+                case "area_video_ha":
+                    PtzSendCommand("当前水平写入HA边界", 0xe6, area, 0x00, 0x00);
+                    break;
+                case "area_video_hb":
+                    PtzSendCommand("当前水平写入HB边界", 0xe7, area, 0x00, 0x00);
+                    break;
+                case "area_video_va":
+                    PtzSendCommand("当前垂直写入VA边界", 0xe8, area, 0x00, 0x00);
+                    break;
+                case "area_video_vb":
+                    PtzSendCommand("当前垂直写入VB边界", 0xe9, area, 0x00, 0x00);
+                    break;
+                case "area_set_speed":
+                    PtzSendCommand("配置区域扫描转速", 0xfd, area, GetPtzHSpeedByte(), GetPtzVSpeedByte());
+                    break;
+                case "area_set_time":
+                    PtzSendUInt16Command("配置区域停止时间", 0xf6, area, (int)nud_PtzAreaTime.Value);
+                    break;
+                case "area_enable":
+                    PtzSendCommand("使能当前区域", 0xf4, area, 0x01, 0x00);
+                    break;
+                case "area_disable":
+                    PtzSendCommand("禁用当前区域", 0xf4, area, 0x00, 0x00);
+                    break;
+                case "area_start_single":
+                    PtzSendCommand("开启单区域扫描", 0xf5, 0x01, area, 0x00);
+                    break;
+                case "area_pause":
+                    PtzSendCommand("暂停区域扫描", 0xf5, 0x03, 0x00, 0x00);
+                    break;
+                case "area_continue":
+                    PtzSendCommand("恢复区域扫描", 0xf5, 0x04, 0x00, 0x00);
+                    break;
+                case "area_mode_step":
+                    PtzSendCommand("设置单步扫描模式", 0xf5, 0x06, area, 0x02);
+                    break;
+                case "area_mode_continuous":
+                    PtzSendCommand("设置连续扫描模式", 0xf5, 0x06, area, 0x01);
+                    break;
+                case "area_save":
+                    PtzSendCommand("保存区域扫描数据", 0xf3, 0x00, 0x00, 0x00);
+                    break;
+                case "area_query":
+                    PtzSendCommand("查询当前区域配置", 0xca, area, 0x00, 0x00);
+                    break;
+                case "area_end_return_on":
+                    PtzSendCommand("开启区域结束回传", 0xc4, 0x01, 0x00, 0x00);
+                    break;
+                case "area_end_return_off":
+                    PtzSendCommand("关闭区域结束回传", 0xc4, 0x00, 0x00, 0x00);
+                    break;
+                case "area_step_return_on":
+                    PtzSendCommand("开启单步到位回传", 0xc4, 0x03, 0x00, 0x00);
+                    break;
+                case "area_step_return_off":
+                    PtzSendCommand("关闭单步到位回传", 0xc4, 0x04, 0x00, 0x00);
+                    break;
+
+                case "preset_set_by_angle":
+                    PtzSendPresetByAngle();
+                    break;
+                case "preset_set_time":
+                    PtzSendUInt16Command("设置预置位驻留时间", 0xf1, preset, (int)nud_PtzPresetTime.Value);
+                    break;
+                case "preset_set_speed":
+                    PtzSendCommand("设置预置位扫描速度", 0xf2, preset, GetPtzHSpeedByte(), GetPtzVSpeedByte());
+                    break;
+                case "preset_pause":
+                    PtzSendCommand("暂停预置位扫描", 0xf0, 0x02, 0x00, 0x00);
+                    break;
+                case "preset_continue":
+                    PtzSendCommand("恢复预置位扫描", 0xf0, 0x03, 0x00, 0x00);
+                    break;
+                case "preset_end_return_on":
+                    PtzSendCommand("开启预置扫描结束回传", 0x9f, 0x01, 0x00, 0x00);
+                    break;
+                case "preset_end_return_off":
+                    PtzSendCommand("关闭预置扫描结束回传", 0x9f, 0x00, 0x00, 0x00);
+                    break;
+                case "preset_arrive_return_on":
+                    PtzSendCommand("开启预置扫描到位回传", 0x9f, 0x02, 0x00, 0x00);
+                    break;
+                case "preset_arrive_return_off":
+                    PtzSendCommand("关闭预置扫描到位回传", 0x9f, 0x03, 0x00, 0x00);
+                    break;
+                case "preset_call_return_on":
+                    PtzSendCommand("开启调用预置位到位回传", 0x9f, 0x04, 0x00, 0x00);
+                    break;
+                case "preset_call_return_off":
+                    PtzSendCommand("关闭调用预置位到位回传", 0x9f, 0x05, 0x00, 0x00);
+                    break;
+
+                case "ack_on":
+                    PtzSendCommand("开启指令回复", 0xdf, 0x00, 0x01, 0x00);
+                    break;
+                case "ack_off":
+                    PtzSendCommand("关闭指令回复", 0xdf, 0x00, 0x00, 0x00);
+                    break;
+                case "zero_h_current":
+                    PtzSendCommand("当前水平设为0位", 0xe3, 0x01, 0x00, 0x00);
+                    break;
+                case "zero_v_current":
+                    PtzSendCommand("当前垂直设为0位", 0xe3, 0x02, 0x00, 0x00);
+                    break;
+                case "zero_hv_current":
+                    PtzSendCommand("当前水平/垂直设为0位", 0xe3, 0x03, 0x00, 0x00);
+                    break;
+                case "zero_h_angle":
+                    PtzSendZeroByAngle(true);
+                    break;
+                case "zero_v_angle":
+                    PtzSendZeroByAngle(false);
+                    break;
+                case "zero_delete":
+                    PtzSendCommand("删除水平/垂直0位", 0xe3, 0x06, 0x00, 0x00);
+                    break;
+                case "return_zero":
+                    PtzSendReturnZero();
+                    break;
+                case "query_temperature":
+                    PtzSendCommand("查询工作温度", 0xd6, 0x00, 0x00, 0x00);
+                    break;
+                case "query_voltage":
+                    PtzSendCommand("查询工作电压", 0xcd, 0x00, 0x00, 0x00);
+                    break;
+                case "query_current":
+                    PtzSendCommand("查询工作电流", 0xc8, 0x00, 0x00, 0x00);
+                    break;
+                case "query_h_speed":
+                    PtzSendCommand("查询水平转速", 0xd0, 0x01, 0x00, 0x00);
+                    break;
+                case "query_v_speed":
+                    PtzSendCommand("查询垂直转速", 0xd0, 0x02, 0x00, 0x00);
+                    break;
+                case "query_all_speed":
+                    PtzSendCommand("查询全部转速", 0xd0, 0x00, 0x00, 0x00);
+                    break;
+                case "speed_realtime_on":
+                    PtzSendUInt16Command("开启转速实时回传", 0xdc, 0x01, (int)nud_PtzRealtimeInterval.Value);
+                    break;
+                case "speed_realtime_off":
+                    PtzSendCommand("关闭转速实时回传", 0xdc, 0x02, 0x00, 0x00);
+                    break;
+                case "reboot":
+                    if (ConfirmPtzDangerousCommand("云台复位重启"))
+                        PtzSendCommand("云台复位重启", 0xde, 0x00, 0x00, 0x00);
+                    break;
+                case "self_check":
+                    if (ConfirmPtzDangerousCommand("云台全范围自检"))
+                        PtzSendCommand("云台全范围自检", 0xce, 0x00, 0x00, 0x00);
+                    break;
+                case "locate_return_on":
+                    PtzSendCommand("开启角度定位回传", 0xc5, 0x01, 0x00, 0x00);
+                    break;
+                case "locate_return_off":
+                    PtzSendCommand("关闭角度定位回传", 0xc5, 0x00, 0x00, 0x00);
+                    break;
+                default:
+                    MessageBox.Show("未识别的补充指令。", "云台指令", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    break;
+            }
+        }
+
+        private void HandlePtzPacketReceived(PtzPacket packet, IPEndPoint remote)
+        {
+            if (IsDisposed) return;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke((MethodInvoker)delegate { HandlePtzPacketReceived(packet, remote); });
+                return;
+            }
+
+            string description = PtzProtocol.DescribePacket(packet);
+            PtzLog($"接收[{remote.Address}:{remote.Port}] {packet.ToHex()}  {description}");
+
+            if (packet.Data1 == 0x00 && packet.Data2 == 0x59)
+                lbl_PtzHAngle.Text = $"水平角度: {PtzProtocol.DecodeUnsigned100(packet.Data3, packet.Data4):F2}";
+            else if (packet.Data1 == 0x00 && packet.Data2 == 0x5b)
+                lbl_PtzVAngle.Text = $"垂直角度: {PtzProtocol.DecodeSigned100(packet.Data3, packet.Data4):F2}";
+            else if (packet.Data1 == 0xe0)
+                lbl_PtzStatus.Text = "状态: " + description;
+        }
+
+        private void PtzLog(string message)
+        {
+            if (listBox_PtzLog == null) return;
+
+            if (listBox_PtzLog.InvokeRequired)
+            {
+                listBox_PtzLog.BeginInvoke((MethodInvoker)delegate { PtzLog(message); });
+                return;
+            }
+
+            string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
+            listBox_PtzLog.Items.Add(line);
+            listBox_PtzLog.TopIndex = listBox_PtzLog.Items.Count - 1;
+        }
+
+        #endregion
+        // ==========================================
+        // UI 事件绑定实现区域 (补充缺失的设计器事件)
+        // ==========================================
+
+        private void btnPtzOpen_Click(object sender, EventArgs e)
+        {
+            OpenPtzUdp();
+        }
+
+        private void btnPtzClose_Click(object sender, EventArgs e)
+        {
+            _ptzController?.Close();
+            lbl_PtzStatus.Text = "状态: 已关闭";
+            PtzLog("UDP 已关闭。");
+        }
+
+        private void btnPtzSendRaw_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                byte[] input = PtzProtocol.ParseHex(txt_PtzRawHex.Text);
+                byte[] data;
+
+                if (input.Length == 4)
+                {
+                    data = PtzProtocol.Build(GetPtzAddress(), input[0], input[1], input[2], input[3]);
+                }
+                else if (input.Length == 5)
+                {
+                    data = PtzProtocol.Build(input[0], input[1], input[2], input[3], input[4]);
+                }
+                else if (input.Length == 6 && input[0] == PtzProtocol.Header)
+                {
+                    data = PtzProtocol.Build(input[1], input[2], input[3], input[4], input[5]);
+                }
+                else if (input.Length == 7)
+                {
+                    data = input;
+                    PtzPacket packet;
+                    if (!PtzPacket.TryParse(data, 0, out packet))
+                    {
+                        MessageBox.Show("完整帧校验失败，请检查校验码。", "云台指令", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("高级指令长度必须是 4、5、6 或 7 字节。", "云台指令", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                PtzSendBytes("高级指令", data);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("高级指令格式错误: " + ex.Message, "云台指令", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        // --- 方向控制 (说明书 5.1.1) ---
+
+        private void btnPtzUp_MouseDown(object sender, MouseEventArgs e)
+        {
+            PtzSendDirection(0x08, false, true); // 0x08 向上
+        }
+
+        private void btnPtzDown_MouseDown(object sender, MouseEventArgs e)
+        {
+            PtzSendDirection(0x10, false, true); // 0x10 向下
+        }
+
+        private void btnPtzLeft_MouseDown(object sender, MouseEventArgs e)
+        {
+            PtzSendDirection(0x04, true, false); // 0x04 向左
+        }
+
+        private void btnPtzRight_MouseDown(object sender, MouseEventArgs e)
+        {
+            PtzSendDirection(0x02, true, false); // 0x02 向右
+        }
+
+        private void btnPtzDirection_MouseUp(object sender, MouseEventArgs e)
+        {
+            PtzSendStop(); // 鼠标释放发送停止
+        }
+
+        private void btnPtzStop_Click(object sender, EventArgs e)
+        {
+            PtzSendStop(); // 点击停止按钮
+        }
+
+        // --- 角度定位 (说明书 5.1.2) ---
+
+        private void btnPtzLocate_Click(object sender, EventArgs e)
+        {
+            // 依次发送水平和垂直定位指令
+            PtzSendLocate(true);
+            System.Threading.Thread.Sleep(50); // 略微延时防止 UDP 乱序或云台处理不过来
+            PtzSendLocate(false);
+        }
+
+        // --- 预置位控制 (说明书 5.1.4 & 5.2.2) ---
+
+        private void btnPtzPresetSet_Click(object sender, EventArgs e)
+        {
+            PtzSendPreset(0x03, "设置预置位");
+        }
+
+        private void btnPtzPresetCall_Click(object sender, EventArgs e)
+        {
+            PtzSendPreset(0x07, "调用预置位");
+        }
+
+        private void btnPtzPresetDel_Click(object sender, EventArgs e)
+        {
+            PtzSendPreset(0x05, "删除预置位");
+        }
+
+        private void btnPtzPresetScanStart_Click(object sender, EventArgs e)
+        {
+            // 5.2.2.4 Start 预置位扫描 0xf0 0x01
+            PtzSendCommand("开启预置巡航", 0xf0, 0x01, (byte)nud_PtzPresetStart.Value, (byte)nud_PtzPresetEnd.Value);
+        }
+
+        private void btnPtzPresetScanStop_Click(object sender, EventArgs e)
+        {
+            // 5.2.2.4 Close 彻底关闭扫描 0xf0 0x04
+            PtzSendCommand("彻底关闭巡航", 0xf0, 0x04, 0x00, 0x00);
+        }
+
+        // --- 区域扫描控制 (说明书 5.2.1) ---
+
+        private void btnPtzAreaSetBound_Click(object sender, EventArgs e)
+        {
+            PtzSendAreaBoundariesByAngle();
+        }
+
+        private void btnPtzAreaSetInterval_Click(object sender, EventArgs e)
+        {
+            PtzSendAreaIntervals();
+        }
+
+        private void btnPtzAreaScanStart_Click(object sender, EventArgs e)
+        {
+            // 5.2.1.6 开启多区域扫描 Start_M: 0xf5 0x02
+            byte startArea = (byte)nud_PtzAreaStart.Value;
+            byte endArea = (byte)nud_PtzAreaEnd.Value;
+            PtzSendCommand("开启区域/多区扫描", 0xf5, 0x02, startArea, endArea);
+        }
+
+        private void btnPtzAreaScanStop_Click(object sender, EventArgs e)
+        {
+            // 5.2.1.6 彻底关闭区域扫描 Close: 0xf5 0x05
+            PtzSendCommand("彻底关闭区域扫描", 0xf5, 0x05, 0x00, 0x00);
+        }
+
+        // --- 查询与实时回传 (说明书 5.2.5、5.2.6、5.2.10) ---
+
+        private void btnPtzQueryStatus_Click(object sender, EventArgs e)
+        {
+            // 5.2.6.1 查询云台工作状态 0xdd 0 0 0
+            PtzSendCommand("查询工作状态", 0xdd, 0x00, 0x00, 0x00);
+        }
+
+        private void btnPtzQueryMode_Click(object sender, EventArgs e)
+        {
+            // 5.2.5.1 查询云台工作模式 0xe0 0 0 0
+            PtzSendCommand("查询工作模式", 0xe0, 0x00, 0x00, 0x00);
+        }
+
+        private void btnPtzRealtimeAngleOn_Click(object sender, EventArgs e)
+        {
+            // 5.2.10.1 角度实时回传打开 0xe1 0x01 H_Time L_Time
+            PtzSendUInt16Command("开启连续回传", 0xe1, 0x01, (int)nud_PtzRealtimeInterval.Value);
+        }
+
+        private void btnPtzRealtimeAngleOff_Click(object sender, EventArgs e)
+        {
+            // 5.2.10.1 角度实时回传关闭 0xe1 0x02 0 0
+            PtzSendCommand("关闭回传", 0xe1, 0x02, 0x00, 0x00);
+        }
+
+        private void btnPtzSupplementSend_Click(object sender, EventArgs e)
+        {
+            PtzSupplementCommandOption option = cmb_PtzSupplementCommand.SelectedItem as PtzSupplementCommandOption;
+            if (option == null)
+            {
+                MessageBox.Show("请选择要发送的补充指令。", "云台指令", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            ExecutePtzSupplementCommand(option.Key);
         }
     }
 }
