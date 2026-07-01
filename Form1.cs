@@ -1564,23 +1564,6 @@ namespace RadarConnect
 
         #region UDP 云台控制
 
-        private sealed class PtzSupplementCommandOption
-        {
-            public PtzSupplementCommandOption(string key, string text)
-            {
-                Key = key;
-                Text = text;
-            }
-
-            public string Key { get; }
-            public string Text { get; }
-
-            public override string ToString()
-            {
-                return Text;
-            }
-        }
-
         private void InitPtzPage()
         {
             if (_ptzController == null)
@@ -1590,86 +1573,43 @@ namespace RadarConnect
                 _ptzController.ErrorReceived += (msg) => PtzLog("[错误] " + msg);
             }
 
-            LoadPtzSupplementCommands();
             PtzLog("云台 UDP 页面已初始化。默认目标 192.168.8.200:6666，地址 1。");
         }
 
-        private void LoadPtzSupplementCommands()
+        private string GetPtzSupplementCommandKey(object sender)
         {
-            if (cmb_PtzSupplementCommand == null || cmb_PtzSupplementCommand.Items.Count > 0)
-                return;
-
-            AddPtzSupplementCommand("dir_left_up", "5.1.1 左上持续转动");
-            AddPtzSupplementCommand("dir_right_up", "5.1.1 右上持续转动");
-            AddPtzSupplementCommand("dir_left_down", "5.1.1 左下持续转动");
-            AddPtzSupplementCommand("dir_right_down", "5.1.1 右下持续转动");
-            AddPtzSupplementCommand("query_h_angle", "5.1.3 查询水平角度");
-            AddPtzSupplementCommand("query_v_angle", "5.1.3 查询垂直角度");
-            AddPtzSupplementCommand("power_1_on", "5.1.5 电源1打开");
-            AddPtzSupplementCommand("power_2_on", "5.1.5 电源2打开");
-            AddPtzSupplementCommand("power_1_off", "5.1.5 电源1关闭");
-            AddPtzSupplementCommand("power_2_off", "5.1.5 电源2关闭");
-
-            AddPtzSupplementCommand("area_video_ha", "5.2.1.1 当前水平写入 HA 边界");
-            AddPtzSupplementCommand("area_video_hb", "5.2.1.1 当前水平写入 HB 边界");
-            AddPtzSupplementCommand("area_video_va", "5.2.1.1 当前垂直写入 VA 边界");
-            AddPtzSupplementCommand("area_video_vb", "5.2.1.1 当前垂直写入 VB 边界");
-            AddPtzSupplementCommand("area_set_speed", "5.2.1.3 配置区域扫描转速");
-            AddPtzSupplementCommand("area_set_time", "5.2.1.4 配置区域停止时间");
-            AddPtzSupplementCommand("area_enable", "5.2.1.5 使能当前区域");
-            AddPtzSupplementCommand("area_disable", "5.2.1.5 禁用当前区域");
-            AddPtzSupplementCommand("area_start_single", "5.2.1.6 开启单区域扫描");
-            AddPtzSupplementCommand("area_pause", "5.2.1.6 暂停区域扫描");
-            AddPtzSupplementCommand("area_continue", "5.2.1.6 恢复区域扫描");
-            AddPtzSupplementCommand("area_mode_step", "5.2.1.6 设置单步扫描模式");
-            AddPtzSupplementCommand("area_mode_continuous", "5.2.1.6 设置连续扫描模式");
-            AddPtzSupplementCommand("area_save", "5.2.1.7 保存区域扫描数据");
-            AddPtzSupplementCommand("area_query", "5.2.1.8 查询当前区域配置");
-            AddPtzSupplementCommand("area_end_return_on", "5.2.1.9 开启区域结束回传");
-            AddPtzSupplementCommand("area_end_return_off", "5.2.1.9 关闭区域结束回传");
-            AddPtzSupplementCommand("area_step_return_on", "5.2.1.9 开启单步到位回传");
-            AddPtzSupplementCommand("area_step_return_off", "5.2.1.9 关闭单步到位回传");
-
-            AddPtzSupplementCommand("preset_set_by_angle", "5.2.2.1 按目标角度设置预置位");
-            AddPtzSupplementCommand("preset_set_time", "5.2.2.2 设置预置位驻留时间");
-            AddPtzSupplementCommand("preset_set_speed", "5.2.2.3 设置预置位扫描速度");
-            AddPtzSupplementCommand("preset_pause", "5.2.2.4 暂停预置位扫描");
-            AddPtzSupplementCommand("preset_continue", "5.2.2.4 恢复预置位扫描");
-            AddPtzSupplementCommand("preset_end_return_on", "5.2.2.5 开启预置扫描结束回传");
-            AddPtzSupplementCommand("preset_end_return_off", "5.2.2.5 关闭预置扫描结束回传");
-            AddPtzSupplementCommand("preset_arrive_return_on", "5.2.2.5 开启预置扫描到位回传");
-            AddPtzSupplementCommand("preset_arrive_return_off", "5.2.2.5 关闭预置扫描到位回传");
-            AddPtzSupplementCommand("preset_call_return_on", "5.2.2.5 开启调用预置位到位回传");
-            AddPtzSupplementCommand("preset_call_return_off", "5.2.2.5 关闭调用预置位到位回传");
-
-            AddPtzSupplementCommand("ack_on", "5.2.3 开启指令回复");
-            AddPtzSupplementCommand("ack_off", "5.2.3 关闭指令回复");
-            AddPtzSupplementCommand("zero_h_current", "5.2.4 当前水平设为 0 位");
-            AddPtzSupplementCommand("zero_v_current", "5.2.4 当前垂直设为 0 位");
-            AddPtzSupplementCommand("zero_hv_current", "5.2.4 当前水平/垂直设为 0 位");
-            AddPtzSupplementCommand("zero_h_angle", "5.2.4 按水平角设置 0 位");
-            AddPtzSupplementCommand("zero_v_angle", "5.2.4 按垂直角设置 0 位");
-            AddPtzSupplementCommand("zero_delete", "5.2.4 删除水平/垂直 0 位");
-            AddPtzSupplementCommand("return_zero", "回到 0 位(H=0°, V=0°)");
-            AddPtzSupplementCommand("query_temperature", "5.2.7 查询工作温度");
-            AddPtzSupplementCommand("query_voltage", "5.2.8 查询工作电压");
-            AddPtzSupplementCommand("query_current", "5.2.9 查询工作电流");
-            AddPtzSupplementCommand("query_h_speed", "5.2.11 查询水平转速");
-            AddPtzSupplementCommand("query_v_speed", "5.2.11 查询垂直转速");
-            AddPtzSupplementCommand("query_all_speed", "5.2.11 查询全部转速");
-            AddPtzSupplementCommand("speed_realtime_on", "5.2.11 开启转速实时回传");
-            AddPtzSupplementCommand("speed_realtime_off", "5.2.11 关闭转速实时回传");
-            AddPtzSupplementCommand("reboot", "5.2.12 云台复位重启");
-            AddPtzSupplementCommand("self_check", "5.2.13 云台全范围自检");
-            AddPtzSupplementCommand("locate_return_on", "5.2.15 开启角度定位回传");
-            AddPtzSupplementCommand("locate_return_off", "5.2.15 关闭角度定位回传");
-
-            cmb_PtzSupplementCommand.SelectedIndex = 0;
+            Button button = sender as Button;
+            return button?.Tag as string;
         }
 
-        private void AddPtzSupplementCommand(string key, string text)
+        private void PtzSupplementButton_Click(object sender, EventArgs e)
         {
-            cmb_PtzSupplementCommand.Items.Add(new PtzSupplementCommandOption(key, text));
+            string key = GetPtzSupplementCommandKey(sender);
+            if (string.IsNullOrEmpty(key))
+                return;
+
+            ExecutePtzSupplementCommand(key);
+        }
+
+        private void PtzSupplementDirectionButton_MouseDown(object sender, MouseEventArgs e)
+        {
+            string key = GetPtzSupplementCommandKey(sender);
+            if (string.IsNullOrEmpty(key))
+                return;
+
+            ExecutePtzSupplementCommand(key);
+        }
+
+        private void PtzSupplementDirectionButton_MouseUp(object sender, MouseEventArgs e)
+        {
+            PtzSendStop();
+        }
+
+        private void PtzSupplementDirectionButton_MouseLeave(object sender, EventArgs e)
+        {
+            Button button = sender as Button;
+            if (button != null && button.Capture)
+                PtzSendStop();
         }
 
         private void btn_PtzOpen_Click(object sender, EventArgs e)
@@ -1932,6 +1872,18 @@ namespace RadarConnect
 
             switch (key)
             {
+                case "dir_up":
+                    PtzSendDirection(0x08, false, true);
+                    break;
+                case "dir_down":
+                    PtzSendDirection(0x10, false, true);
+                    break;
+                case "dir_left":
+                    PtzSendDirection(0x04, true, false);
+                    break;
+                case "dir_right":
+                    PtzSendDirection(0x02, true, false);
+                    break;
                 case "dir_left_up":
                     PtzSendDirection(0x0c, true, true);
                     break;
@@ -1943,6 +1895,15 @@ namespace RadarConnect
                     break;
                 case "dir_right_down":
                     PtzSendDirection(0x12, true, true);
+                    break;
+                case "stop":
+                    PtzSendStop();
+                    break;
+                case "locate_h":
+                    PtzSendLocate(true);
+                    break;
+                case "locate_v":
+                    PtzSendLocate(false);
                     break;
                 case "query_h_angle":
                     PtzSendCommand("查询水平角度", 0x00, 0x51, 0x00, 0x00);
@@ -1963,6 +1924,18 @@ namespace RadarConnect
                     PtzSendCommand("电源2关闭", 0x00, 0x0b, 0x00, 0x04);
                     break;
 
+                case "area_angle_ha":
+                    PtzSendAngleDataCommand("区域HA角度边界", 0xf7, area, nud_PtzAreaHStart.Value);
+                    break;
+                case "area_angle_hb":
+                    PtzSendAngleDataCommand("区域HB角度边界", 0xf8, area, nud_PtzAreaHEnd.Value);
+                    break;
+                case "area_angle_va":
+                    PtzSendAngleDataCommand("区域VA角度边界", 0xf9, area, nud_PtzAreaVStart.Value);
+                    break;
+                case "area_angle_vb":
+                    PtzSendAngleDataCommand("区域VB角度边界", 0xfa, area, nud_PtzAreaVEnd.Value);
+                    break;
                 case "area_video_ha":
                     PtzSendCommand("当前水平写入HA边界", 0xe6, area, 0x00, 0x00);
                     break;
@@ -1974,6 +1947,12 @@ namespace RadarConnect
                     break;
                 case "area_video_vb":
                     PtzSendCommand("当前垂直写入VB边界", 0xe9, area, 0x00, 0x00);
+                    break;
+                case "area_interval_h":
+                    PtzSendAngleDataCommand("区域水平间隔", 0xfb, area, nud_PtzAreaHInterval.Value);
+                    break;
+                case "area_interval_v":
+                    PtzSendAngleDataCommand("区域垂直间隔", 0xfc, area, nud_PtzAreaVInterval.Value);
                     break;
                 case "area_set_speed":
                     PtzSendCommand("配置区域扫描转速", 0xfd, area, GetPtzHSpeedByte(), GetPtzVSpeedByte());
@@ -1990,11 +1969,17 @@ namespace RadarConnect
                 case "area_start_single":
                     PtzSendCommand("开启单区域扫描", 0xf5, 0x01, area, 0x00);
                     break;
+                case "area_start_multi":
+                    PtzSendCommand("开启区域/多区扫描", 0xf5, 0x02, (byte)nud_PtzAreaStart.Value, (byte)nud_PtzAreaEnd.Value);
+                    break;
                 case "area_pause":
                     PtzSendCommand("暂停区域扫描", 0xf5, 0x03, 0x00, 0x00);
                     break;
                 case "area_continue":
                     PtzSendCommand("恢复区域扫描", 0xf5, 0x04, 0x00, 0x00);
+                    break;
+                case "area_close":
+                    PtzSendCommand("彻底关闭区域扫描", 0xf5, 0x05, 0x00, 0x00);
                     break;
                 case "area_mode_step":
                     PtzSendCommand("设置单步扫描模式", 0xf5, 0x06, area, 0x02);
@@ -2021,8 +2006,23 @@ namespace RadarConnect
                     PtzSendCommand("关闭单步到位回传", 0xc4, 0x04, 0x00, 0x00);
                     break;
 
+                case "preset_standard_set":
+                    PtzSendPreset(0x03, "设置预置位");
+                    break;
+                case "preset_standard_call":
+                    PtzSendPreset(0x07, "调用预置位");
+                    break;
+                case "preset_standard_delete":
+                    PtzSendPreset(0x05, "删除预置位");
+                    break;
                 case "preset_set_by_angle":
                     PtzSendPresetByAngle();
+                    break;
+                case "preset_set_h_angle":
+                    PtzSendAngleDataCommand("按水平角设置预置位", 0xe4, preset, nud_PtzHAngle.Value);
+                    break;
+                case "preset_set_v_angle":
+                    PtzSendAngleDataCommand("按垂直角设置预置位", 0xe5, preset, nud_PtzVAngle.Value);
                     break;
                 case "preset_set_time":
                     PtzSendUInt16Command("设置预置位驻留时间", 0xf1, preset, (int)nud_PtzPresetTime.Value);
@@ -2030,11 +2030,17 @@ namespace RadarConnect
                 case "preset_set_speed":
                     PtzSendCommand("设置预置位扫描速度", 0xf2, preset, GetPtzHSpeedByte(), GetPtzVSpeedByte());
                     break;
+                case "preset_start":
+                    PtzSendCommand("开启预置巡航", 0xf0, 0x01, (byte)nud_PtzPresetStart.Value, (byte)nud_PtzPresetEnd.Value);
+                    break;
                 case "preset_pause":
                     PtzSendCommand("暂停预置位扫描", 0xf0, 0x02, 0x00, 0x00);
                     break;
                 case "preset_continue":
                     PtzSendCommand("恢复预置位扫描", 0xf0, 0x03, 0x00, 0x00);
+                    break;
+                case "preset_close":
+                    PtzSendCommand("彻底关闭巡航", 0xf0, 0x04, 0x00, 0x00);
                     break;
                 case "preset_end_return_on":
                     PtzSendCommand("开启预置扫描结束回传", 0x9f, 0x01, 0x00, 0x00);
@@ -2060,6 +2066,12 @@ namespace RadarConnect
                     break;
                 case "ack_off":
                     PtzSendCommand("关闭指令回复", 0xdf, 0x00, 0x00, 0x00);
+                    break;
+                case "query_mode":
+                    PtzSendCommand("查询工作模式", 0xe0, 0x00, 0x00, 0x00);
+                    break;
+                case "query_status":
+                    PtzSendCommand("查询工作状态", 0xdd, 0x00, 0x00, 0x00);
                     break;
                 case "zero_h_current":
                     PtzSendCommand("当前水平设为0位", 0xe3, 0x01, 0x00, 0x00);
@@ -2090,6 +2102,12 @@ namespace RadarConnect
                     break;
                 case "query_current":
                     PtzSendCommand("查询工作电流", 0xc8, 0x00, 0x00, 0x00);
+                    break;
+                case "angle_realtime_on":
+                    PtzSendUInt16Command("开启连续回传", 0xe1, 0x01, (int)nud_PtzRealtimeInterval.Value);
+                    break;
+                case "angle_realtime_off":
+                    PtzSendCommand("关闭回传", 0xe1, 0x02, 0x00, 0x00);
                     break;
                 case "query_h_speed":
                     PtzSendCommand("查询水平转速", 0xd0, 0x01, 0x00, 0x00);
@@ -2343,18 +2361,6 @@ namespace RadarConnect
         {
             // 5.2.10.1 角度实时回传关闭 0xe1 0x02 0 0
             PtzSendCommand("关闭回传", 0xe1, 0x02, 0x00, 0x00);
-        }
-
-        private void btnPtzSupplementSend_Click(object sender, EventArgs e)
-        {
-            PtzSupplementCommandOption option = cmb_PtzSupplementCommand.SelectedItem as PtzSupplementCommandOption;
-            if (option == null)
-            {
-                MessageBox.Show("请选择要发送的补充指令。", "云台指令", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            ExecutePtzSupplementCommand(option.Key);
         }
     }
 }

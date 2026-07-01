@@ -161,9 +161,104 @@ namespace RadarConnect
             this.txt_PtzRawHex = new System.Windows.Forms.TextBox();
             this.btnPtzSendRaw = new System.Windows.Forms.Button();
             this.gbxPtzSupplement = new System.Windows.Forms.GroupBox();
-            this.lblPtzSupplement = new System.Windows.Forms.Label();
-            this.cmb_PtzSupplementCommand = new System.Windows.Forms.ComboBox();
-            this.btnPtzSupplementSend = new System.Windows.Forms.Button();
+            this.tabPtzSupplementCommands = new System.Windows.Forms.TabControl();
+            this.tabPtzSupplementBasic = new System.Windows.Forms.TabPage();
+            this.flpPtzSupplementBasic = new System.Windows.Forms.FlowLayoutPanel();
+            this.btnPtzSupDirUp = new System.Windows.Forms.Button();
+            this.btnPtzSupDirDown = new System.Windows.Forms.Button();
+            this.btnPtzSupDirLeft = new System.Windows.Forms.Button();
+            this.btnPtzSupDirRight = new System.Windows.Forms.Button();
+            this.btnPtzSupDirLeftUp = new System.Windows.Forms.Button();
+            this.btnPtzSupDirRightUp = new System.Windows.Forms.Button();
+            this.btnPtzSupDirLeftDown = new System.Windows.Forms.Button();
+            this.btnPtzSupDirRightDown = new System.Windows.Forms.Button();
+            this.btnPtzSupStop = new System.Windows.Forms.Button();
+            this.btnPtzSupLocateH = new System.Windows.Forms.Button();
+            this.btnPtzSupLocateV = new System.Windows.Forms.Button();
+            this.btnPtzSupQueryHAngle = new System.Windows.Forms.Button();
+            this.btnPtzSupQueryVAngle = new System.Windows.Forms.Button();
+            this.btnPtzSupPower1On = new System.Windows.Forms.Button();
+            this.btnPtzSupPower2On = new System.Windows.Forms.Button();
+            this.btnPtzSupPower1Off = new System.Windows.Forms.Button();
+            this.btnPtzSupPower2Off = new System.Windows.Forms.Button();
+            this.btnPtzSupReturnZero = new System.Windows.Forms.Button();
+            this.tabPtzSupplementArea = new System.Windows.Forms.TabPage();
+            this.flpPtzSupplementArea = new System.Windows.Forms.FlowLayoutPanel();
+            this.btnPtzSupAreaAngleHa = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaAngleHb = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaAngleVa = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaAngleVb = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaVideoHa = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaVideoHb = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaVideoVa = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaVideoVb = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaIntervalH = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaIntervalV = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaSetSpeed = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaSetTime = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaEnable = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaDisable = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaStartSingle = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaStartMulti = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaPause = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaContinue = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaClose = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaModeStep = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaModeContinuous = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaSave = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaQuery = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaEndReturnOn = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaEndReturnOff = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaStepReturnOn = new System.Windows.Forms.Button();
+            this.btnPtzSupAreaStepReturnOff = new System.Windows.Forms.Button();
+            this.tabPtzSupplementPreset = new System.Windows.Forms.TabPage();
+            this.flpPtzSupplementPreset = new System.Windows.Forms.FlowLayoutPanel();
+            this.btnPtzSupPresetStandardSet = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetStandardCall = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetStandardDelete = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetSetByAngle = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetSetHAngle = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetSetVAngle = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetSetTime = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetSetSpeed = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetStart = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetPause = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetContinue = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetClose = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetEndReturnOn = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetEndReturnOff = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetArriveReturnOn = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetArriveReturnOff = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetCallReturnOn = new System.Windows.Forms.Button();
+            this.btnPtzSupPresetCallReturnOff = new System.Windows.Forms.Button();
+            this.tabPtzSupplementQuery = new System.Windows.Forms.TabPage();
+            this.flpPtzSupplementQuery = new System.Windows.Forms.FlowLayoutPanel();
+            this.btnPtzSupAckOn = new System.Windows.Forms.Button();
+            this.btnPtzSupAckOff = new System.Windows.Forms.Button();
+            this.btnPtzSupQueryMode = new System.Windows.Forms.Button();
+            this.btnPtzSupQueryStatus = new System.Windows.Forms.Button();
+            this.btnPtzSupQueryTemperature = new System.Windows.Forms.Button();
+            this.btnPtzSupQueryVoltage = new System.Windows.Forms.Button();
+            this.btnPtzSupQueryCurrent = new System.Windows.Forms.Button();
+            this.btnPtzSupAngleRealtimeOn = new System.Windows.Forms.Button();
+            this.btnPtzSupAngleRealtimeOff = new System.Windows.Forms.Button();
+            this.btnPtzSupQueryHSpeed = new System.Windows.Forms.Button();
+            this.btnPtzSupQueryVSpeed = new System.Windows.Forms.Button();
+            this.btnPtzSupQueryAllSpeed = new System.Windows.Forms.Button();
+            this.btnPtzSupSpeedRealtimeOn = new System.Windows.Forms.Button();
+            this.btnPtzSupSpeedRealtimeOff = new System.Windows.Forms.Button();
+            this.btnPtzSupLocateReturnOn = new System.Windows.Forms.Button();
+            this.btnPtzSupLocateReturnOff = new System.Windows.Forms.Button();
+            this.tabPtzSupplementZero = new System.Windows.Forms.TabPage();
+            this.flpPtzSupplementZero = new System.Windows.Forms.FlowLayoutPanel();
+            this.btnPtzSupZeroHCurrent = new System.Windows.Forms.Button();
+            this.btnPtzSupZeroVCurrent = new System.Windows.Forms.Button();
+            this.btnPtzSupZeroHvCurrent = new System.Windows.Forms.Button();
+            this.btnPtzSupZeroHAngle = new System.Windows.Forms.Button();
+            this.btnPtzSupZeroVAngle = new System.Windows.Forms.Button();
+            this.btnPtzSupZeroDelete = new System.Windows.Forms.Button();
+            this.btnPtzSupReboot = new System.Windows.Forms.Button();
+            this.btnPtzSupSelfCheck = new System.Windows.Forms.Button();
             this.listBox_PtzLog = new System.Windows.Forms.ListBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
@@ -212,6 +307,17 @@ namespace RadarConnect
             ((System.ComponentModel.ISupportInitialize)(this.nud_PtzRealtimeInterval)).BeginInit();
             this.gbxPtzRaw.SuspendLayout();
             this.gbxPtzSupplement.SuspendLayout();
+            this.tabPtzSupplementCommands.SuspendLayout();
+            this.tabPtzSupplementBasic.SuspendLayout();
+            this.flpPtzSupplementBasic.SuspendLayout();
+            this.tabPtzSupplementArea.SuspendLayout();
+            this.flpPtzSupplementArea.SuspendLayout();
+            this.tabPtzSupplementPreset.SuspendLayout();
+            this.flpPtzSupplementPreset.SuspendLayout();
+            this.tabPtzSupplementQuery.SuspendLayout();
+            this.flpPtzSupplementQuery.SuspendLayout();
+            this.tabPtzSupplementZero.SuspendLayout();
+            this.flpPtzSupplementZero.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -940,7 +1046,6 @@ namespace RadarConnect
             this.txt_PtzIp.Name = "txt_PtzIp";
             this.txt_PtzIp.Size = new System.Drawing.Size(110, 21);
             this.txt_PtzIp.TabIndex = 4;
-            this.txt_PtzIp.Text = "192.168.8.200";
             // 
             // nud_PtzPort
             // 
@@ -1807,41 +1912,1366 @@ namespace RadarConnect
             // 
             this.gbxPtzSupplement.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbxPtzSupplement.Controls.Add(this.lblPtzSupplement);
-            this.gbxPtzSupplement.Controls.Add(this.cmb_PtzSupplementCommand);
-            this.gbxPtzSupplement.Controls.Add(this.btnPtzSupplementSend);
-            this.gbxPtzSupplement.Location = new System.Drawing.Point(895, 500);
+            this.gbxPtzSupplement.Controls.Add(this.tabPtzSupplementCommands);
+            this.gbxPtzSupplement.Location = new System.Drawing.Point(895, 10);
             this.gbxPtzSupplement.Name = "gbxPtzSupplement";
-            this.gbxPtzSupplement.Size = new System.Drawing.Size(1140, 80);
+            this.gbxPtzSupplement.Size = new System.Drawing.Size(1140, 250);
             this.gbxPtzSupplement.TabIndex = 8;
             this.gbxPtzSupplement.TabStop = false;
-            this.gbxPtzSupplement.Text = "说明书补充指令";
+            this.gbxPtzSupplement.Text = "指令按钮列表";
             // 
-            // lblPtzSupplement
+            // tabPtzSupplementCommands
             // 
-            this.lblPtzSupplement.Location = new System.Drawing.Point(15, 35);
-            this.lblPtzSupplement.Name = "lblPtzSupplement";
-            this.lblPtzSupplement.Size = new System.Drawing.Size(70, 15);
-            this.lblPtzSupplement.TabIndex = 0;
-            this.lblPtzSupplement.Text = "指令:";
+            this.tabPtzSupplementCommands.Controls.Add(this.tabPtzSupplementBasic);
+            this.tabPtzSupplementCommands.Controls.Add(this.tabPtzSupplementArea);
+            this.tabPtzSupplementCommands.Controls.Add(this.tabPtzSupplementPreset);
+            this.tabPtzSupplementCommands.Controls.Add(this.tabPtzSupplementQuery);
+            this.tabPtzSupplementCommands.Controls.Add(this.tabPtzSupplementZero);
+            this.tabPtzSupplementCommands.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabPtzSupplementCommands.Location = new System.Drawing.Point(3, 17);
+            this.tabPtzSupplementCommands.Name = "tabPtzSupplementCommands";
+            this.tabPtzSupplementCommands.SelectedIndex = 0;
+            this.tabPtzSupplementCommands.Size = new System.Drawing.Size(1134, 230);
+            this.tabPtzSupplementCommands.TabIndex = 0;
             // 
-            // cmb_PtzSupplementCommand
+            // tabPtzSupplementBasic
             // 
-            this.cmb_PtzSupplementCommand.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmb_PtzSupplementCommand.FormattingEnabled = true;
-            this.cmb_PtzSupplementCommand.Location = new System.Drawing.Point(90, 31);
-            this.cmb_PtzSupplementCommand.Name = "cmb_PtzSupplementCommand";
-            this.cmb_PtzSupplementCommand.Size = new System.Drawing.Size(760, 20);
-            this.cmb_PtzSupplementCommand.TabIndex = 1;
+            this.tabPtzSupplementBasic.Controls.Add(this.flpPtzSupplementBasic);
+            this.tabPtzSupplementBasic.Location = new System.Drawing.Point(4, 22);
+            this.tabPtzSupplementBasic.Name = "tabPtzSupplementBasic";
+            this.tabPtzSupplementBasic.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPtzSupplementBasic.Size = new System.Drawing.Size(1126, 204);
+            this.tabPtzSupplementBasic.TabIndex = 0;
+            this.tabPtzSupplementBasic.Text = "基础";
+            this.tabPtzSupplementBasic.UseVisualStyleBackColor = true;
             // 
-            // btnPtzSupplementSend
+            // flpPtzSupplementBasic
             // 
-            this.btnPtzSupplementSend.Location = new System.Drawing.Point(870, 27);
-            this.btnPtzSupplementSend.Name = "btnPtzSupplementSend";
-            this.btnPtzSupplementSend.Size = new System.Drawing.Size(130, 28);
-            this.btnPtzSupplementSend.TabIndex = 2;
-            this.btnPtzSupplementSend.Text = "发送补充指令";
-            this.btnPtzSupplementSend.Click += new System.EventHandler(this.btnPtzSupplementSend_Click);
+            this.flpPtzSupplementBasic.AutoScroll = true;
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupDirUp);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupDirDown);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupDirLeft);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupDirRight);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupDirLeftUp);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupDirRightUp);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupDirLeftDown);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupDirRightDown);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupStop);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupLocateH);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupLocateV);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupQueryHAngle);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupQueryVAngle);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupPower1On);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupPower2On);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupPower1Off);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupPower2Off);
+            this.flpPtzSupplementBasic.Controls.Add(this.btnPtzSupReturnZero);
+            this.flpPtzSupplementBasic.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flpPtzSupplementBasic.Location = new System.Drawing.Point(3, 3);
+            this.flpPtzSupplementBasic.Name = "flpPtzSupplementBasic";
+            this.flpPtzSupplementBasic.Padding = new System.Windows.Forms.Padding(8);
+            this.flpPtzSupplementBasic.Size = new System.Drawing.Size(1120, 198);
+            this.flpPtzSupplementBasic.TabIndex = 0;
+            // 
+            // btnPtzSupDirUp
+            // 
+            this.btnPtzSupDirUp.AutoEllipsis = true;
+            this.btnPtzSupDirUp.Location = new System.Drawing.Point(12, 12);
+            this.btnPtzSupDirUp.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupDirUp.Name = "btnPtzSupDirUp";
+            this.btnPtzSupDirUp.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupDirUp.TabIndex = 0;
+            this.btnPtzSupDirUp.Tag = "dir_up";
+            this.btnPtzSupDirUp.Text = " 上(按住)";
+            this.btnPtzSupDirUp.UseVisualStyleBackColor = true;
+            this.btnPtzSupDirUp.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseDown);
+            this.btnPtzSupDirUp.MouseLeave += new System.EventHandler(this.PtzSupplementDirectionButton_MouseLeave);
+            this.btnPtzSupDirUp.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseUp);
+            // 
+            // btnPtzSupDirDown
+            // 
+            this.btnPtzSupDirDown.AutoEllipsis = true;
+            this.btnPtzSupDirDown.Location = new System.Drawing.Point(230, 12);
+            this.btnPtzSupDirDown.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupDirDown.Name = "btnPtzSupDirDown";
+            this.btnPtzSupDirDown.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupDirDown.TabIndex = 0;
+            this.btnPtzSupDirDown.Tag = "dir_down";
+            this.btnPtzSupDirDown.Text = "下(按住)";
+            this.btnPtzSupDirDown.UseVisualStyleBackColor = true;
+            this.btnPtzSupDirDown.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseDown);
+            this.btnPtzSupDirDown.MouseLeave += new System.EventHandler(this.PtzSupplementDirectionButton_MouseLeave);
+            this.btnPtzSupDirDown.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseUp);
+            // 
+            // btnPtzSupDirLeft
+            // 
+            this.btnPtzSupDirLeft.AutoEllipsis = true;
+            this.btnPtzSupDirLeft.Location = new System.Drawing.Point(448, 12);
+            this.btnPtzSupDirLeft.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupDirLeft.Name = "btnPtzSupDirLeft";
+            this.btnPtzSupDirLeft.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupDirLeft.TabIndex = 0;
+            this.btnPtzSupDirLeft.Tag = "dir_left";
+            this.btnPtzSupDirLeft.Text = "左(按住)";
+            this.btnPtzSupDirLeft.UseVisualStyleBackColor = true;
+            this.btnPtzSupDirLeft.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseDown);
+            this.btnPtzSupDirLeft.MouseLeave += new System.EventHandler(this.PtzSupplementDirectionButton_MouseLeave);
+            this.btnPtzSupDirLeft.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseUp);
+            // 
+            // btnPtzSupDirRight
+            // 
+            this.btnPtzSupDirRight.AutoEllipsis = true;
+            this.btnPtzSupDirRight.Location = new System.Drawing.Point(666, 12);
+            this.btnPtzSupDirRight.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupDirRight.Name = "btnPtzSupDirRight";
+            this.btnPtzSupDirRight.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupDirRight.TabIndex = 0;
+            this.btnPtzSupDirRight.Tag = "dir_right";
+            this.btnPtzSupDirRight.Text = "右(按住)";
+            this.btnPtzSupDirRight.UseVisualStyleBackColor = true;
+            this.btnPtzSupDirRight.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseDown);
+            this.btnPtzSupDirRight.MouseLeave += new System.EventHandler(this.PtzSupplementDirectionButton_MouseLeave);
+            this.btnPtzSupDirRight.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseUp);
+            // 
+            // btnPtzSupDirLeftUp
+            // 
+            this.btnPtzSupDirLeftUp.AutoEllipsis = true;
+            this.btnPtzSupDirLeftUp.Location = new System.Drawing.Point(884, 12);
+            this.btnPtzSupDirLeftUp.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupDirLeftUp.Name = "btnPtzSupDirLeftUp";
+            this.btnPtzSupDirLeftUp.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupDirLeftUp.TabIndex = 0;
+            this.btnPtzSupDirLeftUp.Tag = "dir_left_up";
+            this.btnPtzSupDirLeftUp.Text = "左上(按住)";
+            this.btnPtzSupDirLeftUp.UseVisualStyleBackColor = true;
+            this.btnPtzSupDirLeftUp.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseDown);
+            this.btnPtzSupDirLeftUp.MouseLeave += new System.EventHandler(this.PtzSupplementDirectionButton_MouseLeave);
+            this.btnPtzSupDirLeftUp.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseUp);
+            // 
+            // btnPtzSupDirRightUp
+            // 
+            this.btnPtzSupDirRightUp.AutoEllipsis = true;
+            this.btnPtzSupDirRightUp.Location = new System.Drawing.Point(12, 52);
+            this.btnPtzSupDirRightUp.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupDirRightUp.Name = "btnPtzSupDirRightUp";
+            this.btnPtzSupDirRightUp.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupDirRightUp.TabIndex = 0;
+            this.btnPtzSupDirRightUp.Tag = "dir_right_up";
+            this.btnPtzSupDirRightUp.Text = "右上(按住)";
+            this.btnPtzSupDirRightUp.UseVisualStyleBackColor = true;
+            this.btnPtzSupDirRightUp.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseDown);
+            this.btnPtzSupDirRightUp.MouseLeave += new System.EventHandler(this.PtzSupplementDirectionButton_MouseLeave);
+            this.btnPtzSupDirRightUp.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseUp);
+            // 
+            // btnPtzSupDirLeftDown
+            // 
+            this.btnPtzSupDirLeftDown.AutoEllipsis = true;
+            this.btnPtzSupDirLeftDown.Location = new System.Drawing.Point(230, 52);
+            this.btnPtzSupDirLeftDown.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupDirLeftDown.Name = "btnPtzSupDirLeftDown";
+            this.btnPtzSupDirLeftDown.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupDirLeftDown.TabIndex = 0;
+            this.btnPtzSupDirLeftDown.Tag = "dir_left_down";
+            this.btnPtzSupDirLeftDown.Text = "左下(按住)";
+            this.btnPtzSupDirLeftDown.UseVisualStyleBackColor = true;
+            this.btnPtzSupDirLeftDown.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseDown);
+            this.btnPtzSupDirLeftDown.MouseLeave += new System.EventHandler(this.PtzSupplementDirectionButton_MouseLeave);
+            this.btnPtzSupDirLeftDown.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseUp);
+            // 
+            // btnPtzSupDirRightDown
+            // 
+            this.btnPtzSupDirRightDown.AutoEllipsis = true;
+            this.btnPtzSupDirRightDown.Location = new System.Drawing.Point(448, 52);
+            this.btnPtzSupDirRightDown.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupDirRightDown.Name = "btnPtzSupDirRightDown";
+            this.btnPtzSupDirRightDown.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupDirRightDown.TabIndex = 0;
+            this.btnPtzSupDirRightDown.Tag = "dir_right_down";
+            this.btnPtzSupDirRightDown.Text = "右下(按住)";
+            this.btnPtzSupDirRightDown.UseVisualStyleBackColor = true;
+            this.btnPtzSupDirRightDown.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseDown);
+            this.btnPtzSupDirRightDown.MouseLeave += new System.EventHandler(this.PtzSupplementDirectionButton_MouseLeave);
+            this.btnPtzSupDirRightDown.MouseUp += new System.Windows.Forms.MouseEventHandler(this.PtzSupplementDirectionButton_MouseUp);
+            // 
+            // btnPtzSupStop
+            // 
+            this.btnPtzSupStop.AutoEllipsis = true;
+            this.btnPtzSupStop.Location = new System.Drawing.Point(666, 52);
+            this.btnPtzSupStop.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupStop.Name = "btnPtzSupStop";
+            this.btnPtzSupStop.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupStop.TabIndex = 0;
+            this.btnPtzSupStop.Tag = "stop";
+            this.btnPtzSupStop.Text = "停止";
+            this.btnPtzSupStop.UseVisualStyleBackColor = true;
+            this.btnPtzSupStop.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupLocateH
+            // 
+            this.btnPtzSupLocateH.AutoEllipsis = true;
+            this.btnPtzSupLocateH.Location = new System.Drawing.Point(884, 52);
+            this.btnPtzSupLocateH.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupLocateH.Name = "btnPtzSupLocateH";
+            this.btnPtzSupLocateH.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupLocateH.TabIndex = 0;
+            this.btnPtzSupLocateH.Tag = "locate_h";
+            this.btnPtzSupLocateH.Text = "水平定位";
+            this.btnPtzSupLocateH.UseVisualStyleBackColor = true;
+            this.btnPtzSupLocateH.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupLocateV
+            // 
+            this.btnPtzSupLocateV.AutoEllipsis = true;
+            this.btnPtzSupLocateV.Location = new System.Drawing.Point(12, 92);
+            this.btnPtzSupLocateV.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupLocateV.Name = "btnPtzSupLocateV";
+            this.btnPtzSupLocateV.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupLocateV.TabIndex = 0;
+            this.btnPtzSupLocateV.Tag = "locate_v";
+            this.btnPtzSupLocateV.Text = "垂直定位";
+            this.btnPtzSupLocateV.UseVisualStyleBackColor = true;
+            this.btnPtzSupLocateV.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupQueryHAngle
+            // 
+            this.btnPtzSupQueryHAngle.AutoEllipsis = true;
+            this.btnPtzSupQueryHAngle.Location = new System.Drawing.Point(230, 92);
+            this.btnPtzSupQueryHAngle.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupQueryHAngle.Name = "btnPtzSupQueryHAngle";
+            this.btnPtzSupQueryHAngle.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupQueryHAngle.TabIndex = 0;
+            this.btnPtzSupQueryHAngle.Tag = "query_h_angle";
+            this.btnPtzSupQueryHAngle.Text = " 查询水平角";
+            this.btnPtzSupQueryHAngle.UseVisualStyleBackColor = true;
+            this.btnPtzSupQueryHAngle.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupQueryVAngle
+            // 
+            this.btnPtzSupQueryVAngle.AutoEllipsis = true;
+            this.btnPtzSupQueryVAngle.Location = new System.Drawing.Point(448, 92);
+            this.btnPtzSupQueryVAngle.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupQueryVAngle.Name = "btnPtzSupQueryVAngle";
+            this.btnPtzSupQueryVAngle.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupQueryVAngle.TabIndex = 0;
+            this.btnPtzSupQueryVAngle.Tag = "query_v_angle";
+            this.btnPtzSupQueryVAngle.Text = "查询垂直角";
+            this.btnPtzSupQueryVAngle.UseVisualStyleBackColor = true;
+            this.btnPtzSupQueryVAngle.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPower1On
+            // 
+            this.btnPtzSupPower1On.AutoEllipsis = true;
+            this.btnPtzSupPower1On.Location = new System.Drawing.Point(666, 92);
+            this.btnPtzSupPower1On.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPower1On.Name = "btnPtzSupPower1On";
+            this.btnPtzSupPower1On.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPower1On.TabIndex = 0;
+            this.btnPtzSupPower1On.Tag = "power_1_on";
+            this.btnPtzSupPower1On.Text = "电源1开";
+            this.btnPtzSupPower1On.UseVisualStyleBackColor = true;
+            this.btnPtzSupPower1On.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPower2On
+            // 
+            this.btnPtzSupPower2On.AutoEllipsis = true;
+            this.btnPtzSupPower2On.Location = new System.Drawing.Point(884, 92);
+            this.btnPtzSupPower2On.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPower2On.Name = "btnPtzSupPower2On";
+            this.btnPtzSupPower2On.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPower2On.TabIndex = 0;
+            this.btnPtzSupPower2On.Tag = "power_2_on";
+            this.btnPtzSupPower2On.Text = " 电源2开";
+            this.btnPtzSupPower2On.UseVisualStyleBackColor = true;
+            this.btnPtzSupPower2On.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPower1Off
+            // 
+            this.btnPtzSupPower1Off.AutoEllipsis = true;
+            this.btnPtzSupPower1Off.Location = new System.Drawing.Point(12, 132);
+            this.btnPtzSupPower1Off.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPower1Off.Name = "btnPtzSupPower1Off";
+            this.btnPtzSupPower1Off.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPower1Off.TabIndex = 0;
+            this.btnPtzSupPower1Off.Tag = "power_1_off";
+            this.btnPtzSupPower1Off.Text = "电源1关";
+            this.btnPtzSupPower1Off.UseVisualStyleBackColor = true;
+            this.btnPtzSupPower1Off.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPower2Off
+            // 
+            this.btnPtzSupPower2Off.AutoEllipsis = true;
+            this.btnPtzSupPower2Off.Location = new System.Drawing.Point(230, 132);
+            this.btnPtzSupPower2Off.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPower2Off.Name = "btnPtzSupPower2Off";
+            this.btnPtzSupPower2Off.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPower2Off.TabIndex = 0;
+            this.btnPtzSupPower2Off.Tag = "power_2_off";
+            this.btnPtzSupPower2Off.Text = " 电源2关";
+            this.btnPtzSupPower2Off.UseVisualStyleBackColor = true;
+            this.btnPtzSupPower2Off.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupReturnZero
+            // 
+            this.btnPtzSupReturnZero.AutoEllipsis = true;
+            this.btnPtzSupReturnZero.Location = new System.Drawing.Point(448, 132);
+            this.btnPtzSupReturnZero.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupReturnZero.Name = "btnPtzSupReturnZero";
+            this.btnPtzSupReturnZero.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupReturnZero.TabIndex = 0;
+            this.btnPtzSupReturnZero.Tag = "return_zero";
+            this.btnPtzSupReturnZero.Text = "回到0位 H/V";
+            this.btnPtzSupReturnZero.UseVisualStyleBackColor = true;
+            this.btnPtzSupReturnZero.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // tabPtzSupplementArea
+            // 
+            this.tabPtzSupplementArea.Controls.Add(this.flpPtzSupplementArea);
+            this.tabPtzSupplementArea.Location = new System.Drawing.Point(4, 22);
+            this.tabPtzSupplementArea.Name = "tabPtzSupplementArea";
+            this.tabPtzSupplementArea.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPtzSupplementArea.Size = new System.Drawing.Size(1126, 204);
+            this.tabPtzSupplementArea.TabIndex = 1;
+            this.tabPtzSupplementArea.Text = "区域扫描";
+            this.tabPtzSupplementArea.UseVisualStyleBackColor = true;
+            // 
+            // flpPtzSupplementArea
+            // 
+            this.flpPtzSupplementArea.AutoScroll = true;
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaAngleHa);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaAngleHb);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaAngleVa);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaAngleVb);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaVideoHa);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaVideoHb);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaVideoVa);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaVideoVb);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaIntervalH);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaIntervalV);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaSetSpeed);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaSetTime);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaEnable);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaDisable);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaStartSingle);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaStartMulti);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaPause);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaContinue);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaClose);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaModeStep);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaModeContinuous);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaSave);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaQuery);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaEndReturnOn);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaEndReturnOff);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaStepReturnOn);
+            this.flpPtzSupplementArea.Controls.Add(this.btnPtzSupAreaStepReturnOff);
+            this.flpPtzSupplementArea.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flpPtzSupplementArea.Location = new System.Drawing.Point(3, 3);
+            this.flpPtzSupplementArea.Name = "flpPtzSupplementArea";
+            this.flpPtzSupplementArea.Padding = new System.Windows.Forms.Padding(8);
+            this.flpPtzSupplementArea.Size = new System.Drawing.Size(1120, 198);
+            this.flpPtzSupplementArea.TabIndex = 0;
+            // 
+            // btnPtzSupAreaAngleHa
+            // 
+            this.btnPtzSupAreaAngleHa.AutoEllipsis = true;
+            this.btnPtzSupAreaAngleHa.Location = new System.Drawing.Point(12, 12);
+            this.btnPtzSupAreaAngleHa.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaAngleHa.Name = "btnPtzSupAreaAngleHa";
+            this.btnPtzSupAreaAngleHa.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaAngleHa.TabIndex = 0;
+            this.btnPtzSupAreaAngleHa.Tag = "area_angle_ha";
+            this.btnPtzSupAreaAngleHa.Text = "角度HA边界";
+            this.btnPtzSupAreaAngleHa.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaAngleHa.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaAngleHb
+            // 
+            this.btnPtzSupAreaAngleHb.AutoEllipsis = true;
+            this.btnPtzSupAreaAngleHb.Location = new System.Drawing.Point(230, 12);
+            this.btnPtzSupAreaAngleHb.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaAngleHb.Name = "btnPtzSupAreaAngleHb";
+            this.btnPtzSupAreaAngleHb.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaAngleHb.TabIndex = 0;
+            this.btnPtzSupAreaAngleHb.Tag = "area_angle_hb";
+            this.btnPtzSupAreaAngleHb.Text = "角度HB边界";
+            this.btnPtzSupAreaAngleHb.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaAngleHb.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaAngleVa
+            // 
+            this.btnPtzSupAreaAngleVa.AutoEllipsis = true;
+            this.btnPtzSupAreaAngleVa.Location = new System.Drawing.Point(448, 12);
+            this.btnPtzSupAreaAngleVa.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaAngleVa.Name = "btnPtzSupAreaAngleVa";
+            this.btnPtzSupAreaAngleVa.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaAngleVa.TabIndex = 0;
+            this.btnPtzSupAreaAngleVa.Tag = "area_angle_va";
+            this.btnPtzSupAreaAngleVa.Text = "角度VA边界";
+            this.btnPtzSupAreaAngleVa.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaAngleVa.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaAngleVb
+            // 
+            this.btnPtzSupAreaAngleVb.AutoEllipsis = true;
+            this.btnPtzSupAreaAngleVb.Location = new System.Drawing.Point(666, 12);
+            this.btnPtzSupAreaAngleVb.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaAngleVb.Name = "btnPtzSupAreaAngleVb";
+            this.btnPtzSupAreaAngleVb.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaAngleVb.TabIndex = 0;
+            this.btnPtzSupAreaAngleVb.Tag = "area_angle_vb";
+            this.btnPtzSupAreaAngleVb.Text = "角度VB边界";
+            this.btnPtzSupAreaAngleVb.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaAngleVb.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaVideoHa
+            // 
+            this.btnPtzSupAreaVideoHa.AutoEllipsis = true;
+            this.btnPtzSupAreaVideoHa.Location = new System.Drawing.Point(12, 52);
+            this.btnPtzSupAreaVideoHa.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaVideoHa.Name = "btnPtzSupAreaVideoHa";
+            this.btnPtzSupAreaVideoHa.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaVideoHa.TabIndex = 0;
+            this.btnPtzSupAreaVideoHa.Tag = "area_video_ha";
+            this.btnPtzSupAreaVideoHa.Text = "当前水平->HA";
+            this.btnPtzSupAreaVideoHa.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaVideoHa.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaVideoHb
+            // 
+            this.btnPtzSupAreaVideoHb.AutoEllipsis = true;
+            this.btnPtzSupAreaVideoHb.Location = new System.Drawing.Point(230, 52);
+            this.btnPtzSupAreaVideoHb.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaVideoHb.Name = "btnPtzSupAreaVideoHb";
+            this.btnPtzSupAreaVideoHb.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaVideoHb.TabIndex = 0;
+            this.btnPtzSupAreaVideoHb.Tag = "area_video_hb";
+            this.btnPtzSupAreaVideoHb.Text = "当前水平->HB";
+            this.btnPtzSupAreaVideoHb.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaVideoHb.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaVideoVa
+            // 
+            this.btnPtzSupAreaVideoVa.AutoEllipsis = true;
+            this.btnPtzSupAreaVideoVa.Location = new System.Drawing.Point(448, 52);
+            this.btnPtzSupAreaVideoVa.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaVideoVa.Name = "btnPtzSupAreaVideoVa";
+            this.btnPtzSupAreaVideoVa.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaVideoVa.TabIndex = 0;
+            this.btnPtzSupAreaVideoVa.Tag = "area_video_va";
+            this.btnPtzSupAreaVideoVa.Text = "当前垂直->VA";
+            this.btnPtzSupAreaVideoVa.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaVideoVa.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaVideoVb
+            // 
+            this.btnPtzSupAreaVideoVb.AutoEllipsis = true;
+            this.btnPtzSupAreaVideoVb.Location = new System.Drawing.Point(666, 52);
+            this.btnPtzSupAreaVideoVb.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaVideoVb.Name = "btnPtzSupAreaVideoVb";
+            this.btnPtzSupAreaVideoVb.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaVideoVb.TabIndex = 0;
+            this.btnPtzSupAreaVideoVb.Tag = "area_video_vb";
+            this.btnPtzSupAreaVideoVb.Text = "当前垂直->VB";
+            this.btnPtzSupAreaVideoVb.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaVideoVb.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaIntervalH
+            // 
+            this.btnPtzSupAreaIntervalH.AutoEllipsis = true;
+            this.btnPtzSupAreaIntervalH.Location = new System.Drawing.Point(12, 92);
+            this.btnPtzSupAreaIntervalH.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaIntervalH.Name = "btnPtzSupAreaIntervalH";
+            this.btnPtzSupAreaIntervalH.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaIntervalH.TabIndex = 0;
+            this.btnPtzSupAreaIntervalH.Tag = "area_interval_h";
+            this.btnPtzSupAreaIntervalH.Text = "水平步进";
+            this.btnPtzSupAreaIntervalH.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaIntervalH.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaIntervalV
+            // 
+            this.btnPtzSupAreaIntervalV.AutoEllipsis = true;
+            this.btnPtzSupAreaIntervalV.Location = new System.Drawing.Point(230, 92);
+            this.btnPtzSupAreaIntervalV.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaIntervalV.Name = "btnPtzSupAreaIntervalV";
+            this.btnPtzSupAreaIntervalV.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaIntervalV.TabIndex = 0;
+            this.btnPtzSupAreaIntervalV.Tag = "area_interval_v";
+            this.btnPtzSupAreaIntervalV.Text = "垂直步进";
+            this.btnPtzSupAreaIntervalV.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaIntervalV.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaSetSpeed
+            // 
+            this.btnPtzSupAreaSetSpeed.AutoEllipsis = true;
+            this.btnPtzSupAreaSetSpeed.Location = new System.Drawing.Point(448, 92);
+            this.btnPtzSupAreaSetSpeed.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaSetSpeed.Name = "btnPtzSupAreaSetSpeed";
+            this.btnPtzSupAreaSetSpeed.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaSetSpeed.TabIndex = 0;
+            this.btnPtzSupAreaSetSpeed.Tag = "area_set_speed";
+            this.btnPtzSupAreaSetSpeed.Text = "写入区域转速";
+            this.btnPtzSupAreaSetSpeed.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaSetSpeed.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaSetTime
+            // 
+            this.btnPtzSupAreaSetTime.AutoEllipsis = true;
+            this.btnPtzSupAreaSetTime.Location = new System.Drawing.Point(666, 92);
+            this.btnPtzSupAreaSetTime.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaSetTime.Name = "btnPtzSupAreaSetTime";
+            this.btnPtzSupAreaSetTime.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaSetTime.TabIndex = 0;
+            this.btnPtzSupAreaSetTime.Tag = "area_set_time";
+            this.btnPtzSupAreaSetTime.Text = "写入区域停留";
+            this.btnPtzSupAreaSetTime.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaSetTime.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaEnable
+            // 
+            this.btnPtzSupAreaEnable.AutoEllipsis = true;
+            this.btnPtzSupAreaEnable.Location = new System.Drawing.Point(12, 132);
+            this.btnPtzSupAreaEnable.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaEnable.Name = "btnPtzSupAreaEnable";
+            this.btnPtzSupAreaEnable.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaEnable.TabIndex = 0;
+            this.btnPtzSupAreaEnable.Tag = "area_enable";
+            this.btnPtzSupAreaEnable.Text = "使能区域";
+            this.btnPtzSupAreaEnable.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaEnable.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaDisable
+            // 
+            this.btnPtzSupAreaDisable.AutoEllipsis = true;
+            this.btnPtzSupAreaDisable.Location = new System.Drawing.Point(230, 132);
+            this.btnPtzSupAreaDisable.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaDisable.Name = "btnPtzSupAreaDisable";
+            this.btnPtzSupAreaDisable.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaDisable.TabIndex = 0;
+            this.btnPtzSupAreaDisable.Tag = "area_disable";
+            this.btnPtzSupAreaDisable.Text = " 禁用区域";
+            this.btnPtzSupAreaDisable.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaDisable.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaStartSingle
+            // 
+            this.btnPtzSupAreaStartSingle.AutoEllipsis = true;
+            this.btnPtzSupAreaStartSingle.Location = new System.Drawing.Point(448, 132);
+            this.btnPtzSupAreaStartSingle.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaStartSingle.Name = "btnPtzSupAreaStartSingle";
+            this.btnPtzSupAreaStartSingle.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaStartSingle.TabIndex = 0;
+            this.btnPtzSupAreaStartSingle.Tag = "area_start_single";
+            this.btnPtzSupAreaStartSingle.Text = "单区域扫描";
+            this.btnPtzSupAreaStartSingle.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaStartSingle.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaStartMulti
+            // 
+            this.btnPtzSupAreaStartMulti.AutoEllipsis = true;
+            this.btnPtzSupAreaStartMulti.Location = new System.Drawing.Point(666, 132);
+            this.btnPtzSupAreaStartMulti.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaStartMulti.Name = "btnPtzSupAreaStartMulti";
+            this.btnPtzSupAreaStartMulti.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaStartMulti.TabIndex = 0;
+            this.btnPtzSupAreaStartMulti.Tag = "area_start_multi";
+            this.btnPtzSupAreaStartMulti.Text = "多区域扫描";
+            this.btnPtzSupAreaStartMulti.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaStartMulti.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaPause
+            // 
+            this.btnPtzSupAreaPause.AutoEllipsis = true;
+            this.btnPtzSupAreaPause.Location = new System.Drawing.Point(12, 172);
+            this.btnPtzSupAreaPause.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaPause.Name = "btnPtzSupAreaPause";
+            this.btnPtzSupAreaPause.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaPause.TabIndex = 0;
+            this.btnPtzSupAreaPause.Tag = "area_pause";
+            this.btnPtzSupAreaPause.Text = "暂停扫描";
+            this.btnPtzSupAreaPause.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaPause.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaContinue
+            // 
+            this.btnPtzSupAreaContinue.AutoEllipsis = true;
+            this.btnPtzSupAreaContinue.Location = new System.Drawing.Point(230, 172);
+            this.btnPtzSupAreaContinue.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaContinue.Name = "btnPtzSupAreaContinue";
+            this.btnPtzSupAreaContinue.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaContinue.TabIndex = 0;
+            this.btnPtzSupAreaContinue.Tag = "area_continue";
+            this.btnPtzSupAreaContinue.Text = "恢复扫描";
+            this.btnPtzSupAreaContinue.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaContinue.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaClose
+            // 
+            this.btnPtzSupAreaClose.AutoEllipsis = true;
+            this.btnPtzSupAreaClose.Location = new System.Drawing.Point(448, 172);
+            this.btnPtzSupAreaClose.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaClose.Name = "btnPtzSupAreaClose";
+            this.btnPtzSupAreaClose.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaClose.TabIndex = 0;
+            this.btnPtzSupAreaClose.Tag = "area_close";
+            this.btnPtzSupAreaClose.Text = " 关闭扫描";
+            this.btnPtzSupAreaClose.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaClose.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaModeStep
+            // 
+            this.btnPtzSupAreaModeStep.AutoEllipsis = true;
+            this.btnPtzSupAreaModeStep.Location = new System.Drawing.Point(666, 172);
+            this.btnPtzSupAreaModeStep.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaModeStep.Name = "btnPtzSupAreaModeStep";
+            this.btnPtzSupAreaModeStep.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaModeStep.TabIndex = 0;
+            this.btnPtzSupAreaModeStep.Tag = "area_mode_step";
+            this.btnPtzSupAreaModeStep.Text = "单步模式";
+            this.btnPtzSupAreaModeStep.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaModeStep.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaModeContinuous
+            // 
+            this.btnPtzSupAreaModeContinuous.AutoEllipsis = true;
+            this.btnPtzSupAreaModeContinuous.Location = new System.Drawing.Point(12, 212);
+            this.btnPtzSupAreaModeContinuous.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaModeContinuous.Name = "btnPtzSupAreaModeContinuous";
+            this.btnPtzSupAreaModeContinuous.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaModeContinuous.TabIndex = 0;
+            this.btnPtzSupAreaModeContinuous.Tag = "area_mode_continuous";
+            this.btnPtzSupAreaModeContinuous.Text = "连续模式";
+            this.btnPtzSupAreaModeContinuous.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaModeContinuous.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaSave
+            // 
+            this.btnPtzSupAreaSave.AutoEllipsis = true;
+            this.btnPtzSupAreaSave.Location = new System.Drawing.Point(230, 212);
+            this.btnPtzSupAreaSave.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaSave.Name = "btnPtzSupAreaSave";
+            this.btnPtzSupAreaSave.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaSave.TabIndex = 0;
+            this.btnPtzSupAreaSave.Tag = "area_save";
+            this.btnPtzSupAreaSave.Text = "保存区域数据";
+            this.btnPtzSupAreaSave.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaSave.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaQuery
+            // 
+            this.btnPtzSupAreaQuery.AutoEllipsis = true;
+            this.btnPtzSupAreaQuery.Location = new System.Drawing.Point(448, 212);
+            this.btnPtzSupAreaQuery.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaQuery.Name = "btnPtzSupAreaQuery";
+            this.btnPtzSupAreaQuery.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaQuery.TabIndex = 0;
+            this.btnPtzSupAreaQuery.Tag = "area_query";
+            this.btnPtzSupAreaQuery.Text = "查询区域配置";
+            this.btnPtzSupAreaQuery.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaQuery.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaEndReturnOn
+            // 
+            this.btnPtzSupAreaEndReturnOn.AutoEllipsis = true;
+            this.btnPtzSupAreaEndReturnOn.Location = new System.Drawing.Point(666, 212);
+            this.btnPtzSupAreaEndReturnOn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaEndReturnOn.Name = "btnPtzSupAreaEndReturnOn";
+            this.btnPtzSupAreaEndReturnOn.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaEndReturnOn.TabIndex = 0;
+            this.btnPtzSupAreaEndReturnOn.Tag = "area_end_return_on";
+            this.btnPtzSupAreaEndReturnOn.Text = " 区域结束回传开";
+            this.btnPtzSupAreaEndReturnOn.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaEndReturnOn.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaEndReturnOff
+            // 
+            this.btnPtzSupAreaEndReturnOff.AutoEllipsis = true;
+            this.btnPtzSupAreaEndReturnOff.Location = new System.Drawing.Point(12, 252);
+            this.btnPtzSupAreaEndReturnOff.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaEndReturnOff.Name = "btnPtzSupAreaEndReturnOff";
+            this.btnPtzSupAreaEndReturnOff.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaEndReturnOff.TabIndex = 0;
+            this.btnPtzSupAreaEndReturnOff.Tag = "area_end_return_off";
+            this.btnPtzSupAreaEndReturnOff.Text = "区域结束回传关";
+            this.btnPtzSupAreaEndReturnOff.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaEndReturnOff.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaStepReturnOn
+            // 
+            this.btnPtzSupAreaStepReturnOn.AutoEllipsis = true;
+            this.btnPtzSupAreaStepReturnOn.Location = new System.Drawing.Point(230, 252);
+            this.btnPtzSupAreaStepReturnOn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaStepReturnOn.Name = "btnPtzSupAreaStepReturnOn";
+            this.btnPtzSupAreaStepReturnOn.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaStepReturnOn.TabIndex = 0;
+            this.btnPtzSupAreaStepReturnOn.Tag = "area_step_return_on";
+            this.btnPtzSupAreaStepReturnOn.Text = "单步到位回传开";
+            this.btnPtzSupAreaStepReturnOn.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaStepReturnOn.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAreaStepReturnOff
+            // 
+            this.btnPtzSupAreaStepReturnOff.AutoEllipsis = true;
+            this.btnPtzSupAreaStepReturnOff.Location = new System.Drawing.Point(448, 252);
+            this.btnPtzSupAreaStepReturnOff.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAreaStepReturnOff.Name = "btnPtzSupAreaStepReturnOff";
+            this.btnPtzSupAreaStepReturnOff.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAreaStepReturnOff.TabIndex = 0;
+            this.btnPtzSupAreaStepReturnOff.Tag = "area_step_return_off";
+            this.btnPtzSupAreaStepReturnOff.Text = "单步到位回传关";
+            this.btnPtzSupAreaStepReturnOff.UseVisualStyleBackColor = true;
+            this.btnPtzSupAreaStepReturnOff.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // tabPtzSupplementPreset
+            // 
+            this.tabPtzSupplementPreset.Controls.Add(this.flpPtzSupplementPreset);
+            this.tabPtzSupplementPreset.Location = new System.Drawing.Point(4, 22);
+            this.tabPtzSupplementPreset.Name = "tabPtzSupplementPreset";
+            this.tabPtzSupplementPreset.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPtzSupplementPreset.Size = new System.Drawing.Size(1126, 204);
+            this.tabPtzSupplementPreset.TabIndex = 2;
+            this.tabPtzSupplementPreset.Text = "预置位";
+            this.tabPtzSupplementPreset.UseVisualStyleBackColor = true;
+            // 
+            // flpPtzSupplementPreset
+            // 
+            this.flpPtzSupplementPreset.AutoScroll = true;
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetStandardSet);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetStandardCall);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetStandardDelete);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetSetByAngle);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetSetHAngle);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetSetVAngle);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetSetTime);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetSetSpeed);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetStart);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetPause);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetContinue);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetClose);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetEndReturnOn);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetEndReturnOff);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetArriveReturnOn);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetArriveReturnOff);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetCallReturnOn);
+            this.flpPtzSupplementPreset.Controls.Add(this.btnPtzSupPresetCallReturnOff);
+            this.flpPtzSupplementPreset.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flpPtzSupplementPreset.Location = new System.Drawing.Point(3, 3);
+            this.flpPtzSupplementPreset.Name = "flpPtzSupplementPreset";
+            this.flpPtzSupplementPreset.Padding = new System.Windows.Forms.Padding(8);
+            this.flpPtzSupplementPreset.Size = new System.Drawing.Size(1120, 198);
+            this.flpPtzSupplementPreset.TabIndex = 0;
+            // 
+            // btnPtzSupPresetStandardSet
+            // 
+            this.btnPtzSupPresetStandardSet.AutoEllipsis = true;
+            this.btnPtzSupPresetStandardSet.Location = new System.Drawing.Point(12, 12);
+            this.btnPtzSupPresetStandardSet.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetStandardSet.Name = "btnPtzSupPresetStandardSet";
+            this.btnPtzSupPresetStandardSet.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetStandardSet.TabIndex = 0;
+            this.btnPtzSupPresetStandardSet.Tag = "preset_standard_set";
+            this.btnPtzSupPresetStandardSet.Text = "设置预置";
+            this.btnPtzSupPresetStandardSet.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetStandardSet.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetStandardCall
+            // 
+            this.btnPtzSupPresetStandardCall.AutoEllipsis = true;
+            this.btnPtzSupPresetStandardCall.Location = new System.Drawing.Point(230, 12);
+            this.btnPtzSupPresetStandardCall.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetStandardCall.Name = "btnPtzSupPresetStandardCall";
+            this.btnPtzSupPresetStandardCall.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetStandardCall.TabIndex = 0;
+            this.btnPtzSupPresetStandardCall.Tag = "preset_standard_call";
+            this.btnPtzSupPresetStandardCall.Text = "调用预置";
+            this.btnPtzSupPresetStandardCall.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetStandardCall.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetStandardDelete
+            // 
+            this.btnPtzSupPresetStandardDelete.AutoEllipsis = true;
+            this.btnPtzSupPresetStandardDelete.Location = new System.Drawing.Point(448, 12);
+            this.btnPtzSupPresetStandardDelete.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetStandardDelete.Name = "btnPtzSupPresetStandardDelete";
+            this.btnPtzSupPresetStandardDelete.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetStandardDelete.TabIndex = 0;
+            this.btnPtzSupPresetStandardDelete.Tag = "preset_standard_delete";
+            this.btnPtzSupPresetStandardDelete.Text = "删除预置";
+            this.btnPtzSupPresetStandardDelete.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetStandardDelete.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetSetByAngle
+            // 
+            this.btnPtzSupPresetSetByAngle.AutoEllipsis = true;
+            this.btnPtzSupPresetSetByAngle.Location = new System.Drawing.Point(666, 12);
+            this.btnPtzSupPresetSetByAngle.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetSetByAngle.Name = "btnPtzSupPresetSetByAngle";
+            this.btnPtzSupPresetSetByAngle.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetSetByAngle.TabIndex = 0;
+            this.btnPtzSupPresetSetByAngle.Tag = "preset_set_by_angle";
+            this.btnPtzSupPresetSetByAngle.Text = "按角度设预置";
+            this.btnPtzSupPresetSetByAngle.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetSetByAngle.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetSetHAngle
+            // 
+            this.btnPtzSupPresetSetHAngle.AutoEllipsis = true;
+            this.btnPtzSupPresetSetHAngle.Location = new System.Drawing.Point(884, 12);
+            this.btnPtzSupPresetSetHAngle.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetSetHAngle.Name = "btnPtzSupPresetSetHAngle";
+            this.btnPtzSupPresetSetHAngle.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetSetHAngle.TabIndex = 0;
+            this.btnPtzSupPresetSetHAngle.Tag = "preset_set_h_angle";
+            this.btnPtzSupPresetSetHAngle.Text = "水平角设预置";
+            this.btnPtzSupPresetSetHAngle.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetSetHAngle.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetSetVAngle
+            // 
+            this.btnPtzSupPresetSetVAngle.AutoEllipsis = true;
+            this.btnPtzSupPresetSetVAngle.Location = new System.Drawing.Point(12, 52);
+            this.btnPtzSupPresetSetVAngle.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetSetVAngle.Name = "btnPtzSupPresetSetVAngle";
+            this.btnPtzSupPresetSetVAngle.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetSetVAngle.TabIndex = 0;
+            this.btnPtzSupPresetSetVAngle.Tag = "preset_set_v_angle";
+            this.btnPtzSupPresetSetVAngle.Text = "垂直角设预置";
+            this.btnPtzSupPresetSetVAngle.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetSetVAngle.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetSetTime
+            // 
+            this.btnPtzSupPresetSetTime.AutoEllipsis = true;
+            this.btnPtzSupPresetSetTime.Location = new System.Drawing.Point(230, 52);
+            this.btnPtzSupPresetSetTime.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetSetTime.Name = "btnPtzSupPresetSetTime";
+            this.btnPtzSupPresetSetTime.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetSetTime.TabIndex = 0;
+            this.btnPtzSupPresetSetTime.Tag = "preset_set_time";
+            this.btnPtzSupPresetSetTime.Text = "写入驻留时间";
+            this.btnPtzSupPresetSetTime.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetSetTime.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetSetSpeed
+            // 
+            this.btnPtzSupPresetSetSpeed.AutoEllipsis = true;
+            this.btnPtzSupPresetSetSpeed.Location = new System.Drawing.Point(448, 52);
+            this.btnPtzSupPresetSetSpeed.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetSetSpeed.Name = "btnPtzSupPresetSetSpeed";
+            this.btnPtzSupPresetSetSpeed.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetSetSpeed.TabIndex = 0;
+            this.btnPtzSupPresetSetSpeed.Tag = "preset_set_speed";
+            this.btnPtzSupPresetSetSpeed.Text = " 写入扫描速度";
+            this.btnPtzSupPresetSetSpeed.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetSetSpeed.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetStart
+            // 
+            this.btnPtzSupPresetStart.AutoEllipsis = true;
+            this.btnPtzSupPresetStart.Location = new System.Drawing.Point(666, 52);
+            this.btnPtzSupPresetStart.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetStart.Name = "btnPtzSupPresetStart";
+            this.btnPtzSupPresetStart.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetStart.TabIndex = 0;
+            this.btnPtzSupPresetStart.Tag = "preset_start";
+            this.btnPtzSupPresetStart.Text = "开始预置扫描";
+            this.btnPtzSupPresetStart.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetStart.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetPause
+            // 
+            this.btnPtzSupPresetPause.AutoEllipsis = true;
+            this.btnPtzSupPresetPause.Location = new System.Drawing.Point(884, 52);
+            this.btnPtzSupPresetPause.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetPause.Name = "btnPtzSupPresetPause";
+            this.btnPtzSupPresetPause.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetPause.TabIndex = 0;
+            this.btnPtzSupPresetPause.Tag = "preset_pause";
+            this.btnPtzSupPresetPause.Text = "暂停预置扫描";
+            this.btnPtzSupPresetPause.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetPause.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetContinue
+            // 
+            this.btnPtzSupPresetContinue.AutoEllipsis = true;
+            this.btnPtzSupPresetContinue.Location = new System.Drawing.Point(12, 92);
+            this.btnPtzSupPresetContinue.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetContinue.Name = "btnPtzSupPresetContinue";
+            this.btnPtzSupPresetContinue.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetContinue.TabIndex = 0;
+            this.btnPtzSupPresetContinue.Tag = "preset_continue";
+            this.btnPtzSupPresetContinue.Text = "恢复预置扫描";
+            this.btnPtzSupPresetContinue.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetContinue.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetClose
+            // 
+            this.btnPtzSupPresetClose.AutoEllipsis = true;
+            this.btnPtzSupPresetClose.Location = new System.Drawing.Point(230, 92);
+            this.btnPtzSupPresetClose.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetClose.Name = "btnPtzSupPresetClose";
+            this.btnPtzSupPresetClose.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetClose.TabIndex = 0;
+            this.btnPtzSupPresetClose.Tag = "preset_close";
+            this.btnPtzSupPresetClose.Text = "关闭预置扫描";
+            this.btnPtzSupPresetClose.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetClose.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetEndReturnOn
+            // 
+            this.btnPtzSupPresetEndReturnOn.AutoEllipsis = true;
+            this.btnPtzSupPresetEndReturnOn.Location = new System.Drawing.Point(448, 92);
+            this.btnPtzSupPresetEndReturnOn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetEndReturnOn.Name = "btnPtzSupPresetEndReturnOn";
+            this.btnPtzSupPresetEndReturnOn.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetEndReturnOn.TabIndex = 0;
+            this.btnPtzSupPresetEndReturnOn.Tag = "preset_end_return_on";
+            this.btnPtzSupPresetEndReturnOn.Text = " 扫描结束回传开";
+            this.btnPtzSupPresetEndReturnOn.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetEndReturnOn.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetEndReturnOff
+            // 
+            this.btnPtzSupPresetEndReturnOff.AutoEllipsis = true;
+            this.btnPtzSupPresetEndReturnOff.Location = new System.Drawing.Point(666, 92);
+            this.btnPtzSupPresetEndReturnOff.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetEndReturnOff.Name = "btnPtzSupPresetEndReturnOff";
+            this.btnPtzSupPresetEndReturnOff.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetEndReturnOff.TabIndex = 0;
+            this.btnPtzSupPresetEndReturnOff.Tag = "preset_end_return_off";
+            this.btnPtzSupPresetEndReturnOff.Text = " 扫描结束回传关";
+            this.btnPtzSupPresetEndReturnOff.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetEndReturnOff.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetArriveReturnOn
+            // 
+            this.btnPtzSupPresetArriveReturnOn.AutoEllipsis = true;
+            this.btnPtzSupPresetArriveReturnOn.Location = new System.Drawing.Point(884, 92);
+            this.btnPtzSupPresetArriveReturnOn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetArriveReturnOn.Name = "btnPtzSupPresetArriveReturnOn";
+            this.btnPtzSupPresetArriveReturnOn.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetArriveReturnOn.TabIndex = 0;
+            this.btnPtzSupPresetArriveReturnOn.Tag = "preset_arrive_return_on";
+            this.btnPtzSupPresetArriveReturnOn.Text = "扫描到位回传开";
+            this.btnPtzSupPresetArriveReturnOn.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetArriveReturnOn.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetArriveReturnOff
+            // 
+            this.btnPtzSupPresetArriveReturnOff.AutoEllipsis = true;
+            this.btnPtzSupPresetArriveReturnOff.Location = new System.Drawing.Point(12, 132);
+            this.btnPtzSupPresetArriveReturnOff.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetArriveReturnOff.Name = "btnPtzSupPresetArriveReturnOff";
+            this.btnPtzSupPresetArriveReturnOff.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetArriveReturnOff.TabIndex = 0;
+            this.btnPtzSupPresetArriveReturnOff.Tag = "preset_arrive_return_off";
+            this.btnPtzSupPresetArriveReturnOff.Text = " 扫描到位回传关";
+            this.btnPtzSupPresetArriveReturnOff.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetArriveReturnOff.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetCallReturnOn
+            // 
+            this.btnPtzSupPresetCallReturnOn.AutoEllipsis = true;
+            this.btnPtzSupPresetCallReturnOn.Location = new System.Drawing.Point(230, 132);
+            this.btnPtzSupPresetCallReturnOn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetCallReturnOn.Name = "btnPtzSupPresetCallReturnOn";
+            this.btnPtzSupPresetCallReturnOn.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetCallReturnOn.TabIndex = 0;
+            this.btnPtzSupPresetCallReturnOn.Tag = "preset_call_return_on";
+            this.btnPtzSupPresetCallReturnOn.Text = "调用到位回传开";
+            this.btnPtzSupPresetCallReturnOn.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetCallReturnOn.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupPresetCallReturnOff
+            // 
+            this.btnPtzSupPresetCallReturnOff.AutoEllipsis = true;
+            this.btnPtzSupPresetCallReturnOff.Location = new System.Drawing.Point(448, 132);
+            this.btnPtzSupPresetCallReturnOff.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupPresetCallReturnOff.Name = "btnPtzSupPresetCallReturnOff";
+            this.btnPtzSupPresetCallReturnOff.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupPresetCallReturnOff.TabIndex = 0;
+            this.btnPtzSupPresetCallReturnOff.Tag = "preset_call_return_off";
+            this.btnPtzSupPresetCallReturnOff.Text = "调用到位回传关";
+            this.btnPtzSupPresetCallReturnOff.UseVisualStyleBackColor = true;
+            this.btnPtzSupPresetCallReturnOff.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // tabPtzSupplementQuery
+            // 
+            this.tabPtzSupplementQuery.Controls.Add(this.flpPtzSupplementQuery);
+            this.tabPtzSupplementQuery.Location = new System.Drawing.Point(4, 22);
+            this.tabPtzSupplementQuery.Name = "tabPtzSupplementQuery";
+            this.tabPtzSupplementQuery.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPtzSupplementQuery.Size = new System.Drawing.Size(1126, 204);
+            this.tabPtzSupplementQuery.TabIndex = 3;
+            this.tabPtzSupplementQuery.Text = "查询回传";
+            this.tabPtzSupplementQuery.UseVisualStyleBackColor = true;
+            // 
+            // flpPtzSupplementQuery
+            // 
+            this.flpPtzSupplementQuery.AutoScroll = true;
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupAckOn);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupAckOff);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupQueryMode);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupQueryStatus);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupQueryTemperature);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupQueryVoltage);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupQueryCurrent);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupAngleRealtimeOn);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupAngleRealtimeOff);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupQueryHSpeed);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupQueryVSpeed);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupQueryAllSpeed);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupSpeedRealtimeOn);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupSpeedRealtimeOff);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupLocateReturnOn);
+            this.flpPtzSupplementQuery.Controls.Add(this.btnPtzSupLocateReturnOff);
+            this.flpPtzSupplementQuery.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flpPtzSupplementQuery.Location = new System.Drawing.Point(3, 3);
+            this.flpPtzSupplementQuery.Name = "flpPtzSupplementQuery";
+            this.flpPtzSupplementQuery.Padding = new System.Windows.Forms.Padding(8);
+            this.flpPtzSupplementQuery.Size = new System.Drawing.Size(1120, 198);
+            this.flpPtzSupplementQuery.TabIndex = 0;
+            // 
+            // btnPtzSupAckOn
+            // 
+            this.btnPtzSupAckOn.AutoEllipsis = true;
+            this.btnPtzSupAckOn.Location = new System.Drawing.Point(12, 12);
+            this.btnPtzSupAckOn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAckOn.Name = "btnPtzSupAckOn";
+            this.btnPtzSupAckOn.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAckOn.TabIndex = 0;
+            this.btnPtzSupAckOn.Tag = "ack_on";
+            this.btnPtzSupAckOn.Text = "指令回复开";
+            this.btnPtzSupAckOn.UseVisualStyleBackColor = true;
+            this.btnPtzSupAckOn.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAckOff
+            // 
+            this.btnPtzSupAckOff.AutoEllipsis = true;
+            this.btnPtzSupAckOff.Location = new System.Drawing.Point(230, 12);
+            this.btnPtzSupAckOff.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAckOff.Name = "btnPtzSupAckOff";
+            this.btnPtzSupAckOff.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAckOff.TabIndex = 0;
+            this.btnPtzSupAckOff.Tag = "ack_off";
+            this.btnPtzSupAckOff.Text = " 指令回复关";
+            this.btnPtzSupAckOff.UseVisualStyleBackColor = true;
+            this.btnPtzSupAckOff.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupQueryMode
+            // 
+            this.btnPtzSupQueryMode.AutoEllipsis = true;
+            this.btnPtzSupQueryMode.Location = new System.Drawing.Point(448, 12);
+            this.btnPtzSupQueryMode.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupQueryMode.Name = "btnPtzSupQueryMode";
+            this.btnPtzSupQueryMode.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupQueryMode.TabIndex = 0;
+            this.btnPtzSupQueryMode.Tag = "query_mode";
+            this.btnPtzSupQueryMode.Text = "查询模式";
+            this.btnPtzSupQueryMode.UseVisualStyleBackColor = true;
+            this.btnPtzSupQueryMode.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupQueryStatus
+            // 
+            this.btnPtzSupQueryStatus.AutoEllipsis = true;
+            this.btnPtzSupQueryStatus.Location = new System.Drawing.Point(666, 12);
+            this.btnPtzSupQueryStatus.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupQueryStatus.Name = "btnPtzSupQueryStatus";
+            this.btnPtzSupQueryStatus.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupQueryStatus.TabIndex = 0;
+            this.btnPtzSupQueryStatus.Tag = "query_status";
+            this.btnPtzSupQueryStatus.Text = "查询状态";
+            this.btnPtzSupQueryStatus.UseVisualStyleBackColor = true;
+            this.btnPtzSupQueryStatus.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupQueryTemperature
+            // 
+            this.btnPtzSupQueryTemperature.AutoEllipsis = true;
+            this.btnPtzSupQueryTemperature.Location = new System.Drawing.Point(884, 12);
+            this.btnPtzSupQueryTemperature.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupQueryTemperature.Name = "btnPtzSupQueryTemperature";
+            this.btnPtzSupQueryTemperature.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupQueryTemperature.TabIndex = 0;
+            this.btnPtzSupQueryTemperature.Tag = "query_temperature";
+            this.btnPtzSupQueryTemperature.Text = "查询温度";
+            this.btnPtzSupQueryTemperature.UseVisualStyleBackColor = true;
+            this.btnPtzSupQueryTemperature.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupQueryVoltage
+            // 
+            this.btnPtzSupQueryVoltage.AutoEllipsis = true;
+            this.btnPtzSupQueryVoltage.Location = new System.Drawing.Point(12, 52);
+            this.btnPtzSupQueryVoltage.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupQueryVoltage.Name = "btnPtzSupQueryVoltage";
+            this.btnPtzSupQueryVoltage.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupQueryVoltage.TabIndex = 0;
+            this.btnPtzSupQueryVoltage.Tag = "query_voltage";
+            this.btnPtzSupQueryVoltage.Text = "查询电压";
+            this.btnPtzSupQueryVoltage.UseVisualStyleBackColor = true;
+            this.btnPtzSupQueryVoltage.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupQueryCurrent
+            // 
+            this.btnPtzSupQueryCurrent.AutoEllipsis = true;
+            this.btnPtzSupQueryCurrent.Location = new System.Drawing.Point(230, 52);
+            this.btnPtzSupQueryCurrent.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupQueryCurrent.Name = "btnPtzSupQueryCurrent";
+            this.btnPtzSupQueryCurrent.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupQueryCurrent.TabIndex = 0;
+            this.btnPtzSupQueryCurrent.Tag = "query_current";
+            this.btnPtzSupQueryCurrent.Text = "查询电流";
+            this.btnPtzSupQueryCurrent.UseVisualStyleBackColor = true;
+            this.btnPtzSupQueryCurrent.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAngleRealtimeOn
+            // 
+            this.btnPtzSupAngleRealtimeOn.AutoEllipsis = true;
+            this.btnPtzSupAngleRealtimeOn.Location = new System.Drawing.Point(448, 52);
+            this.btnPtzSupAngleRealtimeOn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAngleRealtimeOn.Name = "btnPtzSupAngleRealtimeOn";
+            this.btnPtzSupAngleRealtimeOn.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAngleRealtimeOn.TabIndex = 0;
+            this.btnPtzSupAngleRealtimeOn.Tag = "angle_realtime_on";
+            this.btnPtzSupAngleRealtimeOn.Text = "角度回传开";
+            this.btnPtzSupAngleRealtimeOn.UseVisualStyleBackColor = true;
+            this.btnPtzSupAngleRealtimeOn.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupAngleRealtimeOff
+            // 
+            this.btnPtzSupAngleRealtimeOff.AutoEllipsis = true;
+            this.btnPtzSupAngleRealtimeOff.Location = new System.Drawing.Point(666, 52);
+            this.btnPtzSupAngleRealtimeOff.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupAngleRealtimeOff.Name = "btnPtzSupAngleRealtimeOff";
+            this.btnPtzSupAngleRealtimeOff.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupAngleRealtimeOff.TabIndex = 0;
+            this.btnPtzSupAngleRealtimeOff.Tag = "angle_realtime_off";
+            this.btnPtzSupAngleRealtimeOff.Text = "角度回传关";
+            this.btnPtzSupAngleRealtimeOff.UseVisualStyleBackColor = true;
+            this.btnPtzSupAngleRealtimeOff.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupQueryHSpeed
+            // 
+            this.btnPtzSupQueryHSpeed.AutoEllipsis = true;
+            this.btnPtzSupQueryHSpeed.Location = new System.Drawing.Point(884, 52);
+            this.btnPtzSupQueryHSpeed.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupQueryHSpeed.Name = "btnPtzSupQueryHSpeed";
+            this.btnPtzSupQueryHSpeed.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupQueryHSpeed.TabIndex = 0;
+            this.btnPtzSupQueryHSpeed.Tag = "query_h_speed";
+            this.btnPtzSupQueryHSpeed.Text = "查询水平转速";
+            this.btnPtzSupQueryHSpeed.UseVisualStyleBackColor = true;
+            this.btnPtzSupQueryHSpeed.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupQueryVSpeed
+            // 
+            this.btnPtzSupQueryVSpeed.AutoEllipsis = true;
+            this.btnPtzSupQueryVSpeed.Location = new System.Drawing.Point(12, 92);
+            this.btnPtzSupQueryVSpeed.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupQueryVSpeed.Name = "btnPtzSupQueryVSpeed";
+            this.btnPtzSupQueryVSpeed.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupQueryVSpeed.TabIndex = 0;
+            this.btnPtzSupQueryVSpeed.Tag = "query_v_speed";
+            this.btnPtzSupQueryVSpeed.Text = " 查询垂直转速";
+            this.btnPtzSupQueryVSpeed.UseVisualStyleBackColor = true;
+            this.btnPtzSupQueryVSpeed.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupQueryAllSpeed
+            // 
+            this.btnPtzSupQueryAllSpeed.AutoEllipsis = true;
+            this.btnPtzSupQueryAllSpeed.Location = new System.Drawing.Point(230, 92);
+            this.btnPtzSupQueryAllSpeed.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupQueryAllSpeed.Name = "btnPtzSupQueryAllSpeed";
+            this.btnPtzSupQueryAllSpeed.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupQueryAllSpeed.TabIndex = 0;
+            this.btnPtzSupQueryAllSpeed.Tag = "query_all_speed";
+            this.btnPtzSupQueryAllSpeed.Text = " 查询全部转速";
+            this.btnPtzSupQueryAllSpeed.UseVisualStyleBackColor = true;
+            this.btnPtzSupQueryAllSpeed.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupSpeedRealtimeOn
+            // 
+            this.btnPtzSupSpeedRealtimeOn.AutoEllipsis = true;
+            this.btnPtzSupSpeedRealtimeOn.Location = new System.Drawing.Point(448, 92);
+            this.btnPtzSupSpeedRealtimeOn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupSpeedRealtimeOn.Name = "btnPtzSupSpeedRealtimeOn";
+            this.btnPtzSupSpeedRealtimeOn.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupSpeedRealtimeOn.TabIndex = 0;
+            this.btnPtzSupSpeedRealtimeOn.Tag = "speed_realtime_on";
+            this.btnPtzSupSpeedRealtimeOn.Text = " 转速实时回传开";
+            this.btnPtzSupSpeedRealtimeOn.UseVisualStyleBackColor = true;
+            this.btnPtzSupSpeedRealtimeOn.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupSpeedRealtimeOff
+            // 
+            this.btnPtzSupSpeedRealtimeOff.AutoEllipsis = true;
+            this.btnPtzSupSpeedRealtimeOff.Location = new System.Drawing.Point(666, 92);
+            this.btnPtzSupSpeedRealtimeOff.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupSpeedRealtimeOff.Name = "btnPtzSupSpeedRealtimeOff";
+            this.btnPtzSupSpeedRealtimeOff.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupSpeedRealtimeOff.TabIndex = 0;
+            this.btnPtzSupSpeedRealtimeOff.Tag = "speed_realtime_off";
+            this.btnPtzSupSpeedRealtimeOff.Text = " 转速实时回传关";
+            this.btnPtzSupSpeedRealtimeOff.UseVisualStyleBackColor = true;
+            this.btnPtzSupSpeedRealtimeOff.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupLocateReturnOn
+            // 
+            this.btnPtzSupLocateReturnOn.AutoEllipsis = true;
+            this.btnPtzSupLocateReturnOn.Location = new System.Drawing.Point(884, 92);
+            this.btnPtzSupLocateReturnOn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupLocateReturnOn.Name = "btnPtzSupLocateReturnOn";
+            this.btnPtzSupLocateReturnOn.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupLocateReturnOn.TabIndex = 0;
+            this.btnPtzSupLocateReturnOn.Tag = "locate_return_on";
+            this.btnPtzSupLocateReturnOn.Text = " 定位回传开";
+            this.btnPtzSupLocateReturnOn.UseVisualStyleBackColor = true;
+            this.btnPtzSupLocateReturnOn.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupLocateReturnOff
+            // 
+            this.btnPtzSupLocateReturnOff.AutoEllipsis = true;
+            this.btnPtzSupLocateReturnOff.Location = new System.Drawing.Point(12, 132);
+            this.btnPtzSupLocateReturnOff.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupLocateReturnOff.Name = "btnPtzSupLocateReturnOff";
+            this.btnPtzSupLocateReturnOff.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupLocateReturnOff.TabIndex = 0;
+            this.btnPtzSupLocateReturnOff.Tag = "locate_return_off";
+            this.btnPtzSupLocateReturnOff.Text = "定位回传关";
+            this.btnPtzSupLocateReturnOff.UseVisualStyleBackColor = true;
+            this.btnPtzSupLocateReturnOff.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // tabPtzSupplementZero
+            // 
+            this.tabPtzSupplementZero.Controls.Add(this.flpPtzSupplementZero);
+            this.tabPtzSupplementZero.Location = new System.Drawing.Point(4, 22);
+            this.tabPtzSupplementZero.Name = "tabPtzSupplementZero";
+            this.tabPtzSupplementZero.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPtzSupplementZero.Size = new System.Drawing.Size(1126, 204);
+            this.tabPtzSupplementZero.TabIndex = 4;
+            this.tabPtzSupplementZero.Text = "零位维护";
+            this.tabPtzSupplementZero.UseVisualStyleBackColor = true;
+            // 
+            // flpPtzSupplementZero
+            // 
+            this.flpPtzSupplementZero.AutoScroll = true;
+            this.flpPtzSupplementZero.Controls.Add(this.btnPtzSupZeroHCurrent);
+            this.flpPtzSupplementZero.Controls.Add(this.btnPtzSupZeroVCurrent);
+            this.flpPtzSupplementZero.Controls.Add(this.btnPtzSupZeroHvCurrent);
+            this.flpPtzSupplementZero.Controls.Add(this.btnPtzSupZeroHAngle);
+            this.flpPtzSupplementZero.Controls.Add(this.btnPtzSupZeroVAngle);
+            this.flpPtzSupplementZero.Controls.Add(this.btnPtzSupZeroDelete);
+            this.flpPtzSupplementZero.Controls.Add(this.btnPtzSupReboot);
+            this.flpPtzSupplementZero.Controls.Add(this.btnPtzSupSelfCheck);
+            this.flpPtzSupplementZero.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flpPtzSupplementZero.Location = new System.Drawing.Point(3, 3);
+            this.flpPtzSupplementZero.Name = "flpPtzSupplementZero";
+            this.flpPtzSupplementZero.Padding = new System.Windows.Forms.Padding(8);
+            this.flpPtzSupplementZero.Size = new System.Drawing.Size(1120, 198);
+            this.flpPtzSupplementZero.TabIndex = 0;
+            // 
+            // btnPtzSupZeroHCurrent
+            // 
+            this.btnPtzSupZeroHCurrent.AutoEllipsis = true;
+            this.btnPtzSupZeroHCurrent.Location = new System.Drawing.Point(12, 12);
+            this.btnPtzSupZeroHCurrent.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupZeroHCurrent.Name = "btnPtzSupZeroHCurrent";
+            this.btnPtzSupZeroHCurrent.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupZeroHCurrent.TabIndex = 0;
+            this.btnPtzSupZeroHCurrent.Tag = "zero_h_current";
+            this.btnPtzSupZeroHCurrent.Text = " 当前水平设0";
+            this.btnPtzSupZeroHCurrent.UseVisualStyleBackColor = true;
+            this.btnPtzSupZeroHCurrent.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupZeroVCurrent
+            // 
+            this.btnPtzSupZeroVCurrent.AutoEllipsis = true;
+            this.btnPtzSupZeroVCurrent.Location = new System.Drawing.Point(230, 12);
+            this.btnPtzSupZeroVCurrent.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupZeroVCurrent.Name = "btnPtzSupZeroVCurrent";
+            this.btnPtzSupZeroVCurrent.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupZeroVCurrent.TabIndex = 0;
+            this.btnPtzSupZeroVCurrent.Tag = "zero_v_current";
+            this.btnPtzSupZeroVCurrent.Text = "当前垂直设0";
+            this.btnPtzSupZeroVCurrent.UseVisualStyleBackColor = true;
+            this.btnPtzSupZeroVCurrent.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupZeroHvCurrent
+            // 
+            this.btnPtzSupZeroHvCurrent.AutoEllipsis = true;
+            this.btnPtzSupZeroHvCurrent.Location = new System.Drawing.Point(448, 12);
+            this.btnPtzSupZeroHvCurrent.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupZeroHvCurrent.Name = "btnPtzSupZeroHvCurrent";
+            this.btnPtzSupZeroHvCurrent.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupZeroHvCurrent.TabIndex = 0;
+            this.btnPtzSupZeroHvCurrent.Tag = "zero_hv_current";
+            this.btnPtzSupZeroHvCurrent.Text = " 当前H/V设0";
+            this.btnPtzSupZeroHvCurrent.UseVisualStyleBackColor = true;
+            this.btnPtzSupZeroHvCurrent.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupZeroHAngle
+            // 
+            this.btnPtzSupZeroHAngle.AutoEllipsis = true;
+            this.btnPtzSupZeroHAngle.Location = new System.Drawing.Point(666, 12);
+            this.btnPtzSupZeroHAngle.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupZeroHAngle.Name = "btnPtzSupZeroHAngle";
+            this.btnPtzSupZeroHAngle.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupZeroHAngle.TabIndex = 0;
+            this.btnPtzSupZeroHAngle.Tag = "zero_h_angle";
+            this.btnPtzSupZeroHAngle.Text = "按水平角设0";
+            this.btnPtzSupZeroHAngle.UseVisualStyleBackColor = true;
+            this.btnPtzSupZeroHAngle.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupZeroVAngle
+            // 
+            this.btnPtzSupZeroVAngle.AutoEllipsis = true;
+            this.btnPtzSupZeroVAngle.Location = new System.Drawing.Point(884, 12);
+            this.btnPtzSupZeroVAngle.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupZeroVAngle.Name = "btnPtzSupZeroVAngle";
+            this.btnPtzSupZeroVAngle.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupZeroVAngle.TabIndex = 0;
+            this.btnPtzSupZeroVAngle.Tag = "zero_v_angle";
+            this.btnPtzSupZeroVAngle.Text = "按垂直角设0";
+            this.btnPtzSupZeroVAngle.UseVisualStyleBackColor = true;
+            this.btnPtzSupZeroVAngle.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupZeroDelete
+            // 
+            this.btnPtzSupZeroDelete.AutoEllipsis = true;
+            this.btnPtzSupZeroDelete.Location = new System.Drawing.Point(12, 52);
+            this.btnPtzSupZeroDelete.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupZeroDelete.Name = "btnPtzSupZeroDelete";
+            this.btnPtzSupZeroDelete.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupZeroDelete.TabIndex = 0;
+            this.btnPtzSupZeroDelete.Tag = "zero_delete";
+            this.btnPtzSupZeroDelete.Text = " 删除H/V零位";
+            this.btnPtzSupZeroDelete.UseVisualStyleBackColor = true;
+            this.btnPtzSupZeroDelete.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupReboot
+            // 
+            this.btnPtzSupReboot.AutoEllipsis = true;
+            this.btnPtzSupReboot.Location = new System.Drawing.Point(230, 52);
+            this.btnPtzSupReboot.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupReboot.Name = "btnPtzSupReboot";
+            this.btnPtzSupReboot.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupReboot.TabIndex = 0;
+            this.btnPtzSupReboot.Tag = "reboot";
+            this.btnPtzSupReboot.Text = " 复位重启";
+            this.btnPtzSupReboot.UseVisualStyleBackColor = true;
+            this.btnPtzSupReboot.Click += new System.EventHandler(this.PtzSupplementButton_Click);
+            // 
+            // btnPtzSupSelfCheck
+            // 
+            this.btnPtzSupSelfCheck.AutoEllipsis = true;
+            this.btnPtzSupSelfCheck.Location = new System.Drawing.Point(448, 52);
+            this.btnPtzSupSelfCheck.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPtzSupSelfCheck.Name = "btnPtzSupSelfCheck";
+            this.btnPtzSupSelfCheck.Size = new System.Drawing.Size(210, 32);
+            this.btnPtzSupSelfCheck.TabIndex = 0;
+            this.btnPtzSupSelfCheck.Tag = "self_check";
+            this.btnPtzSupSelfCheck.Text = "全范围自检";
+            this.btnPtzSupSelfCheck.UseVisualStyleBackColor = true;
+            this.btnPtzSupSelfCheck.Click += new System.EventHandler(this.PtzSupplementButton_Click);
             // 
             // listBox_PtzLog
             // 
@@ -1850,9 +3280,9 @@ namespace RadarConnect
             | System.Windows.Forms.AnchorStyles.Right)));
             this.listBox_PtzLog.FormattingEnabled = true;
             this.listBox_PtzLog.ItemHeight = 12;
-            this.listBox_PtzLog.Location = new System.Drawing.Point(895, 20);
+            this.listBox_PtzLog.Location = new System.Drawing.Point(898, 270);
             this.listBox_PtzLog.Name = "listBox_PtzLog";
-            this.listBox_PtzLog.Size = new System.Drawing.Size(1140, 460);
+            this.listBox_PtzLog.Size = new System.Drawing.Size(1145, 496);
             this.listBox_PtzLog.TabIndex = 7;
             // 
             // statusStrip1
@@ -1936,12 +3366,24 @@ namespace RadarConnect
             this.gbxPtzRaw.ResumeLayout(false);
             this.gbxPtzRaw.PerformLayout();
             this.gbxPtzSupplement.ResumeLayout(false);
+            this.tabPtzSupplementCommands.ResumeLayout(false);
+            this.tabPtzSupplementBasic.ResumeLayout(false);
+            this.flpPtzSupplementBasic.ResumeLayout(false);
+            this.tabPtzSupplementArea.ResumeLayout(false);
+            this.flpPtzSupplementArea.ResumeLayout(false);
+            this.tabPtzSupplementPreset.ResumeLayout(false);
+            this.flpPtzSupplementPreset.ResumeLayout(false);
+            this.tabPtzSupplementQuery.ResumeLayout(false);
+            this.flpPtzSupplementQuery.ResumeLayout(false);
+            this.tabPtzSupplementZero.ResumeLayout(false);
+            this.flpPtzSupplementZero.ResumeLayout(false);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
+
 
         #endregion
 
@@ -2091,8 +3533,103 @@ namespace RadarConnect
         private System.Windows.Forms.GroupBox gbxPtzRaw;
         private System.Windows.Forms.Button btnPtzSendRaw;
         private System.Windows.Forms.GroupBox gbxPtzSupplement;
-        private System.Windows.Forms.Label lblPtzSupplement;
-        private System.Windows.Forms.ComboBox cmb_PtzSupplementCommand;
-        private System.Windows.Forms.Button btnPtzSupplementSend;
+        private System.Windows.Forms.TabControl tabPtzSupplementCommands;
+        private System.Windows.Forms.TabPage tabPtzSupplementBasic;
+        private System.Windows.Forms.TabPage tabPtzSupplementArea;
+        private System.Windows.Forms.TabPage tabPtzSupplementPreset;
+        private System.Windows.Forms.TabPage tabPtzSupplementQuery;
+        private System.Windows.Forms.TabPage tabPtzSupplementZero;
+        private System.Windows.Forms.FlowLayoutPanel flpPtzSupplementBasic;
+        private System.Windows.Forms.FlowLayoutPanel flpPtzSupplementArea;
+        private System.Windows.Forms.FlowLayoutPanel flpPtzSupplementPreset;
+        private System.Windows.Forms.FlowLayoutPanel flpPtzSupplementQuery;
+        private System.Windows.Forms.FlowLayoutPanel flpPtzSupplementZero;
+        private System.Windows.Forms.Button btnPtzSupDirUp;
+        private System.Windows.Forms.Button btnPtzSupDirDown;
+        private System.Windows.Forms.Button btnPtzSupDirLeft;
+        private System.Windows.Forms.Button btnPtzSupDirRight;
+        private System.Windows.Forms.Button btnPtzSupDirLeftUp;
+        private System.Windows.Forms.Button btnPtzSupDirRightUp;
+        private System.Windows.Forms.Button btnPtzSupDirLeftDown;
+        private System.Windows.Forms.Button btnPtzSupDirRightDown;
+        private System.Windows.Forms.Button btnPtzSupStop;
+        private System.Windows.Forms.Button btnPtzSupLocateH;
+        private System.Windows.Forms.Button btnPtzSupLocateV;
+        private System.Windows.Forms.Button btnPtzSupQueryHAngle;
+        private System.Windows.Forms.Button btnPtzSupQueryVAngle;
+        private System.Windows.Forms.Button btnPtzSupPower1On;
+        private System.Windows.Forms.Button btnPtzSupPower2On;
+        private System.Windows.Forms.Button btnPtzSupPower1Off;
+        private System.Windows.Forms.Button btnPtzSupPower2Off;
+        private System.Windows.Forms.Button btnPtzSupReturnZero;
+        private System.Windows.Forms.Button btnPtzSupAreaAngleHa;
+        private System.Windows.Forms.Button btnPtzSupAreaAngleHb;
+        private System.Windows.Forms.Button btnPtzSupAreaAngleVa;
+        private System.Windows.Forms.Button btnPtzSupAreaAngleVb;
+        private System.Windows.Forms.Button btnPtzSupAreaVideoHa;
+        private System.Windows.Forms.Button btnPtzSupAreaVideoHb;
+        private System.Windows.Forms.Button btnPtzSupAreaVideoVa;
+        private System.Windows.Forms.Button btnPtzSupAreaVideoVb;
+        private System.Windows.Forms.Button btnPtzSupAreaIntervalH;
+        private System.Windows.Forms.Button btnPtzSupAreaIntervalV;
+        private System.Windows.Forms.Button btnPtzSupAreaSetSpeed;
+        private System.Windows.Forms.Button btnPtzSupAreaSetTime;
+        private System.Windows.Forms.Button btnPtzSupAreaEnable;
+        private System.Windows.Forms.Button btnPtzSupAreaDisable;
+        private System.Windows.Forms.Button btnPtzSupAreaStartSingle;
+        private System.Windows.Forms.Button btnPtzSupAreaStartMulti;
+        private System.Windows.Forms.Button btnPtzSupAreaPause;
+        private System.Windows.Forms.Button btnPtzSupAreaContinue;
+        private System.Windows.Forms.Button btnPtzSupAreaClose;
+        private System.Windows.Forms.Button btnPtzSupAreaModeStep;
+        private System.Windows.Forms.Button btnPtzSupAreaModeContinuous;
+        private System.Windows.Forms.Button btnPtzSupAreaSave;
+        private System.Windows.Forms.Button btnPtzSupAreaQuery;
+        private System.Windows.Forms.Button btnPtzSupAreaEndReturnOn;
+        private System.Windows.Forms.Button btnPtzSupAreaEndReturnOff;
+        private System.Windows.Forms.Button btnPtzSupAreaStepReturnOn;
+        private System.Windows.Forms.Button btnPtzSupAreaStepReturnOff;
+        private System.Windows.Forms.Button btnPtzSupPresetStandardSet;
+        private System.Windows.Forms.Button btnPtzSupPresetStandardCall;
+        private System.Windows.Forms.Button btnPtzSupPresetStandardDelete;
+        private System.Windows.Forms.Button btnPtzSupPresetSetByAngle;
+        private System.Windows.Forms.Button btnPtzSupPresetSetHAngle;
+        private System.Windows.Forms.Button btnPtzSupPresetSetVAngle;
+        private System.Windows.Forms.Button btnPtzSupPresetSetTime;
+        private System.Windows.Forms.Button btnPtzSupPresetSetSpeed;
+        private System.Windows.Forms.Button btnPtzSupPresetStart;
+        private System.Windows.Forms.Button btnPtzSupPresetPause;
+        private System.Windows.Forms.Button btnPtzSupPresetContinue;
+        private System.Windows.Forms.Button btnPtzSupPresetClose;
+        private System.Windows.Forms.Button btnPtzSupPresetEndReturnOn;
+        private System.Windows.Forms.Button btnPtzSupPresetEndReturnOff;
+        private System.Windows.Forms.Button btnPtzSupPresetArriveReturnOn;
+        private System.Windows.Forms.Button btnPtzSupPresetArriveReturnOff;
+        private System.Windows.Forms.Button btnPtzSupPresetCallReturnOn;
+        private System.Windows.Forms.Button btnPtzSupPresetCallReturnOff;
+        private System.Windows.Forms.Button btnPtzSupAckOn;
+        private System.Windows.Forms.Button btnPtzSupAckOff;
+        private System.Windows.Forms.Button btnPtzSupQueryMode;
+        private System.Windows.Forms.Button btnPtzSupQueryStatus;
+        private System.Windows.Forms.Button btnPtzSupQueryTemperature;
+        private System.Windows.Forms.Button btnPtzSupQueryVoltage;
+        private System.Windows.Forms.Button btnPtzSupQueryCurrent;
+        private System.Windows.Forms.Button btnPtzSupAngleRealtimeOn;
+        private System.Windows.Forms.Button btnPtzSupAngleRealtimeOff;
+        private System.Windows.Forms.Button btnPtzSupQueryHSpeed;
+        private System.Windows.Forms.Button btnPtzSupQueryVSpeed;
+        private System.Windows.Forms.Button btnPtzSupQueryAllSpeed;
+        private System.Windows.Forms.Button btnPtzSupSpeedRealtimeOn;
+        private System.Windows.Forms.Button btnPtzSupSpeedRealtimeOff;
+        private System.Windows.Forms.Button btnPtzSupLocateReturnOn;
+        private System.Windows.Forms.Button btnPtzSupLocateReturnOff;
+        private System.Windows.Forms.Button btnPtzSupZeroHCurrent;
+        private System.Windows.Forms.Button btnPtzSupZeroVCurrent;
+        private System.Windows.Forms.Button btnPtzSupZeroHvCurrent;
+        private System.Windows.Forms.Button btnPtzSupZeroHAngle;
+        private System.Windows.Forms.Button btnPtzSupZeroVAngle;
+        private System.Windows.Forms.Button btnPtzSupZeroDelete;
+        private System.Windows.Forms.Button btnPtzSupReboot;
+        private System.Windows.Forms.Button btnPtzSupSelfCheck;
     }
 }
