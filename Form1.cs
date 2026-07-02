@@ -1573,7 +1573,7 @@ namespace RadarConnect
                 _ptzController.ErrorReceived += (msg) => PtzLog("[错误] " + msg);
             }
 
-            PtzLog("云台 UDP 页面已初始化。默认目标 192.168.8.200:6666，地址 1。");
+            PtzLog("云台 UDP 页面已初始化");
         }
 
         private string GetPtzSupplementCommandKey(object sender)
@@ -2181,10 +2181,6 @@ namespace RadarConnect
         }
 
         #endregion
-        // ==========================================
-        // UI 事件绑定实现区域 (补充缺失的设计器事件)
-        // ==========================================
-
         private void btnPtzOpen_Click(object sender, EventArgs e)
         {
             OpenPtzUdp();
@@ -2240,7 +2236,7 @@ namespace RadarConnect
             }
         }
 
-        // --- 方向控制 (说明书 5.1.1) ---
+        // --- 方向控制 ---
 
         private void btnPtzUp_MouseDown(object sender, MouseEventArgs e)
         {
@@ -2272,7 +2268,7 @@ namespace RadarConnect
             PtzSendStop(); // 点击停止按钮
         }
 
-        // --- 角度定位 (说明书 5.1.2) ---
+        // --- 角度定位 ---
 
         private void btnPtzLocate_Click(object sender, EventArgs e)
         {
@@ -2282,7 +2278,7 @@ namespace RadarConnect
             PtzSendLocate(false);
         }
 
-        // --- 预置位控制 (说明书 5.1.4 & 5.2.2) ---
+        // --- 预置位控制 ---
 
         private void btnPtzPresetSet_Click(object sender, EventArgs e)
         {
@@ -2301,17 +2297,17 @@ namespace RadarConnect
 
         private void btnPtzPresetScanStart_Click(object sender, EventArgs e)
         {
-            // 5.2.2.4 Start 预置位扫描 0xf0 0x01
+            // Start 预置位扫描 0xf0 0x01
             PtzSendCommand("开启预置巡航", 0xf0, 0x01, (byte)nud_PtzPresetStart.Value, (byte)nud_PtzPresetEnd.Value);
         }
 
         private void btnPtzPresetScanStop_Click(object sender, EventArgs e)
         {
-            // 5.2.2.4 Close 彻底关闭扫描 0xf0 0x04
+            // Close 彻底关闭扫描 0xf0 0x04
             PtzSendCommand("彻底关闭巡航", 0xf0, 0x04, 0x00, 0x00);
         }
 
-        // --- 区域扫描控制 (说明书 5.2.1) ---
+        // --- 区域扫描控制---
 
         private void btnPtzAreaSetBound_Click(object sender, EventArgs e)
         {
@@ -2325,7 +2321,7 @@ namespace RadarConnect
 
         private void btnPtzAreaScanStart_Click(object sender, EventArgs e)
         {
-            // 5.2.1.6 开启多区域扫描 Start_M: 0xf5 0x02
+            // 开启多区域扫描 Start_M: 0xf5 0x02
             byte startArea = (byte)nud_PtzAreaStart.Value;
             byte endArea = (byte)nud_PtzAreaEnd.Value;
             PtzSendCommand("开启区域/多区扫描", 0xf5, 0x02, startArea, endArea);
@@ -2333,33 +2329,33 @@ namespace RadarConnect
 
         private void btnPtzAreaScanStop_Click(object sender, EventArgs e)
         {
-            // 5.2.1.6 彻底关闭区域扫描 Close: 0xf5 0x05
+            //  彻底关闭区域扫描 Close: 0xf5 0x05
             PtzSendCommand("彻底关闭区域扫描", 0xf5, 0x05, 0x00, 0x00);
         }
 
-        // --- 查询与实时回传 (说明书 5.2.5、5.2.6、5.2.10) ---
+        // --- 查询与实时回传 ---
 
         private void btnPtzQueryStatus_Click(object sender, EventArgs e)
         {
-            // 5.2.6.1 查询云台工作状态 0xdd 0 0 0
+            // 查询云台工作状态 0xdd 0 0 0
             PtzSendCommand("查询工作状态", 0xdd, 0x00, 0x00, 0x00);
         }
 
         private void btnPtzQueryMode_Click(object sender, EventArgs e)
         {
-            // 5.2.5.1 查询云台工作模式 0xe0 0 0 0
+            //查询云台工作模式 0xe0 0 0 0
             PtzSendCommand("查询工作模式", 0xe0, 0x00, 0x00, 0x00);
         }
 
         private void btnPtzRealtimeAngleOn_Click(object sender, EventArgs e)
         {
-            // 5.2.10.1 角度实时回传打开 0xe1 0x01 H_Time L_Time
+            // 角度实时回传打开 0xe1 0x01 H_Time L_Time
             PtzSendUInt16Command("开启连续回传", 0xe1, 0x01, (int)nud_PtzRealtimeInterval.Value);
         }
 
         private void btnPtzRealtimeAngleOff_Click(object sender, EventArgs e)
         {
-            // 5.2.10.1 角度实时回传关闭 0xe1 0x02 0 0
+            //角度实时回传关闭 0xe1 0x02 0 0
             PtzSendCommand("关闭回传", 0xe1, 0x02, 0x00, 0x00);
         }
     }
