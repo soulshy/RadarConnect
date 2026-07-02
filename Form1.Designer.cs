@@ -977,7 +977,7 @@ namespace RadarConnect
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage4.Size = new System.Drawing.Size(2049, 774);
             this.tabPage4.TabIndex = 3;
-            this.tabPage4.Text = "云台UDP控制";
+            this.tabPage4.Text = "云台控制";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
             // gbxPtzNet
