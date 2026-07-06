@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices; // 用于内联优化
+using System.Globalization;
+using System.IO;
+using System.Runtime.CompilerServices; // inline optimization
+using System.Text;
 
 namespace RadarConnect
 {
@@ -108,5 +111,85 @@ namespace RadarConnect
                 outputBuffer.Add(p);
             }
         }
+
+        /// <summary>
+        /// Export point cloud data to an ASCII PCD file. PointData coordinates are already stored in meters.
+        /// </summary>
+        public static int ExportToPcd(IEnumerable<PointData> points, string filePath, bool includeTag = true)
+        {
+            if (points == null) throw new ArgumentNullException(nameof(points));
+            if (string.IsNullOrWhiteSpace(filePath)) throw new ArgumentException("Export path cannot be empty.", nameof(filePath));
+
+            List<PointData> validPoints = new List<PointData>();
+            foreach (PointData p in points)
+            {
+                if (!IsValidCoordinate(p.X) || !IsValidCoordinate(p.Y) || !IsValidCoordinate(p.Z)) continue;
+                validPoints.Add(p);
+            }
+
+            string directory = Path.GetDirectoryName(Path.GetFullPath(filePath));
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            using (StreamWriter writer = new StreamWriter(filePath, false, new UTF8Encoding(false), 64 * 1024))
+            {
+                WritePcdHeader(writer, validPoints.Count, includeTag);
+
+                IFormatProvider culture = CultureInfo.InvariantCulture;
+                for (int i = 0; i < validPoints.Count; i++)
+                {
+                    PointData p = validPoints[i];
+                    if (includeTag)
+                    {
+                        writer.WriteLine(
+                            string.Format(
+                                culture,
+                                "{0:R} {1:R} {2:R} {3} {4}",
+                                p.X,
+                                p.Y,
+                                p.Z,
+                                p.Reflectivity,
+                                p.Tag));
+                    }
+                    else
+                    {
+                        writer.WriteLine(
+                            string.Format(
+                                culture,
+                                "{0:R} {1:R} {2:R} {3}",
+                                p.X,
+                                p.Y,
+                                p.Z,
+                                p.Reflectivity));
+                    }
+                }
+            }
+
+            return validPoints.Count;
+        }
+
+        private static void WritePcdHeader(StreamWriter writer, int pointCount, bool includeTag)
+        {
+            writer.WriteLine("# .PCD v0.7 - Point Cloud Data file format");
+            writer.WriteLine("VERSION 0.7");
+            writer.WriteLine(includeTag ? "FIELDS x y z intensity tag" : "FIELDS x y z intensity");
+            writer.WriteLine(includeTag ? "SIZE 4 4 4 4 1" : "SIZE 4 4 4 4");
+            writer.WriteLine(includeTag ? "TYPE F F F F U" : "TYPE F F F F");
+            writer.WriteLine(includeTag ? "COUNT 1 1 1 1 1" : "COUNT 1 1 1 1");
+            writer.WriteLine("WIDTH " + pointCount.ToString(CultureInfo.InvariantCulture));
+            writer.WriteLine("HEIGHT 1");
+            writer.WriteLine("VIEWPOINT 0 0 0 1 0 0 0");
+            writer.WriteLine("POINTS " + pointCount.ToString(CultureInfo.InvariantCulture));
+            writer.WriteLine("DATA ascii");
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsValidCoordinate(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value);
+        }
     }
 }
+

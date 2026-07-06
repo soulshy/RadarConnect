@@ -58,6 +58,7 @@ namespace RadarConnect
             this.btn_PlayCamera = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.btn_ExportPcd = new System.Windows.Forms.Button();
             this.btn_SaveBEV = new System.Windows.Forms.Button();
             this.btn_ShowRaw = new System.Windows.Forms.Button();
             this.btn_SaveImage = new System.Windows.Forms.Button();
@@ -719,6 +720,7 @@ namespace RadarConnect
             // 
             // groupBox5
             // 
+            this.groupBox5.Controls.Add(this.btn_ExportPcd);
             this.groupBox5.Controls.Add(this.btn_SaveBEV);
             this.groupBox5.Controls.Add(this.btn_ShowRaw);
             this.groupBox5.Controls.Add(this.btn_SaveImage);
@@ -731,6 +733,16 @@ namespace RadarConnect
             this.groupBox5.TabIndex = 7;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "点云还原查询";
+            // 
+            // btn_ExportPcd
+            // 
+            this.btn_ExportPcd.Location = new System.Drawing.Point(777, 19);
+            this.btn_ExportPcd.Name = "btn_ExportPcd";
+            this.btn_ExportPcd.Size = new System.Drawing.Size(120, 30);
+            this.btn_ExportPcd.TabIndex = 23;
+            this.btn_ExportPcd.Text = "\u5bfc\u51faPCD";
+            this.btn_ExportPcd.UseVisualStyleBackColor = true;
+            this.btn_ExportPcd.Click += new System.EventHandler(this.btn_ExportPcd_Click);
             // 
             // btn_SaveBEV
             // 
@@ -3425,6 +3437,7 @@ namespace RadarConnect
         private System.Windows.Forms.Button btn_PlayCamera;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.GroupBox groupBox5;
+        private System.Windows.Forms.Button btn_ExportPcd;
         private System.Windows.Forms.Button btn_SaveBEV;
         private System.Windows.Forms.Button btn_ShowRaw;
         private System.Windows.Forms.Button btn_SaveImage;
@@ -3633,3 +3646,4 @@ namespace RadarConnect
         private System.Windows.Forms.Button btnPtzSupSelfCheck;
     }
 }
+

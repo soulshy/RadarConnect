@@ -1259,6 +1259,57 @@ namespace RadarConnect
             }
         }
 
+        private async void btn_ExportPcd_Click(object sender, EventArgs e)
+        {
+            DateTime selectedStartTime = dateTimePicker_Query.Value;
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Title = "\u5bfc\u51fa\u539f\u59cb\u70b9\u4e91\u4e3a PCD";
+                sfd.Filter = "PCD \u70b9\u4e91\u6587\u4ef6|*.pcd|\u6240\u6709\u6587\u4ef6|*.*";
+                sfd.FileName = $"PointCloud_{selectedStartTime:yyyyMMdd_HHmmss}.pcd";
+                sfd.RestoreDirectory = true;
+
+                if (sfd.ShowDialog() != DialogResult.OK) return;
+
+                Button exportButton = sender as Button;
+                if (exportButton != null) exportButton.Enabled = false;
+
+                try
+                {
+                    AddLog($"[PCD Export] Loading raw point cloud from {selectedStartTime:HH:mm:ss} for 1 second...");
+
+                    List<PointData> rawPoints = await Task.Run(() =>
+                    {
+                        return _dbManager.GetPointsInRange(selectedStartTime, 1.0);
+                    });
+
+                    if (rawPoints == null || rawPoints.Count == 0)
+                    {
+                        MessageBox.Show("No raw point cloud data exists in the selected time range.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    int exportedCount = await Task.Run(() =>
+                    {
+                        return PointCloudProcessor.ExportToPcd(rawPoints, sfd.FileName, true);
+                    });
+
+                    AddLog($"[PCD Export] Exported {exportedCount} valid points to: {sfd.FileName}");
+                    MessageBox.Show($"PCD export completed!\nValid points: {exportedCount}", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"[PCD Export] Failed: {ex.Message}");
+                    MessageBox.Show($"Export failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    if (exportButton != null) exportButton.Enabled = true;
+                }
+            }
+        }
+
         private async void btn_SaveBEV_Click(object sender, EventArgs e)
         {
             // 获取当前面板上选择的时间
@@ -2360,3 +2411,8 @@ namespace RadarConnect
         }
     }
 }
+
+
+
+
+
