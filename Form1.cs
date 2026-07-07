@@ -1261,13 +1261,14 @@ namespace RadarConnect
 
         private async void btn_ExportPcd_Click(object sender, EventArgs e)
         {
-            DateTime selectedStartTime = dateTimePicker_Query.Value;
+            DateTime selectedStartTimeLocal = dateTimePicker_Query.Value;
+            DateTime selectedStartTimeUtc = selectedStartTimeLocal.AddHours(+8);
 
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
                 sfd.Title = "\u5bfc\u51fa\u539f\u59cb\u70b9\u4e91\u4e3a PCD";
                 sfd.Filter = "PCD \u70b9\u4e91\u6587\u4ef6|*.pcd|\u6240\u6709\u6587\u4ef6|*.*";
-                sfd.FileName = $"PointCloud_{selectedStartTime:yyyyMMdd_HHmmss}.pcd";
+                sfd.FileName = $"PointCloud_{selectedStartTimeUtc:yyyyMMdd_HHmmss}.pcd";
                 sfd.RestoreDirectory = true;
 
                 if (sfd.ShowDialog() != DialogResult.OK) return;
@@ -1277,11 +1278,11 @@ namespace RadarConnect
 
                 try
                 {
-                    AddLog($"[PCD Export] Loading raw point cloud from {selectedStartTime:HH:mm:ss} for 1 second...");
+                    AddLog($"[PCD Export] Loading raw point cloud from {selectedStartTimeUtc:HH:mm:ss} for 1 second...");
 
                     List<PointData> rawPoints = await Task.Run(() =>
                     {
-                        return _dbManager.GetPointsInRange(selectedStartTime, 1.0);
+                        return _dbManager.GetPointsInRange(selectedStartTimeUtc, 1.0);
                     });
 
                     if (rawPoints == null || rawPoints.Count == 0)
