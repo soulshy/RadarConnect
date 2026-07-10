@@ -261,8 +261,6 @@ namespace RadarConnect
             this.btnPtzSupReboot = new System.Windows.Forms.Button();
             this.btnPtzSupSelfCheck = new System.Windows.Forms.Button();
             this.listBox_PtzLog = new System.Windows.Forms.ListBox();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.lbl_SampleState = new System.Windows.Forms.ToolStripStatusLabel();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox7.SuspendLayout();
@@ -319,7 +317,6 @@ namespace RadarConnect
             this.flpPtzSupplementQuery.SuspendLayout();
             this.tabPtzSupplementZero.SuspendLayout();
             this.flpPtzSupplementZero.SuspendLayout();
-            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -332,7 +329,7 @@ namespace RadarConnect
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(2057, 800);
+            this.tabControl1.Size = new System.Drawing.Size(2057, 822);
             this.tabControl1.TabIndex = 7;
             // 
             // tabPage1
@@ -346,7 +343,7 @@ namespace RadarConnect
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(2049, 774);
+            this.tabPage1.Size = new System.Drawing.Size(2049, 796);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "控制与日志";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -424,7 +421,7 @@ namespace RadarConnect
             this.groupBox3.Controls.Add(this.listBox_Log);
             this.groupBox3.Location = new System.Drawing.Point(12, 218);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(864, 535);
+            this.groupBox3.Size = new System.Drawing.Size(864, 557);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "日志";
@@ -436,7 +433,7 @@ namespace RadarConnect
             this.listBox_Log.ItemHeight = 12;
             this.listBox_Log.Location = new System.Drawing.Point(3, 17);
             this.listBox_Log.Name = "listBox_Log";
-            this.listBox_Log.Size = new System.Drawing.Size(858, 515);
+            this.listBox_Log.Size = new System.Drawing.Size(858, 537);
             this.listBox_Log.TabIndex = 0;
             // 
             // groupBox2
@@ -740,7 +737,7 @@ namespace RadarConnect
             this.btn_ExportPcd.Name = "btn_ExportPcd";
             this.btn_ExportPcd.Size = new System.Drawing.Size(120, 30);
             this.btn_ExportPcd.TabIndex = 23;
-            this.btn_ExportPcd.Text = "\u5bfc\u51faPCD";
+            this.btn_ExportPcd.Text = "导出PCD";
             this.btn_ExportPcd.UseVisualStyleBackColor = true;
             this.btn_ExportPcd.Click += new System.EventHandler(this.btn_ExportPcd_Click);
             // 
@@ -3297,29 +3294,12 @@ namespace RadarConnect
             this.listBox_PtzLog.Size = new System.Drawing.Size(1145, 496);
             this.listBox_PtzLog.TabIndex = 7;
             // 
-            // statusStrip1
-            // 
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.lbl_SampleState});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 800);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(2057, 22);
-            this.statusStrip1.TabIndex = 3;
-            this.statusStrip1.Text = "statusStrip1";
-            // 
-            // lbl_SampleState
-            // 
-            this.lbl_SampleState.Name = "lbl_SampleState";
-            this.lbl_SampleState.Size = new System.Drawing.Size(56, 17);
-            this.lbl_SampleState.Text = "系统就绪";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(2057, 822);
             this.Controls.Add(this.tabControl1);
-            this.Controls.Add(this.statusStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "Form1";
@@ -3389,10 +3369,7 @@ namespace RadarConnect
             this.flpPtzSupplementQuery.ResumeLayout(false);
             this.tabPtzSupplementZero.ResumeLayout(false);
             this.flpPtzSupplementZero.ResumeLayout(false);
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -3459,8 +3436,6 @@ namespace RadarConnect
         private System.Windows.Forms.DateTimePicker dateTimePicker_Fusion;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button btn_LoadPcd;
-        private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel lbl_SampleState;
 
         private System.Windows.Forms.TabPage tabPage4;
 
