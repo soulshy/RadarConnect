@@ -87,6 +87,10 @@ namespace RadarConnect
 
             _udpClient = new UdpCommunication();
             _dbManager = new DatabaseManager();
+            _dbManager.OnError += (message) =>
+            {
+                AddLog("[数据库] " + message);
+            };
 
             // 订阅数据库多线程安全结束事件
             _dbManager.OnSaveFinished += () =>
