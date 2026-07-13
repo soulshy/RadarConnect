@@ -69,6 +69,8 @@ namespace RadarConnect
         private MediaPlayer _mediaPlayer;
         private VideoView _videoView;
         private bool _isCameraPlaying = false;
+        private Size _videoPanelMaximumSize;
+        private Point _videoPanelTopRight;
 
         // ==========================================
         // UDP 云台控制
@@ -78,6 +80,9 @@ namespace RadarConnect
         public Form1()
         {
             InitializeComponent();
+            // 保存设计器中为视频预留的最大区域。后续根据实际码流比例动态调整。
+            _videoPanelMaximumSize = panel_Video.ClientSize;
+            _videoPanelTopRight = new Point(panel_Video.Right, panel_Video.Top);
             InitPtzPage();
 
             _udpClient = new UdpCommunication();
@@ -229,7 +234,10 @@ namespace RadarConnect
                                 btn_PlayCamera.Text = "连接 RTSP...";
 
                                 _mediaPlayer.Play(media);
-                                _mediaPlayer.AspectRatio = $"{panel_Video.Width}:{panel_Video.Height}";
+
+                                // 使用码流自身的宽高比进行等比缩放，避免按 panel_Video
+                                // 的尺寸强制拉伸画面。容器比例不一致时由 VLC 自动留黑边。
+                                _mediaPlayer.AspectRatio = null;
                             }
                             else
                             {
@@ -269,11 +277,57 @@ namespace RadarConnect
         {
             this.BeginInvoke(new Action(() =>
             {
+                ResizeVideoPanelToStream();
                 _isCameraPlaying = true;
                 btn_PlayCamera.Enabled = true;
                 btn_PlayCamera.Text = "停止视频";
                 AddLog("4. 视频流连接成功，正在播放！");
             }));
+        }
+
+        /// <summary>
+        /// 按实际码流宽高比，把视频面板调整为预留区域内的最大尺寸。
+        /// 面板与码流比例一致，因此无需拉伸、裁剪或用黑边补齐。
+        /// </summary>
+        private void ResizeVideoPanelToStream()
+        {
+            if (_mediaPlayer == null || panel_Video == null)
+                return;
+
+            uint streamWidth = 0;
+            uint streamHeight = 0;
+            if (!_mediaPlayer.Size(0, ref streamWidth, ref streamHeight) ||
+                streamWidth == 0 || streamHeight == 0)
+            {
+                AddLog("暂未读取到码流尺寸，保留当前视频区域大小。");
+                return;
+            }
+
+            double streamRatio = (double)streamWidth / streamHeight;
+            int maxWidth = _videoPanelMaximumSize.Width;
+            int maxHeight = _videoPanelMaximumSize.Height;
+
+            int targetWidth = maxWidth;
+            int targetHeight = (int)Math.Round(targetWidth / streamRatio);
+
+            // 如果按最大宽度计算后高度超出，则改为用最大高度计算宽度。
+            if (targetHeight > maxHeight)
+            {
+                targetHeight = maxHeight;
+                targetWidth = (int)Math.Round(targetHeight * streamRatio);
+            }
+
+            // BorderStyle.FixedSingle 会占用边框，设置 ClientSize 可保证内部播放区比例正确。
+            panel_Video.ClientSize = new Size(targetWidth, targetHeight);
+            panel_Video.Location = new Point(
+                _videoPanelTopRight.X - panel_Video.Width,
+                _videoPanelTopRight.Y);
+
+            _videoView.Dock = DockStyle.Fill;
+            _mediaPlayer.AspectRatio = null;
+
+            AddLog($"码流尺寸：{streamWidth}×{streamHeight}，视频区域已调整为：" +
+                   $"{panel_Video.ClientSize.Width}×{panel_Video.ClientSize.Height}。");
         }
 
         private void MediaPlayer_EncounteredError(object sender, EventArgs e)
@@ -1045,6 +1099,67 @@ namespace RadarConnect
                 AddLog($"[PTZ] 控制异常: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// 通过摄像头 HTTP API 设置或调用预置位。
+        /// ptzCmd: 19=设置预置位，20=调用预置位；speed_v 用作预置位编号。
+        /// </summary>
+        private async Task SendCameraPresetAsync(int ptzCmd, int presetNumber)
+        {
+            if (ptzCmd != 19 && ptzCmd != 20)
+                throw new ArgumentOutOfRangeException(nameof(ptzCmd), "预置位命令只能是 19（设置）或 20（调用）。");
+
+            if (presetNumber < 1 || presetNumber > 255)
+            {
+                MessageBox.Show("预置位编号必须在 1～255 之间！");
+                return;
+            }
+
+            string inputIp = txt_CameraIp.Text.Trim();
+            if (string.IsNullOrEmpty(inputIp))
+            {
+                MessageBox.Show("请输入相机IP地址！");
+                return;
+            }
+
+            string ipAddress = inputIp.Contains(":") ? inputIp.Split(':')[0] : inputIp;
+            string user = "admin";
+            string pwdMd5 = "e10adc3949ba59abbe56e057f20f883e";
+            string actionName = ptzCmd == 19 ? "设置" : "调用";
+
+            // 文档规定：channel 固定为 0，speed_v 表示预置位编号。
+            string jsonParam = $"{{\"speed_v\":{presetNumber},\"channel\":0,\"ptz_cmd\":{ptzCmd}}}";
+            string apiUrl = $"http://{ipAddress}/action/cgi_action?user={user}&pwd={pwdMd5}&action=setPtzControl&json={Uri.EscapeDataString(jsonParam)}";
+
+            try
+            {
+                AddLog($"正在{actionName}相机预置位 {presetNumber}...");
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(3);
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+                    string responseText = await response.Content.ReadAsStringAsync();
+
+                    if (response.IsSuccessStatusCode &&
+                        (responseText.Contains("\"code\": 0") || responseText.Contains("\"code\":0")))
+                    {
+                        AddLog($"{actionName}相机预置位 {presetNumber} 成功。");
+                    }
+                    else
+                    {
+                        AddLog($"{actionName}相机预置位 {presetNumber} 失败，HTTP {(int)response.StatusCode}，返回：{responseText}");
+                        MessageBox.Show($"{actionName}预置位失败，请查看日志。", "相机控制",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog($"{actionName}相机预置位异常：{ex.Message}");
+                MessageBox.Show($"{actionName}预置位异常：{ex.Message}", "相机控制",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         #endregion
 
         #region OSD 水印恢复
@@ -1625,7 +1740,308 @@ namespace RadarConnect
                 _ptzController.ErrorReceived += (msg) => PtzLog("[错误] " + msg);
             }
 
+            BuildSinglePagePtzLayout();
             PtzLog("云台 UDP 页面已初始化");
+        }
+
+        /// <summary>
+        /// 单页紧凑布局：全部云台功能一次显示，不使用二级导航或滚动条。
+        /// </summary>
+        private void BuildSinglePagePtzLayout()
+        {
+            if (tabPage4 == null || tabPage4.Tag as string == "single-page-layout")
+                return;
+
+            tabPage4.Tag = "single-page-layout";
+            tabPage4.SuspendLayout();
+            tabPage4.Controls.Clear();
+            tabPage4.AutoScroll = false;
+
+            // 左上：通信与状态。
+            SetPtzGroupBounds(gbxPtzNet, 10, 10, 430, 120);
+            SetPtzGroupBounds(gbxPtzQuery, 10, 140, 430, 200);
+
+            // 上层中部：方向控制和角度定位。
+            SetPtzGroupBounds(gbxPtzDirect, 450, 10, 430, 330);
+            ArrangePtzDirectionPad();
+            SetPtzGroupBounds(gbxPtzLocate, 890, 10, 500, 330);
+            ArrangePtzLocatePanel();
+
+            // 右上：设备配置与查询回传并排显示。
+            SetPtzGroupBounds(gbxPtzExtBasic, 1400, 10, 300, 330);
+            gbxPtzExtBasic.Text = "设备基础配置";
+            SetPtzGroupBounds(gbxPtzExtQuery, 1710, 10, 325, 330);
+            gbxPtzExtQuery.Text = "查询与回传";
+
+            // 下层：充分使用页面下方空间。
+            SetPtzGroupBounds(gbxPtzPreset, 10, 350, 430, 170);
+            SetPtzGroupBounds(gbxPtzRaw, 10, 530, 430, 70);
+            SetPtzGroupBounds(gbxPtzExtMaintenance, 10, 610, 430, 170);
+            gbxPtzExtMaintenance.Text = "零位、校准与维护";
+
+            SetPtzGroupBounds(gbxPtzArea, 450, 350, 430, 400);
+            gbxPtzArea.Text = "区域扫描参数";
+
+            SetPtzGroupBounds(gbxPtzExtPreset, 890, 350, 500, 350);
+            gbxPtzExtPreset.Text = "预置位高级操作";
+
+            SetPtzGroupBounds(gbxPtzExtArea, 1400, 350, 635, 400);
+            gbxPtzExtArea.Text = "区域扫描操作";
+
+            Control[] groups =
+            {
+                gbxPtzNet, gbxPtzQuery, gbxPtzPreset, gbxPtzRaw,
+                gbxPtzDirect, gbxPtzArea, gbxPtzLocate,
+                gbxPtzExtPreset, gbxPtzExtArea, gbxPtzExtMaintenance,
+                gbxPtzExtBasic, gbxPtzExtQuery
+            };
+
+            foreach (Control group in groups)
+            {
+                tabPage4.Controls.Add(group);
+                ConfigurePtzTextLayout(group);
+            }
+
+            CompactPtzCommandButtons(gbxPtzExtPreset, 160);
+            CompactPtzCommandButtons(gbxPtzExtArea, 145);
+            CompactPtzCommandButtons(gbxPtzExtMaintenance, 125);
+            CompactPtzCommandButtons(gbxPtzExtBasic, 130);
+            CompactPtzCommandButtons(gbxPtzExtQuery, 140);
+
+            tabPage4.ResumeLayout(true);
+        }
+
+        private static void SetPtzGroupBounds(
+            Control control, int x, int y, int width, int height)
+        {
+            control.Location = new Point(x, y);
+            control.Size = new Size(width, height);
+            control.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+        }
+
+        private static void CompactPtzCommandButtons(Control root, int buttonWidth)
+        {
+            foreach (Control control in root.Controls)
+            {
+                FlowLayoutPanel panel = control as FlowLayoutPanel;
+                if (panel != null)
+                {
+                    panel.AutoScroll = false;
+                    panel.WrapContents = true;
+                    panel.Padding = new Padding(5);
+                }
+
+                Button button = control as Button;
+                if (button != null)
+                {
+                    button.AutoSize = false;
+                    button.Dock = DockStyle.None;
+                    button.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+                    button.Size = new Size(buttonWidth, 28);
+                    button.Margin = new Padding(3);
+                }
+
+                if (control.HasChildren)
+                    CompactPtzCommandButtons(control, buttonWidth);
+            }
+        }
+
+        /// <summary>
+        /// 参考官方云台程序的信息架构重组界面：
+        /// 首页显示状态、九宫格方向和角度定位，其余功能按类别分页。
+        /// </summary>
+        private void BuildOfficialStylePtzPage()
+        {
+            if (tabPage4 == null || tabPage4.Tag as string == "official-layout")
+                return;
+
+            tabPage4.Tag = "official-layout";
+            tabPage4.SuspendLayout();
+
+            // 先解除原有父子关系，再将现有控件重新分配到功能页面。
+            tabPage4.Controls.Clear();
+
+            TabControl navigation = new TabControl
+            {
+                Name = "tabPtzNavigation",
+                Dock = DockStyle.Fill,
+                Font = this.Font,
+                Padding = new Point(18, 6)
+            };
+
+            TabPage homePage = CreatePtzPage("首页");
+            TabPage presetPage = CreatePtzPage("预置位");
+            TabPage configPage = CreatePtzPage("配置信息");
+            TabPage areaPage = CreatePtzPage("区域扫描");
+            TabPage zeroPage = CreatePtzPage("设置0位");
+
+            navigation.TabPages.Add(homePage);
+            navigation.TabPages.Add(presetPage);
+            navigation.TabPages.Add(configPage);
+            navigation.TabPages.Add(areaPage);
+            navigation.TabPages.Add(zeroPage);
+            tabPage4.Controls.Add(navigation);
+
+            BuildPtzHomePage(homePage);
+            BuildPtzPresetPage(presetPage);
+            BuildPtzConfigPage(configPage);
+            BuildPtzAreaPage(areaPage);
+            BuildPtzZeroPage(zeroPage);
+            ConfigurePtzTextLayout(navigation);
+
+            tabPage4.ResumeLayout(true);
+        }
+
+        /// <summary>
+        /// 让标签根据文字自动扩展，避免字体或 DPI 缩放后文字被固定尺寸裁切。
+        /// </summary>
+        private static void ConfigurePtzTextLayout(Control root)
+        {
+            foreach (Control control in root.Controls)
+            {
+                Label label = control as Label;
+                if (label != null)
+                    label.AutoSize = true;
+
+                FlowLayoutPanel flowPanel = control as FlowLayoutPanel;
+                if (flowPanel != null)
+                {
+                    flowPanel.AutoScroll = false;
+                    flowPanel.WrapContents = true;
+                }
+
+                if (control.HasChildren)
+                    ConfigurePtzTextLayout(control);
+            }
+        }
+
+        private static TabPage CreatePtzPage(string title)
+        {
+            return new TabPage
+            {
+                Text = title,
+                BackColor = Color.WhiteSmoke,
+                AutoScroll = false,
+                Padding = new Padding(10)
+            };
+        }
+
+        private void BuildPtzHomePage(TabPage page)
+        {
+            // 左栏：通信配置与状态查询。
+            gbxPtzNet.Location = new Point(10, 10);
+            gbxPtzNet.Size = new Size(430, 120);
+            gbxPtzQuery.Location = new Point(10, 140);
+            gbxPtzQuery.Size = new Size(430, 200);
+
+            // 中栏：官方风格九宫格方向控制。
+            gbxPtzDirect.Location = new Point(450, 10);
+            gbxPtzDirect.Size = new Size(390, 330);
+            ArrangePtzDirectionPad();
+
+            // 右栏：角度定位。
+            gbxPtzLocate.Location = new Point(850, 10);
+            gbxPtzLocate.Size = new Size(430, 330);
+            ArrangePtzLocatePanel();
+
+            page.Controls.Add(gbxPtzNet);
+            page.Controls.Add(gbxPtzQuery);
+            page.Controls.Add(gbxPtzDirect);
+            page.Controls.Add(gbxPtzLocate);
+        }
+
+        private void ArrangePtzDirectionPad()
+        {
+            // 速度参数位于顶部。
+            lblHS.Location = new Point(15, 28);
+            nud_PtzHSpeed.Location = new Point(95, 25);
+            lblVS.Location = new Point(205, 28);
+            nud_PtzVSpeed.Location = new Point(285, 25);
+
+            Button[] directionButtons =
+            {
+                btnPtzSupDirLeftUp, btnPtzUp, btnPtzSupDirRightUp,
+                btnPtzLeft, btnPtzStop, btnPtzRight,
+                btnPtzSupDirLeftDown, btnPtzDown, btnPtzSupDirRightDown
+            };
+
+            string[] texts =
+            {
+                "左上", "上", "右上",
+                "左", "■ 停止", "右",
+                "左下", "下", "右下"
+            };
+
+            for (int index = 0; index < directionButtons.Length; index++)
+            {
+                Button button = directionButtons[index];
+                button.Text = texts[index];
+                button.Size = new Size(95, 42);
+                button.Location = new Point(
+                    35 + (index % 3) * 110,
+                    85 + (index / 3) * 55);
+                gbxPtzDirect.Controls.Add(button);
+            }
+        }
+
+        private void ArrangePtzLocatePanel()
+        {
+            lblHA.Location = new Point(25, 55);
+            nud_PtzHAngle.Location = new Point(130, 52);
+            lblVA.Location = new Point(25, 105);
+            nud_PtzVAngle.Location = new Point(130, 102);
+            chk_PtzUseSpeedLocate.Location = new Point(25, 155);
+            btnPtzLocate.Location = new Point(25, 205);
+            btnPtzLocate.Size = new Size(370, 42);
+        }
+
+        private void BuildPtzPresetPage(TabPage page)
+        {
+            gbxPtzPreset.Location = new Point(10, 10);
+            gbxPtzPreset.Size = new Size(430, 170);
+            gbxPtzExtPreset.Location = new Point(450, 10);
+            gbxPtzExtPreset.Size = new Size(550, 340);
+
+            page.Controls.Add(gbxPtzPreset);
+            page.Controls.Add(gbxPtzExtPreset);
+        }
+
+        private void BuildPtzAreaPage(TabPage page)
+        {
+            gbxPtzArea.Location = new Point(10, 10);
+            gbxPtzArea.Size = new Size(430, 260);
+            gbxPtzExtArea.Location = new Point(450, 10);
+            gbxPtzExtArea.Size = new Size(550, 440);
+            gbxPtzArea.Text = "区域扫描参数";
+            gbxPtzExtArea.Text = "区域扫描操作";
+
+            page.Controls.Add(gbxPtzArea);
+            page.Controls.Add(gbxPtzExtArea);
+        }
+
+        private void BuildPtzConfigPage(TabPage page)
+        {
+            gbxPtzRaw.Location = new Point(10, 10);
+            gbxPtzRaw.Size = new Size(430, 70);
+            gbxPtzExtBasic.Location = new Point(10, 90);
+            gbxPtzExtBasic.Size = new Size(550, 280);
+            gbxPtzExtBasic.Text = "设备基础配置";
+            gbxPtzExtQuery.Location = new Point(570, 10);
+            gbxPtzExtQuery.Size = new Size(550, 330);
+            gbxPtzExtQuery.Text = "配置查询与回传";
+
+            page.Controls.Add(gbxPtzRaw);
+            page.Controls.Add(gbxPtzExtBasic);
+            page.Controls.Add(gbxPtzExtQuery);
+        }
+
+        private void BuildPtzZeroPage(TabPage page)
+        {
+            gbxPtzExtMaintenance.Location = new Point(10, 10);
+            gbxPtzExtMaintenance.Size = new Size(700, 240);
+            gbxPtzExtMaintenance.Text = "零位设置与维护操作";
+
+            page.Controls.Add(gbxPtzExtMaintenance);
         }
 
         private string GetPtzSupplementCommandKey(object sender)
@@ -2219,17 +2635,8 @@ namespace RadarConnect
 
         private void PtzLog(string message)
         {
-            if (listBox_PtzLog == null) return;
-
-            if (listBox_PtzLog.InvokeRequired)
-            {
-                listBox_PtzLog.BeginInvoke((MethodInvoker)delegate { PtzLog(message); });
-                return;
-            }
-
-            string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
-            listBox_PtzLog.Items.Add(line);
-            listBox_PtzLog.TopIndex = listBox_PtzLog.Items.Count - 1;
+            // 云台与雷达、相机共用第一页的主日志框，并保留来源标识。
+            AddLog("[云台] " + message);
         }
 
         #endregion
@@ -2409,6 +2816,32 @@ namespace RadarConnect
         {
             //角度实时回传关闭 0xe1 0x02 0 0
             PtzSendCommand("关闭回传", 0xe1, 0x02, 0x00, 0x00);
+        }
+
+        private async void btn_SetZoom_Click(object sender, EventArgs e)
+        {
+            btn_SetZoom.Enabled = false;
+            try
+            {
+                await SendCameraPresetAsync(19, (int)nud_CameraPreset.Value);
+            }
+            finally
+            {
+                btn_SetZoom.Enabled = true;
+            }
+        }
+
+        private async void btn_UseZoom_Click(object sender, EventArgs e)
+        {
+            btn_UseZoom.Enabled = false;
+            try
+            {
+                await SendCameraPresetAsync(20, (int)nud_CameraPreset.Value);
+            }
+            finally
+            {
+                btn_UseZoom.Enabled = true;
+            }
         }
     }
 }
