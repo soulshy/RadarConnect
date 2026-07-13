@@ -1103,67 +1103,6 @@ namespace RadarConnect
                 AddLog($"[PTZ] 控制异常: {ex.Message}");
             }
         }
-
-        /// <summary>
-        /// 通过摄像头 HTTP API 设置或调用预置位。
-        /// ptzCmd: 19=设置预置位，20=调用预置位；speed_v 用作预置位编号。
-        /// </summary>
-        private async Task SendCameraPresetAsync(int ptzCmd, int presetNumber)
-        {
-            if (ptzCmd != 19 && ptzCmd != 20)
-                throw new ArgumentOutOfRangeException(nameof(ptzCmd), "预置位命令只能是 19（设置）或 20（调用）。");
-
-            if (presetNumber < 1 || presetNumber > 255)
-            {
-                MessageBox.Show("预置位编号必须在 1～255 之间！");
-                return;
-            }
-
-            string inputIp = txt_CameraIp.Text.Trim();
-            if (string.IsNullOrEmpty(inputIp))
-            {
-                MessageBox.Show("请输入相机IP地址！");
-                return;
-            }
-
-            string ipAddress = inputIp.Contains(":") ? inputIp.Split(':')[0] : inputIp;
-            string user = "admin";
-            string pwdMd5 = "e10adc3949ba59abbe56e057f20f883e";
-            string actionName = ptzCmd == 19 ? "设置" : "调用";
-
-            // 文档规定：channel 固定为 0，speed_v 表示预置位编号。
-            string jsonParam = $"{{\"speed_v\":{presetNumber},\"channel\":0,\"ptz_cmd\":{ptzCmd}}}";
-            string apiUrl = $"http://{ipAddress}/action/cgi_action?user={user}&pwd={pwdMd5}&action=setPtzControl&json={Uri.EscapeDataString(jsonParam)}";
-
-            try
-            {
-                AddLog($"正在{actionName}相机预置位 {presetNumber}...");
-                using (HttpClient client = new HttpClient())
-                {
-                    client.Timeout = TimeSpan.FromSeconds(3);
-                    HttpResponseMessage response = await client.GetAsync(apiUrl);
-                    string responseText = await response.Content.ReadAsStringAsync();
-
-                    if (response.IsSuccessStatusCode &&
-                        (responseText.Contains("\"code\": 0") || responseText.Contains("\"code\":0")))
-                    {
-                        AddLog($"{actionName}相机预置位 {presetNumber} 成功。");
-                    }
-                    else
-                    {
-                        AddLog($"{actionName}相机预置位 {presetNumber} 失败，HTTP {(int)response.StatusCode}，返回：{responseText}");
-                        MessageBox.Show($"{actionName}预置位失败，请查看日志。", "相机控制",
-                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                AddLog($"{actionName}相机预置位异常：{ex.Message}");
-                MessageBox.Show($"{actionName}预置位异常：{ex.Message}", "相机控制",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
         #endregion
 
         #region OSD 水印恢复
@@ -2821,36 +2760,5 @@ namespace RadarConnect
             //角度实时回传关闭 0xe1 0x02 0 0
             PtzSendCommand("关闭回传", 0xe1, 0x02, 0x00, 0x00);
         }
-
-        private async void btn_SetZoom_Click(object sender, EventArgs e)
-        {
-            btn_SetZoom.Enabled = false;
-            try
-            {
-                await SendCameraPresetAsync(19, (int)nud_CameraPreset.Value);
-            }
-            finally
-            {
-                btn_SetZoom.Enabled = true;
-            }
-        }
-
-        private async void btn_UseZoom_Click(object sender, EventArgs e)
-        {
-            btn_UseZoom.Enabled = false;
-            try
-            {
-                await SendCameraPresetAsync(20, (int)nud_CameraPreset.Value);
-            }
-            finally
-            {
-                btn_UseZoom.Enabled = true;
-            }
-        }
     }
 }
-
-
-
-
-

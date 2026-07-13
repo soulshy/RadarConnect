@@ -24,9 +24,6 @@ namespace RadarConnect
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
             this.btn_UseZoom = new System.Windows.Forms.Button();
-            this.btn_SetZoom = new System.Windows.Forms.Button();
-            this.nud_CameraPreset = new System.Windows.Forms.NumericUpDown();
-            this.lbl_CameraPreset = new System.Windows.Forms.Label();
             this.btn_EnableOsd = new System.Windows.Forms.Button();
             this.btn_RemoveOsd = new System.Windows.Forms.Button();
             this.btn_Snapshot = new System.Windows.Forms.Button();
@@ -278,7 +275,6 @@ namespace RadarConnect
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox7.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nud_CameraPreset)).BeginInit();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -366,9 +362,6 @@ namespace RadarConnect
             // groupBox7
             // 
             this.groupBox7.Controls.Add(this.btn_UseZoom);
-            this.groupBox7.Controls.Add(this.btn_SetZoom);
-            this.groupBox7.Controls.Add(this.nud_CameraPreset);
-            this.groupBox7.Controls.Add(this.lbl_CameraPreset);
             this.groupBox7.Controls.Add(this.btn_EnableOsd);
             this.groupBox7.Controls.Add(this.btn_RemoveOsd);
             this.groupBox7.Controls.Add(this.btn_Snapshot);
@@ -380,57 +373,6 @@ namespace RadarConnect
             this.groupBox7.TabIndex = 3;
             this.groupBox7.TabStop = false;
             this.groupBox7.Text = "相机控制";
-            // 
-            // btn_UseZoom
-            // 
-            this.btn_UseZoom.Location = new System.Drawing.Point(118, 273);
-            this.btn_UseZoom.Name = "btn_UseZoom";
-            this.btn_UseZoom.Size = new System.Drawing.Size(75, 23);
-            this.btn_UseZoom.TabIndex = 6;
-            this.btn_UseZoom.Text = "调用预置位";
-            this.btn_UseZoom.UseVisualStyleBackColor = true;
-            this.btn_UseZoom.Click += new System.EventHandler(this.btn_UseZoom_Click);
-            // 
-            // btn_SetZoom
-            // 
-            this.btn_SetZoom.Location = new System.Drawing.Point(17, 273);
-            this.btn_SetZoom.Name = "btn_SetZoom";
-            this.btn_SetZoom.Size = new System.Drawing.Size(75, 23);
-            this.btn_SetZoom.TabIndex = 5;
-            this.btn_SetZoom.Text = "设置预置位";
-            this.btn_SetZoom.UseVisualStyleBackColor = true;
-            this.btn_SetZoom.Click += new System.EventHandler(this.btn_SetZoom_Click);
-            // 
-            // nud_CameraPreset
-            // 
-            this.nud_CameraPreset.Location = new System.Drawing.Point(118, 241);
-            this.nud_CameraPreset.Maximum = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
-            this.nud_CameraPreset.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.nud_CameraPreset.Name = "nud_CameraPreset";
-            this.nud_CameraPreset.Size = new System.Drawing.Size(75, 21);
-            this.nud_CameraPreset.TabIndex = 5;
-            this.nud_CameraPreset.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            // 
-            // lbl_CameraPreset
-            // 
-            this.lbl_CameraPreset.AutoSize = true;
-            this.lbl_CameraPreset.Location = new System.Drawing.Point(15, 245);
-            this.lbl_CameraPreset.Name = "lbl_CameraPreset";
-            this.lbl_CameraPreset.Size = new System.Drawing.Size(89, 12);
-            this.lbl_CameraPreset.TabIndex = 4;
-            this.lbl_CameraPreset.Text = "相机预置位编号";
             // 
             // btn_EnableOsd
             // 
@@ -1286,7 +1228,7 @@ namespace RadarConnect
             // 
             // lbl_PtzStatus
             // 
-            this.lbl_PtzStatus.Location = new System.Drawing.Point(275, 115);
+            this.lbl_PtzStatus.Location = new System.Drawing.Point(15, 155);
             this.lbl_PtzStatus.Name = "lbl_PtzStatus";
             this.lbl_PtzStatus.Size = new System.Drawing.Size(140, 15);
             this.lbl_PtzStatus.TabIndex = 8;
@@ -3453,8 +3395,6 @@ namespace RadarConnect
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.groupBox7.ResumeLayout(false);
-            this.groupBox7.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nud_CameraPreset)).EndInit();
             this.groupBox3.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
@@ -3775,9 +3715,6 @@ namespace RadarConnect
         private System.Windows.Forms.Button btnPtzSupReboot;
         private System.Windows.Forms.Button btnPtzSupSelfCheck;
         private System.Windows.Forms.Button btn_UseZoom;
-        private System.Windows.Forms.Button btn_SetZoom;
-        private System.Windows.Forms.NumericUpDown nud_CameraPreset;
-        private System.Windows.Forms.Label lbl_CameraPreset;
     }
 }
 
