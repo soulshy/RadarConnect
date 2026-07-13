@@ -951,7 +951,7 @@ namespace RadarConnect
             this.pictureBox_FusionResult.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pictureBox_FusionResult.Location = new System.Drawing.Point(8, 72);
             this.pictureBox_FusionResult.Name = "pictureBox_FusionResult";
-            this.pictureBox_FusionResult.Size = new System.Drawing.Size(2033, 694);
+            this.pictureBox_FusionResult.Size = new System.Drawing.Size(980, 684);
             this.pictureBox_FusionResult.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox_FusionResult.TabIndex = 1;
             this.pictureBox_FusionResult.TabStop = false;
@@ -969,14 +969,14 @@ namespace RadarConnect
             this.groupBox6.Controls.Add(this.btn_LoadPcd);
             this.groupBox6.Location = new System.Drawing.Point(8, 6);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(2033, 60);
+            this.groupBox6.Size = new System.Drawing.Size(980, 60);
             this.groupBox6.TabIndex = 0;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "离线融合控制";
             // 
             // btn_ExecuteFusion
             // 
-            this.btn_ExecuteFusion.Location = new System.Drawing.Point(750, 18);
+            this.btn_ExecuteFusion.Location = new System.Drawing.Point(733, 17);
             this.btn_ExecuteFusion.Name = "btn_ExecuteFusion";
             this.btn_ExecuteFusion.Size = new System.Drawing.Size(100, 30);
             this.btn_ExecuteFusion.TabIndex = 5;
@@ -1032,7 +1032,7 @@ namespace RadarConnect
             // 
             // btn_LoadPcd
             // 
-            this.btn_LoadPcd.Location = new System.Drawing.Point(860, 18);
+            this.btn_LoadPcd.Location = new System.Drawing.Point(839, 16);
             this.btn_LoadPcd.Name = "btn_LoadPcd";
             this.btn_LoadPcd.Size = new System.Drawing.Size(120, 30);
             this.btn_LoadPcd.TabIndex = 6;
