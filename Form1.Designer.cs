@@ -23,7 +23,6 @@ namespace RadarConnect
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
-            this.btn_UseZoom = new System.Windows.Forms.Button();
             this.btn_EnableOsd = new System.Windows.Forms.Button();
             this.btn_RemoveOsd = new System.Windows.Forms.Button();
             this.btn_Snapshot = new System.Windows.Forms.Button();
@@ -361,7 +360,6 @@ namespace RadarConnect
             // 
             // groupBox7
             // 
-            this.groupBox7.Controls.Add(this.btn_UseZoom);
             this.groupBox7.Controls.Add(this.btn_EnableOsd);
             this.groupBox7.Controls.Add(this.btn_RemoveOsd);
             this.groupBox7.Controls.Add(this.btn_Snapshot);
@@ -3714,7 +3712,6 @@ namespace RadarConnect
         private System.Windows.Forms.Button btnPtzSupZeroDelete;
         private System.Windows.Forms.Button btnPtzSupReboot;
         private System.Windows.Forms.Button btnPtzSupSelfCheck;
-        private System.Windows.Forms.Button btn_UseZoom;
     }
 }
 
