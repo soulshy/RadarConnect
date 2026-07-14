@@ -50,6 +50,15 @@ namespace RadarConnect
         private bool _isTimeSynced = false;
         private long _basePcTicks = 0;
         private ulong _baseRadarTime = 0;
+        private byte _lastRadarTimestampType = byte.MaxValue;
+        private byte _lastTimeSyncStatus = byte.MaxValue;
+        private long _packetsSinceLastStats = 0;
+        private long _pointsSinceLastStats = 0;
+        private int _statsElapsedSeconds = 0;
+        private long _lastDroppedDataPackets = 0;
+
+        private static readonly DateTime UnixEpochUtc =
+            new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         // VTK 可视化包装器
         private VtkVisualizer _vtkVisualizer;
@@ -437,7 +446,8 @@ namespace RadarConnect
 
                 // 4. 调用数据库模块获取 1 秒的点云数据
                 AddLog("[融合] 正在提取点云数据...");
-                List<PointData> rawPoints = await Task.Run(() => _dbManager.GetPointsInRange(targetTime, 1.0));
+                List<PointData> rawPoints = await Task.Run(() =>
+                    _dbManager.GetPointsCenteredAt(targetTime, 1.0));
 
                 if (rawPoints == null || rawPoints.Count == 0)
                 {
@@ -651,9 +661,9 @@ namespace RadarConnect
 
         private void btn_StartSample_Click_1(object sender, EventArgs e)
         {
-            SendControlCommand(CmdSet.General, 0x04, new byte[] { 0x01 });
             _isSaving = true;
             _dbManager.StartSaving();
+            SendControlCommand(CmdSet.General, 0x04, new byte[] { 0x01 });
             AddLog("开始采样并入库...");
             btn_StartSample.Enabled = false;
             btn_StopSample.Enabled = true;
@@ -665,6 +675,10 @@ namespace RadarConnect
             _isSaving = false;
             _dbManager.StopSaving();
             _isTimeSynced = false;
+            _lastRadarTimestampType = byte.MaxValue;
+            _lastTimeSyncStatus = byte.MaxValue;
+            _lastRadarTimestampType = byte.MaxValue;
+            _lastTimeSyncStatus = byte.MaxValue;
             AddLog("停止采样");
             btn_StartSample.Enabled = true;
             btn_StopSample.Enabled = false;
@@ -741,136 +755,304 @@ namespace RadarConnect
 
         #region 数据处理与回环
 
-        private void ProcessPointCloud(byte[] data)
+        private void ProcessPointCloud(byte[] data, DateTime receivedUtc)
         {
-            int livoxHeaderSize = 18;
-            if (data.Length < livoxHeaderSize) return;
+            const int livoxHeaderSize = 18;
+            if (data == null || data.Length < livoxHeaderSize) return;
 
-            byte data_type = data[9];
-            ulong radarTimestamp = BitConverter.ToUInt64(data, 10);
+            byte timestampType = data[8];
+            byte dataType = data[9];
+            uint statusCode = BitConverter.ToUInt32(data, 4);
+            byte timeSyncStatus = (byte)((statusCode >> 14) & 0x07);
+            DateTime frameTimeUtc = ResolvePacketTimeUtc(
+                data,
+                timestampType,
+                timeSyncStatus,
+                receivedUtc);
 
-            DateTime frameTime;
-            if (!_isTimeSynced || (Math.Abs((long)radarTimestamp - (long)_lastRadarTimestamp) > 1_000_000_000))
-            {
-                _basePcTicks = DateTime.UtcNow.Ticks;
-                _baseRadarTime = radarTimestamp;
-                _isTimeSynced = true;
-            }
-            _lastRadarTimestamp = radarTimestamp;
-
-            long diffNs = unchecked((long)(radarTimestamp - _baseRadarTime));
-            long diffTicks = diffNs / 100;
-            frameTime = new DateTime(_basePcTicks + diffTicks, DateTimeKind.Utc);
-
-            int pSize = 0;
+            int pointSize = 0;
             int returnCount = 1;
 
             const double AVIA_FIRING_FREQ = 240000.0;
-            const double TICKS_PER_SECOND = 10000000.0;
+            const double TICKS_PER_SECOND = TimeSpan.TicksPerSecond;
             double pointIntervalTicks = TICKS_PER_SECOND / AVIA_FIRING_FREQ;
 
-            switch (data_type)
+            switch (dataType)
             {
-                case 2: pSize = 14; returnCount = 1; break;
-                case 3: pSize = 10; returnCount = 1; break;
-                case 4: pSize = 28; returnCount = 2; break;
-                case 5: pSize = 16; returnCount = 2; break;
-                case 7: pSize = 42; returnCount = 3; break;
-                case 8: pSize = 22; returnCount = 3; break;
-                case 0: pSize = 13; pointIntervalTicks = 100.0; break;
-                case 1: pSize = 9; pointIntervalTicks = 100.0; break;
-                default: return;
+                case 2: pointSize = 14; returnCount = 1; break;
+                case 3: pointSize = 10; returnCount = 1; break;
+                case 4: pointSize = 28; returnCount = 2; break;
+                case 5: pointSize = 16; returnCount = 2; break;
+                case 7: pointSize = 42; returnCount = 3; break;
+                case 8: pointSize = 22; returnCount = 3; break;
+                case 0: pointSize = 13; pointIntervalTicks = 100.0; break;
+                case 1: pointSize = 9; pointIntervalTicks = 100.0; break;
+                default: return; // data type 6 is IMU, not point cloud
             }
 
-            if (pSize == 0) return;
+            int pointsDataLength = data.Length - livoxHeaderSize;
+            int sampleCount = pointsDataLength / pointSize;
+            var packetPoints = new List<PointData>(sampleCount * returnCount);
 
-            int pointsDataLen = data.Length - livoxHeaderSize;
-            int packetCount = pointsDataLen / pSize;
-
-            for (int i = 0; i < packetCount; i++)
+            for (int i = 0; i < sampleCount; i++)
             {
-                int baseOffset = livoxHeaderSize + (i * pSize);
-                if (baseOffset + pSize > data.Length) break;
+                int baseOffset = livoxHeaderSize + (i * pointSize);
+                if (baseOffset + pointSize > data.Length) break;
 
-                DateTime firingTime = frameTime.AddTicks((long)(i * pointIntervalTicks));
+                DateTime firingTimeUtc = frameTimeUtc.AddTicks((long)(i * pointIntervalTicks));
 
-                if (data_type == 2 || data_type == 4 || data_type == 7)
+                if (dataType == 2 || dataType == 4 || dataType == 7)
                 {
                     for (int j = 0; j < returnCount; j++)
                     {
-                        int ptOffset = baseOffset + (j * 14);
-                        int x = BitConverter.ToInt32(data, ptOffset);
-                        int y = BitConverter.ToInt32(data, ptOffset + 4);
-                        int z = BitConverter.ToInt32(data, ptOffset + 8);
-                        byte refI = data[ptOffset + 12];
-                        byte tag = data[ptOffset + 13];
-                        EnqueueCartesianPoint(firingTime, x, y, z, refI, tag);
+                        int pointOffset = baseOffset + (j * 14);
+                        PointData point;
+                        if (TryCreateCartesianPoint(
+                            firingTimeUtc,
+                            BitConverter.ToInt32(data, pointOffset),
+                            BitConverter.ToInt32(data, pointOffset + 4),
+                            BitConverter.ToInt32(data, pointOffset + 8),
+                            data[pointOffset + 12],
+                            data[pointOffset + 13],
+                            out point))
+                        {
+                            packetPoints.Add(point);
+                        }
                     }
                 }
-                else if (data_type == 3)
+                else if (dataType == 3)
                 {
-                    uint depth = BitConverter.ToUInt32(data, baseOffset);
-                    ushort theta = BitConverter.ToUInt16(data, baseOffset + 4);
-                    ushort phi = BitConverter.ToUInt16(data, baseOffset + 6);
-                    byte refI = data[baseOffset + 8];
-                    byte tag = data[baseOffset + 9];
-                    EnqueueSphericalPoint(firingTime, depth, theta, phi, refI, tag);
+                    PointData point;
+                    if (TryCreateSphericalPoint(
+                        firingTimeUtc,
+                        BitConverter.ToUInt32(data, baseOffset),
+                        BitConverter.ToUInt16(data, baseOffset + 4),
+                        BitConverter.ToUInt16(data, baseOffset + 6),
+                        data[baseOffset + 8],
+                        data[baseOffset + 9],
+                        out point))
+                    {
+                        packetPoints.Add(point);
+                    }
                 }
-                else if (data_type == 5 || data_type == 8)
+                else if (dataType == 5 || dataType == 8)
                 {
                     ushort theta = BitConverter.ToUInt16(data, baseOffset);
                     ushort phi = BitConverter.ToUInt16(data, baseOffset + 2);
                     for (int j = 0; j < returnCount; j++)
                     {
-                        int ptOffset = baseOffset + 4 + (j * 6);
-                        uint depth = BitConverter.ToUInt32(data, ptOffset);
-                        byte refI = data[ptOffset + 4];
-                        byte tag = data[ptOffset + 5];
-                        EnqueueSphericalPoint(firingTime, depth, theta, phi, refI, tag);
+                        int pointOffset = baseOffset + 4 + (j * 6);
+                        PointData point;
+                        if (TryCreateSphericalPoint(
+                            firingTimeUtc,
+                            BitConverter.ToUInt32(data, pointOffset),
+                            theta,
+                            phi,
+                            data[pointOffset + 4],
+                            data[pointOffset + 5],
+                            out point))
+                        {
+                            packetPoints.Add(point);
+                        }
                     }
                 }
-                else if (data_type == 0 || data_type == 1)
+                else if (dataType == 0)
                 {
-                    if (data_type == 0)
+                    PointData point;
+                    if (TryCreateCartesianPoint(
+                        firingTimeUtc,
+                        BitConverter.ToInt32(data, baseOffset),
+                        BitConverter.ToInt32(data, baseOffset + 4),
+                        BitConverter.ToInt32(data, baseOffset + 8),
+                        data[baseOffset + 12],
+                        0,
+                        out point))
                     {
-                        int x = BitConverter.ToInt32(data, baseOffset);
-                        int y = BitConverter.ToInt32(data, baseOffset + 4);
-                        int z = BitConverter.ToInt32(data, baseOffset + 8);
-                        byte refI = data[baseOffset + 12];
-                        EnqueueCartesianPoint(firingTime, x, y, z, refI, 0);
+                        packetPoints.Add(point);
                     }
-                    else
+                }
+                else if (dataType == 1)
+                {
+                    PointData point;
+                    if (TryCreateSphericalPoint(
+                        firingTimeUtc,
+                        BitConverter.ToUInt32(data, baseOffset),
+                        BitConverter.ToUInt16(data, baseOffset + 4),
+                        BitConverter.ToUInt16(data, baseOffset + 6),
+                        data[baseOffset + 8],
+                        0,
+                        out point))
                     {
-                        uint d = BitConverter.ToUInt32(data, baseOffset);
-                        ushort t = BitConverter.ToUInt16(data, baseOffset + 4);
-                        ushort p = BitConverter.ToUInt16(data, baseOffset + 6);
-                        byte r = data[baseOffset + 8];
-                        EnqueueSphericalPoint(firingTime, d, t, p, r, 0);
+                        packetPoints.Add(point);
                     }
                 }
             }
+
+            _dbManager.EnqueuePoints(packetPoints);
+            Interlocked.Increment(ref _packetsSinceLastStats);
+            Interlocked.Add(ref _pointsSinceLastStats, packetPoints.Count);
         }
 
-        private void EnqueueCartesianPoint(DateTime time, int x, int y, int z, byte reflectivity, byte tag)
+        private DateTime ResolvePacketTimeUtc(
+            byte[] data,
+            byte timestampType,
+            byte timeSyncStatus,
+            DateTime receivedUtc)
         {
-            if (x == 0 && y == 0 && z == 0) return;
-            double distSq = (double)x * x + (double)y * y + (double)z * z;
-            float depth_m = (distSq > 0) ? (float)(Math.Sqrt(distSq) / 1000.0) : 0;
-            _dbManager.EnqueuePoint(time, x, y, z, depth_m, reflectivity, tag);
+            DateTime absoluteUtc;
+            if (timestampType == 3 && TryDecodeGpsUtc(data, out absoluteUtc))
+            {
+                UpdateTimestampStatus(timestampType, timeSyncStatus);
+                return absoluteUtc;
+            }
+
+            ulong rawTimestamp = BitConverter.ToUInt64(data, 10);
+            if (timestampType == 1 && TryDecodePtpUtc(rawTimestamp, out absoluteUtc))
+            {
+                _lastRadarTimestamp = rawTimestamp;
+                UpdateTimestampStatus(timestampType, timeSyncStatus);
+                return absoluteUtc;
+            }
+
+            bool timestampWentBackwards =
+                _lastRadarTimestampType == timestampType && rawTimestamp < _lastRadarTimestamp;
+            bool timestampJumped =
+                _lastRadarTimestampType == timestampType &&
+                rawTimestamp >= _lastRadarTimestamp &&
+                rawTimestamp - _lastRadarTimestamp > 1_000_000_000UL;
+
+            if (!_isTimeSynced ||
+                timestampType != _lastRadarTimestampType ||
+                timestampWentBackwards ||
+                timestampJumped)
+            {
+                _basePcTicks = receivedUtc.Ticks;
+                _baseRadarTime = rawTimestamp;
+                _isTimeSynced = true;
+            }
+
+            _lastRadarTimestamp = rawTimestamp;
+            UpdateTimestampStatus(timestampType, timeSyncStatus);
+
+            ulong diffNs = rawTimestamp >= _baseRadarTime
+                ? rawTimestamp - _baseRadarTime
+                : 0UL;
+            long diffTicks = (long)(diffNs / 100UL);
+            return new DateTime(_basePcTicks + diffTicks, DateTimeKind.Utc);
         }
 
-        private void EnqueueSphericalPoint(DateTime time, uint depth_mm, ushort thetaRaw, ushort phiRaw, byte reflectivity, byte tag)
+        private static bool TryDecodePtpUtc(ulong nanoseconds, out DateTime utc)
         {
-            if (depth_mm == 0)
-                return;
-            double thetaRad = (thetaRaw * 0.01) * (Math.PI / 180.0);
-            double phiRad = (phiRaw * 0.01) * (Math.PI / 180.0);
-            double r = (double)depth_mm;
-            int x = (int)(r * Math.Sin(thetaRad) * Math.Cos(phiRad));
-            int y = (int)(r * Math.Sin(thetaRad) * Math.Sin(phiRad));
-            int z = (int)(r * Math.Cos(thetaRad));
-            float depth_m = depth_mm / 1000.0f;
-            _dbManager.EnqueuePoint(time, x, y, z, depth_m, reflectivity, tag);
+            utc = default(DateTime);
+            try
+            {
+                ulong ticksFromEpoch = nanoseconds / 100UL;
+                if (ticksFromEpoch > (ulong)(DateTime.MaxValue.Ticks - UnixEpochUtc.Ticks))
+                    return false;
+
+                DateTime candidate = new DateTime(
+                    UnixEpochUtc.Ticks + (long)ticksFromEpoch,
+                    DateTimeKind.Utc);
+
+                // 防止非 Unix 纪元的主时钟数据被误当成绝对时间。
+                if (candidate.Year < 2000 || candidate.Year > 2100)
+                    return false;
+
+                utc = candidate;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool TryDecodeGpsUtc(byte[] data, out DateTime utc)
+        {
+            utc = default(DateTime);
+            try
+            {
+                int year = 2000 + data[10];
+                int month = data[11];
+                int day = data[12];
+                int hour = data[13];
+                uint microsecondsWithinHour = BitConverter.ToUInt32(data, 14);
+                if (microsecondsWithinHour >= 3_600_000_000U) return false;
+
+                utc = new DateTime(year, month, day, hour, 0, 0, DateTimeKind.Utc)
+                    .AddTicks((long)microsecondsWithinHour * 10L);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void UpdateTimestampStatus(byte timestampType, byte timeSyncStatus)
+        {
+            if (timestampType != _lastRadarTimestampType ||
+                timeSyncStatus != _lastTimeSyncStatus)
+            {
+                _lastRadarTimestampType = timestampType;
+                _lastTimeSyncStatus = timeSyncStatus;
+                AddLog($"[时间] 雷达 timestamp_type={timestampType}, sync_status={timeSyncStatus}");
+            }
+        }
+
+        private static bool TryCreateCartesianPoint(
+            DateTime timeUtc,
+            int xMm,
+            int yMm,
+            int zMm,
+            byte reflectivity,
+            byte tag,
+            out PointData point)
+        {
+            point = default(PointData);
+            if (xMm == 0 && yMm == 0 && zMm == 0) return false;
+
+            double distanceSquared =
+                (double)xMm * xMm + (double)yMm * yMm + (double)zMm * zMm;
+            point = new PointData
+            {
+                ExactTime = timeUtc,
+                X = xMm / 1000.0f,
+                Y = yMm / 1000.0f,
+                Z = zMm / 1000.0f,
+                Depth = (float)(Math.Sqrt(distanceSquared) / 1000.0),
+                Reflectivity = reflectivity,
+                Tag = tag
+            };
+            return true;
+        }
+
+        private static bool TryCreateSphericalPoint(
+            DateTime timeUtc,
+            uint depthMm,
+            ushort thetaRaw,
+            ushort phiRaw,
+            byte reflectivity,
+            byte tag,
+            out PointData point)
+        {
+            point = default(PointData);
+            if (depthMm == 0) return false;
+
+            double thetaRad = thetaRaw * 0.01 * (Math.PI / 180.0);
+            double phiRad = phiRaw * 0.01 * (Math.PI / 180.0);
+            double radiusM = depthMm / 1000.0;
+            point = new PointData
+            {
+                ExactTime = timeUtc,
+                X = (float)(radiusM * Math.Sin(thetaRad) * Math.Cos(phiRad)),
+                Y = (float)(radiusM * Math.Sin(thetaRad) * Math.Sin(phiRad)),
+                Z = (float)(radiusM * Math.Cos(thetaRad)),
+                Depth = (float)radiusM,
+                Reflectivity = reflectivity,
+                Tag = tag
+            };
+            return true;
         }
 
         private void StopAllWork()
@@ -885,6 +1067,22 @@ namespace RadarConnect
         {
             if (!string.IsNullOrEmpty(_currentDeviceIp) && _udpClient.IsConnected)
                 SendControlCommand(CmdSet.General, (byte)GeneralCmdId.Heartbeat, null);
+
+            _statsElapsedSeconds++;
+            if (_statsElapsedSeconds >= 5)
+            {
+                long packetCount = Interlocked.Exchange(ref _packetsSinceLastStats, 0);
+                long pointCount = Interlocked.Exchange(ref _pointsSinceLastStats, 0);
+                long droppedTotal = _udpClient.DroppedDataPackets;
+                long droppedInInterval = droppedTotal - _lastDroppedDataPackets;
+                _lastDroppedDataPackets = droppedTotal;
+
+                AddLog(
+                    $"[采集统计] {pointCount / (double)_statsElapsedSeconds:F0} 点/秒, " +
+                    $"{packetCount / (double)_statsElapsedSeconds:F0} 包/秒, " +
+                    $"处理队列丢包={droppedInInterval}");
+                _statsElapsedSeconds = 0;
+            }
         }
 
         private void SendControlCommand(CmdSet set, byte cmdId, byte[] payload, byte packetType = 0)
@@ -1319,14 +1517,13 @@ namespace RadarConnect
 
         private async void btn_ExportPcd_Click(object sender, EventArgs e)
         {
-            DateTime selectedStartTimeLocal = dateTimePicker_Query.Value;
-            DateTime selectedStartTimeUtc = selectedStartTimeLocal.AddHours(+8);
+            DateTime selectedCenterTimeLocal = dateTimePicker_Query.Value;
 
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
                 sfd.Title = "\u5bfc\u51fa\u539f\u59cb\u70b9\u4e91\u4e3a PCD";
                 sfd.Filter = "PCD \u70b9\u4e91\u6587\u4ef6|*.pcd|\u6240\u6709\u6587\u4ef6|*.*";
-                sfd.FileName = $"PointCloud_{selectedStartTimeUtc:yyyyMMdd_HHmmss}.pcd";
+                sfd.FileName = $"PointCloud_{selectedCenterTimeLocal:yyyyMMdd_HHmmss}.pcd";
                 sfd.RestoreDirectory = true;
 
                 if (sfd.ShowDialog() != DialogResult.OK) return;
@@ -1336,11 +1533,11 @@ namespace RadarConnect
 
                 try
                 {
-                    AddLog($"[PCD Export] Loading raw point cloud from {selectedStartTimeUtc:HH:mm:ss} for 1 second...");
+                    AddLog($"[PCD Export] Loading a centered 1-second window around {selectedCenterTimeLocal:HH:mm:ss}...");
 
                     List<PointData> rawPoints = await Task.Run(() =>
                     {
-                        return _dbManager.GetPointsInRange(selectedStartTimeUtc, 1.0);
+                        return _dbManager.GetPointsCenteredAt(selectedCenterTimeLocal, 1.0);
                     });
 
                     if (rawPoints == null || rawPoints.Count == 0)
@@ -1540,6 +1737,8 @@ namespace RadarConnect
 
             // 构造抓拍接口 URL。根据文档，不指定 fmt 参数时默认返回 jpg。
             string apiUrl = $"http://{ipAddress}/action/cgi_images";
+            Button snapshotButton = sender as Button;
+            if (snapshotButton != null) snapshotButton.Enabled = false;
 
             try
             {
@@ -1549,44 +1748,88 @@ namespace RadarConnect
 
                     AddLog("[抓拍] 正在请求抓拍...");
 
-                    // 发送 GET 请求获取图片流
-                    HttpResponseMessage response = await client.GetAsync(apiUrl);
-
-                    if (response.IsSuccessStatusCode)
+                    // 相机接口没有返回曝光时间时，以请求往返时间中点作为最佳估计。
+                    DateTime requestStartUtc = DateTime.UtcNow;
+                    using (HttpResponseMessage response = await client.GetAsync(apiUrl))
                     {
-                        // 将返回内容读取为字节数组 (Byte Array)
-                        byte[] imageBytes = await response.Content.ReadAsByteArrayAsync();
-
-                        // 确保图片数据不为空
-                        if (imageBytes != null && imageBytes.Length > 0)
+                        if (response.IsSuccessStatusCode)
                         {
-                            // 在程序运行目录下创建一个名为 Snapshots 的文件夹
-                            string saveFolder = Path.Combine(Application.StartupPath, "Snapshots");
-                            if (!Directory.Exists(saveFolder))
+                            byte[] imageBytes = await response.Content.ReadAsByteArrayAsync();
+                            DateTime requestEndUtc = DateTime.UtcNow;
+                            DateTime imageTimeUtc = requestStartUtc.AddTicks(
+                                (requestEndUtc - requestStartUtc).Ticks / 2L);
+
+                            if (imageBytes != null && imageBytes.Length > 0)
                             {
+                                string saveFolder = Path.Combine(Application.StartupPath, "Snapshots");
                                 Directory.CreateDirectory(saveFolder);
+
+                                DateTime imageTimeLocal = imageTimeUtc.ToLocalTime();
+                                string sampleId = $"Sample_{imageTimeLocal:yyyyMMdd_HHmmss_fff}";
+                                string imagePath = Path.Combine(saveFolder, sampleId + ".jpg");
+                                string pcdPath = Path.Combine(saveFolder, sampleId + ".pcd");
+                                string metadataPath = Path.Combine(saveFolder, sampleId + ".txt");
+
+                                File.WriteAllBytes(imagePath, imageBytes);
+                                AddLog(
+                                    $"[抓拍] RGB 已保存，估计曝光时刻: " +
+                                    $"{imageTimeLocal:yyyy-MM-dd HH:mm:ss.fff}");
+
+                                const double pointWindowSeconds = 1.0;
+                                List<PointData> points = await GetCenteredPointWindowWithRetryAsync(
+                                    imageTimeUtc,
+                                    pointWindowSeconds);
+
+                                int exportedCount = 0;
+                                if (points != null && points.Count > 0)
+                                {
+                                    exportedCount = await Task.Run(() =>
+                                        PointCloudProcessor.ExportToPcd(points, pcdPath, true));
+                                    AddLog($"[抓拍] 同步 PCD 已保存，共 {exportedCount} 个点。");
+                                }
+                                else
+                                {
+                                    AddLog("[抓拍] 警告：图像对应的一秒窗口内没有查到点云。");
+                                }
+
+                                DateTime windowStartUtc = imageTimeUtc.AddSeconds(-0.5);
+                                DateTime windowEndUtc = imageTimeUtc.AddSeconds(0.5);
+                                double halfRoundTripMs =
+                                    (requestEndUtc - requestStartUtc).TotalMilliseconds / 2.0;
+
+                                File.WriteAllLines(metadataPath, new[]
+                                {
+                                    "sample_id=" + sampleId,
+                                    "image_time_source=http_request_midpoint_estimate",
+                                    "image_time_utc=" + imageTimeUtc.ToString("O"),
+                                    "image_time_local=" + imageTimeLocal.ToString("O"),
+                                    "http_half_round_trip_ms=" + halfRoundTripMs.ToString("F3"),
+                                    "point_window_start_utc=" + windowStartUtc.ToString("O"),
+                                    "point_window_end_utc=" + windowEndUtc.ToString("O"),
+                                    "point_count=" + exportedCount,
+                                    "radar_timestamp_type=" + _lastRadarTimestampType,
+                                    "radar_time_sync_status=" + _lastTimeSyncStatus,
+                                    "image_file=" + Path.GetFileName(imagePath),
+                                    "point_cloud_file=" + (exportedCount > 0 ? Path.GetFileName(pcdPath) : string.Empty)
+                                });
+
+                                MessageBox.Show(
+                                    exportedCount > 0
+                                        ? $"RGB 与 PCD 配对保存成功！\n样本：{sampleId}\n点数：{exportedCount}"
+                                        : $"RGB 已保存，但没有找到配对点云。\n样本：{sampleId}",
+                                    "抓拍完成",
+                                    MessageBoxButtons.OK,
+                                    exportedCount > 0 ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
                             }
-
-                            // 使用当前时间戳作为文件名，避免覆盖
-                            string fileName = $"Snap_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
-                            string savePath = Path.Combine(saveFolder, fileName);
-
-                            // 写入本地文件
-                            File.WriteAllBytes(savePath, imageBytes);
-
-                            AddLog($"[抓拍] 成功！已保存至: {fileName}");
-
-
-                            MessageBox.Show($"抓拍成功！\n保存路径：{savePath}", "抓拍成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            else
+                            {
+                                AddLog("[抓拍] 失败：返回的图片数据为空。");
+                            }
                         }
                         else
                         {
-                            AddLog("[抓拍] 失败：返回的图片数据为空。");
+                            AddLog($"[抓拍] HTTP 请求失败，状态码: {response.StatusCode}");
                         }
-                    }
-                    else
-                    {
-                        AddLog($"[抓拍] HTTP 请求失败，状态码: {response.StatusCode}");
                     }
                 }
             }
@@ -1594,6 +1837,39 @@ namespace RadarConnect
             {
                 AddLog($"[抓拍] 发生异常: {ex.Message}");
             }
+            finally
+            {
+                if (snapshotButton != null) snapshotButton.Enabled = true;
+            }
+        }
+
+        private async Task<List<PointData>> GetCenteredPointWindowWithRetryAsync(
+            DateTime centerUtc,
+            double durationSeconds)
+        {
+            DateTime windowEndUtc = centerUtc.AddSeconds(durationSeconds / 2.0);
+            TimeSpan waitForWindow = windowEndUtc.AddMilliseconds(300) - DateTime.UtcNow;
+            if (waitForWindow > TimeSpan.Zero)
+                await Task.Delay(waitForWindow);
+
+            List<PointData> latestResult = new List<PointData>();
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
+                latestResult = await Task.Run(() =>
+                    _dbManager.GetPointsCenteredAtUtc(centerUtc, durationSeconds));
+
+                if (latestResult.Count > 0)
+                {
+                    DateTime latestPointUtc = latestResult[latestResult.Count - 1]
+                        .ExactTime.ToUniversalTime();
+                    if (latestPointUtc >= windowEndUtc.AddMilliseconds(-20))
+                        return latestResult;
+                }
+
+                await Task.Delay(250);
+            }
+
+            return latestResult;
         }
 
         private async void btn_RemoveOsd_Click(object sender, EventArgs e)

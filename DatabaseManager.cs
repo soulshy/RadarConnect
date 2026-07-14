@@ -83,13 +83,48 @@ namespace RadarConnect
             _queueSignal.Set();
         }
 
+        public void EnqueuePoints(IReadOnlyList<PointData> points)
+        {
+            if (!_isSaving || points == null || points.Count == 0) return;
+
+            for (int i = 0; i < points.Count; i++)
+                _bufferQueue.Enqueue(points[i]);
+
+            // 每个 UDP 数据包只唤醒一次写线程，避免每秒触发几十万次内核事件。
+            _queueSignal.Set();
+        }
+
         public List<PointData> GetPointsInRange(
             DateTime localStartTime,
             double durationSeconds)
         {
-            DateTime localEndTime = localStartTime.AddSeconds(durationSeconds);
-            DateTime utcStart = localStartTime.ToUniversalTime();
-            DateTime utcEnd = localEndTime.ToUniversalTime();
+            DateTime utcStart = ToUtc(localStartTime);
+            DateTime utcEnd = utcStart.AddSeconds(durationSeconds);
+            return GetPointsInUtcRange(utcStart, utcEnd);
+        }
+
+        public List<PointData> GetPointsCenteredAt(
+            DateTime localCenterTime,
+            double durationSeconds)
+        {
+            DateTime centerUtc = ToUtc(localCenterTime);
+            TimeSpan halfWindow = TimeSpan.FromSeconds(durationSeconds / 2.0);
+            return GetPointsInUtcRange(centerUtc - halfWindow, centerUtc + halfWindow);
+        }
+
+        public List<PointData> GetPointsCenteredAtUtc(
+            DateTime centerUtc,
+            double durationSeconds)
+        {
+            centerUtc = ToUtc(centerUtc);
+            TimeSpan halfWindow = TimeSpan.FromSeconds(durationSeconds / 2.0);
+            return GetPointsInUtcRange(centerUtc - halfWindow, centerUtc + halfWindow);
+        }
+
+        public List<PointData> GetPointsInUtcRange(DateTime utcStart, DateTime utcEnd)
+        {
+            utcStart = ToUtc(utcStart);
+            utcEnd = ToUtc(utcEnd);
 
             try
             {
