@@ -19,10 +19,17 @@ namespace RadarConnect
 
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this.label_DatasetSplit = new System.Windows.Forms.Label();
+            this._datasetSplitCombo = new System.Windows.Forms.ComboBox();
+            this.label_DatasetSession = new System.Windows.Forms.Label();
+            this._datasetSessionTextBox = new System.Windows.Forms.TextBox();
+            this._datasetAutoButton = new System.Windows.Forms.Button();
+            this._datasetAutoTimer = new System.Windows.Forms.Timer(this.components);
             this.btn_EnableOsd = new System.Windows.Forms.Button();
             this.btn_RemoveOsd = new System.Windows.Forms.Button();
             this.btn_Snapshot = new System.Windows.Forms.Button();
@@ -360,6 +367,11 @@ namespace RadarConnect
             // 
             // groupBox7
             // 
+            this.groupBox7.Controls.Add(this._datasetAutoButton);
+            this.groupBox7.Controls.Add(this._datasetSessionTextBox);
+            this.groupBox7.Controls.Add(this.label_DatasetSession);
+            this.groupBox7.Controls.Add(this._datasetSplitCombo);
+            this.groupBox7.Controls.Add(this.label_DatasetSplit);
             this.groupBox7.Controls.Add(this.btn_EnableOsd);
             this.groupBox7.Controls.Add(this.btn_RemoveOsd);
             this.groupBox7.Controls.Add(this.btn_Snapshot);
@@ -371,6 +383,61 @@ namespace RadarConnect
             this.groupBox7.TabIndex = 3;
             this.groupBox7.TabStop = false;
             this.groupBox7.Text = "相机控制";
+            //
+            // label_DatasetSplit
+            //
+            this.label_DatasetSplit.AutoSize = true;
+            this.label_DatasetSplit.Location = new System.Drawing.Point(17, 250);
+            this.label_DatasetSplit.Name = "label_DatasetSplit";
+            this.label_DatasetSplit.Size = new System.Drawing.Size(29, 12);
+            this.label_DatasetSplit.TabIndex = 5;
+            this.label_DatasetSplit.Text = "划分";
+            //
+            // _datasetSplitCombo
+            //
+            this._datasetSplitCombo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this._datasetSplitCombo.FormattingEnabled = true;
+            this._datasetSplitCombo.Items.AddRange(new object[] {
+            "train",
+            "val",
+            "test"});
+            this._datasetSplitCombo.Location = new System.Drawing.Point(60, 246);
+            this._datasetSplitCombo.Name = "_datasetSplitCombo";
+            this._datasetSplitCombo.SelectedIndex = 0;
+            this._datasetSplitCombo.Size = new System.Drawing.Size(133, 20);
+            this._datasetSplitCombo.TabIndex = 6;
+            //
+            // label_DatasetSession
+            //
+            this.label_DatasetSession.AutoSize = true;
+            this.label_DatasetSession.Location = new System.Drawing.Point(17, 281);
+            this.label_DatasetSession.Name = "label_DatasetSession";
+            this.label_DatasetSession.Size = new System.Drawing.Size(29, 12);
+            this.label_DatasetSession.TabIndex = 7;
+            this.label_DatasetSession.Text = "场次";
+            //
+            // _datasetSessionTextBox
+            //
+            this._datasetSessionTextBox.Location = new System.Drawing.Point(60, 277);
+            this._datasetSessionTextBox.Name = "_datasetSessionTextBox";
+            this._datasetSessionTextBox.Size = new System.Drawing.Size(133, 21);
+            this._datasetSessionTextBox.TabIndex = 8;
+            this._datasetSessionTextBox.Text = "session_001";
+            //
+            // _datasetAutoButton
+            //
+            this._datasetAutoButton.Location = new System.Drawing.Point(17, 314);
+            this._datasetAutoButton.Name = "_datasetAutoButton";
+            this._datasetAutoButton.Size = new System.Drawing.Size(176, 27);
+            this._datasetAutoButton.TabIndex = 9;
+            this._datasetAutoButton.Text = "开始模型数据集采集";
+            this._datasetAutoButton.UseVisualStyleBackColor = true;
+            this._datasetAutoButton.Click += new System.EventHandler(this.DatasetAutoButton_Click);
+            //
+            // _datasetAutoTimer
+            //
+            this._datasetAutoTimer.Interval = 500;
+            this._datasetAutoTimer.Tick += new System.EventHandler(this.DatasetAutoTimer_Tick);
             // 
             // btn_EnableOsd
             // 
@@ -3393,6 +3460,7 @@ namespace RadarConnect
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.groupBox7.ResumeLayout(false);
+            this.groupBox7.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
@@ -3462,6 +3530,12 @@ namespace RadarConnect
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.GroupBox groupBox7;
+        private System.Windows.Forms.Label label_DatasetSplit;
+        private System.Windows.Forms.ComboBox _datasetSplitCombo;
+        private System.Windows.Forms.Label label_DatasetSession;
+        private System.Windows.Forms.TextBox _datasetSessionTextBox;
+        private System.Windows.Forms.Button _datasetAutoButton;
+        private System.Windows.Forms.Timer _datasetAutoTimer;
         private System.Windows.Forms.Button btn_EnableOsd;
         private System.Windows.Forms.Button btn_RemoveOsd;
         private System.Windows.Forms.Button btn_Snapshot;

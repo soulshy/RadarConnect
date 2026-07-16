@@ -81,6 +81,10 @@ namespace RadarConnect
         private Size _videoPanelMaximumSize;
         private Point _videoPanelTopRight;
 
+        // Avia 模型数据集采集
+        private AviaDatasetExporter _aviaDatasetExporter;
+        private bool _datasetCaptureInProgress;
+
         // ==========================================
         // UDP 云台控制
         // ==========================================
@@ -105,7 +109,7 @@ namespace RadarConnect
             _dbManager.OnSaveFinished += () =>
             {
                 this.BeginInvoke((MethodInvoker)delegate {
-                    AddLog(">>> 后台剩余点云已全部安全入库，写入线程已彻底结束。");
+                    AddLog("后台剩余点云已全部安全入库，写入线程已彻底结束。");
                 });
             };
 
@@ -1057,6 +1061,7 @@ namespace RadarConnect
 
         private void StopAllWork()
         {
+            StopAutomaticDatasetCapture();
             _heartbeatTimer.Stop();
             _isSaving = false;
             _dbManager.StopSaving();
@@ -1725,121 +1730,228 @@ namespace RadarConnect
 
         private async void btn_Snapshot_Click(object sender, EventArgs e)
         {
-            string inputIp = txt_CameraIp.Text.Trim();
-            if (string.IsNullOrEmpty(inputIp))
+            await CaptureAviaDatasetSampleAsync(true);
+        }
+
+        private async void DatasetAutoButton_Click(object sender, EventArgs e)
+        {
+            if (_datasetAutoTimer.Enabled)
             {
-                MessageBox.Show("请输入相机IP地址！", "提示");
+                StopAutomaticDatasetCapture();
                 return;
             }
 
-            // 提取纯IP
-            string ipAddress = inputIp.Contains(":") ? inputIp.Split(':')[0] : inputIp;
-
-            // 构造抓拍接口 URL。根据文档，不指定 fmt 参数时默认返回 jpg。
-            string apiUrl = $"http://{ipAddress}/action/cgi_images";
-            Button snapshotButton = sender as Button;
-            if (snapshotButton != null) snapshotButton.Enabled = false;
+            if (!_isSaving)
+            {
+                MessageBox.Show("请先连接雷达并点击【开始采样】。", "无法开始数据集采集");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(txt_CameraIp.Text))
+            {
+                MessageBox.Show("请输入相机 IP 地址。", "无法开始数据集采集");
+                return;
+            }
 
             try
             {
-                using (HttpClient client = new HttpClient())
+                _aviaDatasetExporter = CreateDatasetExporterFromControls();
+                _datasetSplitCombo.Enabled = false;
+                _datasetSessionTextBox.Enabled = false;
+                _datasetAutoButton.Text = "停止模型数据集采集";
+                _datasetAutoTimer.Start();
+                AddLog(
+                    $"[数据集] 开始 2Hz 自动采集: split={_aviaDatasetExporter.Split}, " +
+                    $"session={_aviaDatasetExporter.Session}");
+                AddLog("[数据集] 输出目录: " + _aviaDatasetExporter.Root);
+                await CaptureAviaDatasetSampleAsync(false);
+            }
+            catch (Exception ex)
+            {
+                StopAutomaticDatasetCapture();
+                AddLog("[数据集] 启动失败: " + ex.Message);
+                MessageBox.Show(ex.Message, "数据集启动失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void DatasetAutoTimer_Tick(object sender, EventArgs e)
+        {
+            await CaptureAviaDatasetSampleAsync(false);
+        }
+
+        private void StopAutomaticDatasetCapture()
+        {
+            if (_datasetAutoTimer == null) return;
+
+            bool wasEnabled = _datasetAutoTimer.Enabled;
+            _datasetAutoTimer.Stop();
+            if (_datasetSplitCombo != null) _datasetSplitCombo.Enabled = true;
+            if (_datasetSessionTextBox != null) _datasetSessionTextBox.Enabled = true;
+            if (_datasetAutoButton != null) _datasetAutoButton.Text = "开始模型数据集采集";
+            if (wasEnabled) AddLog("[数据集] 自动采集已停止。");
+        }
+
+        private AviaDatasetExporter CreateDatasetExporterFromControls()
+        {
+            string root = Path.Combine(Application.StartupPath, "radarconnect_avia");
+            string split = Convert.ToString(_datasetSplitCombo.SelectedItem);
+            string session = _datasetSessionTextBox.Text;
+            return new AviaDatasetExporter(root, split, session);
+        }
+
+        private AviaDatasetExporter GetOrCreateDatasetExporter()
+        {
+            string split = Convert.ToString(_datasetSplitCombo.SelectedItem);
+            string session = AviaDatasetExporter.NormalizeSession(_datasetSessionTextBox.Text);
+            if (_aviaDatasetExporter == null ||
+                !_aviaDatasetExporter.Split.Equals(split, StringComparison.OrdinalIgnoreCase) ||
+                !_aviaDatasetExporter.Session.Equals(session, StringComparison.Ordinal))
+            {
+                _aviaDatasetExporter = CreateDatasetExporterFromControls();
+            }
+            return _aviaDatasetExporter;
+        }
+
+        private async Task CaptureAviaDatasetSampleAsync(bool showCompletionDialog)
+        {
+            if (_datasetCaptureInProgress) return;
+            if (!_isSaving)
+            {
+                if (showCompletionDialog)
+                    MessageBox.Show("请先连接雷达并点击【开始采样】。", "无法抓拍");
+                return;
+            }
+
+            string inputIp = txt_CameraIp.Text.Trim();
+            if (string.IsNullOrEmpty(inputIp))
+            {
+                if (showCompletionDialog)
+                    MessageBox.Show("请输入相机IP地址！", "提示");
+                return;
+            }
+
+            _datasetCaptureInProgress = true;
+            btn_Snapshot.Enabled = false;
+            try
+            {
+                AviaDatasetExporter exporter = GetOrCreateDatasetExporter();
+                string ipAddress = inputIp.Contains(":") ? inputIp.Split(':')[0] : inputIp;
+                string apiUrl = $"http://{ipAddress}/action/cgi_images";
+                byte[] imageBytes;
+                DateTime requestStartUtc = DateTime.UtcNow;
+                DateTime requestEndUtc;
+
+                using (HttpClient client = new HttpClient { Timeout = TimeSpan.FromSeconds(3) })
+                using (HttpResponseMessage response = await client.GetAsync(apiUrl))
                 {
-                    client.Timeout = TimeSpan.FromSeconds(3);
+                    if (!response.IsSuccessStatusCode)
+                        throw new InvalidOperationException("抓拍 HTTP 状态码: " + response.StatusCode);
+                    imageBytes = await response.Content.ReadAsByteArrayAsync();
+                    requestEndUtc = DateTime.UtcNow;
+                }
 
-                    AddLog("[抓拍] 正在请求抓拍...");
+                if (imageBytes == null || imageBytes.Length == 0)
+                    throw new InvalidDataException("相机返回的图片为空。");
 
-                    // 相机接口没有返回曝光时间时，以请求往返时间中点作为最佳估计。
-                    DateTime requestStartUtc = DateTime.UtcNow;
-                    using (HttpResponseMessage response = await client.GetAsync(apiUrl))
-                    {
-                        if (response.IsSuccessStatusCode)
-                        {
-                            byte[] imageBytes = await response.Content.ReadAsByteArrayAsync();
-                            DateTime requestEndUtc = DateTime.UtcNow;
-                            DateTime imageTimeUtc = requestStartUtc.AddTicks(
-                                (requestEndUtc - requestStartUtc).Ticks / 2L);
+                DateTime imageTimeUtc = requestStartUtc.AddTicks(
+                    (requestEndUtc - requestStartUtc).Ticks / 2L);
+                DateTime imageTimeLocal = imageTimeUtc.ToLocalTime();
+                const double pointWindowSeconds = 0.1;
+                List<PointData> points = await GetCenteredPointWindowWithRetryAsync(
+                    imageTimeUtc,
+                    pointWindowSeconds);
 
-                            if (imageBytes != null && imageBytes.Length > 0)
-                            {
-                                string saveFolder = Path.Combine(Application.StartupPath, "Snapshots");
-                                Directory.CreateDirectory(saveFolder);
+                string rawFolder = Path.Combine(Application.StartupPath, "Snapshots");
+                Directory.CreateDirectory(rawFolder);
+                string rawSampleId = $"Sample_{imageTimeLocal:yyyyMMdd_HHmmss_fff}";
+                string rawImagePath = Path.Combine(rawFolder, rawSampleId + ".jpg");
+                string rawPcdPath = Path.Combine(rawFolder, rawSampleId + ".pcd");
+                string rawMetadataPath = Path.Combine(rawFolder, rawSampleId + ".txt");
+                File.WriteAllBytes(rawImagePath, imageBytes);
 
-                                DateTime imageTimeLocal = imageTimeUtc.ToLocalTime();
-                                string sampleId = $"Sample_{imageTimeLocal:yyyyMMdd_HHmmss_fff}";
-                                string imagePath = Path.Combine(saveFolder, sampleId + ".jpg");
-                                string pcdPath = Path.Combine(saveFolder, sampleId + ".pcd");
-                                string metadataPath = Path.Combine(saveFolder, sampleId + ".txt");
+                if (points == null || points.Count < AviaDatasetExporter.MinimumPointCount)
+                {
+                    int count = points == null ? 0 : points.Count;
+                    throw new InvalidOperationException(
+                        $"100ms 点云只有 {count} 点，少于模型最低要求 " +
+                        $"{AviaDatasetExporter.MinimumPointCount} 点。");
+                }
 
-                                File.WriteAllBytes(imagePath, imageBytes);
-                                AddLog(
-                                    $"[抓拍] RGB 已保存，估计曝光时刻: " +
-                                    $"{imageTimeLocal:yyyy-MM-dd HH:mm:ss.fff}");
+                int rawPointCount = await Task.Run(() =>
+                    PointCloudProcessor.ExportToPcd(points, rawPcdPath, true));
+                DateTime firstPointUtc = points.Min(point => point.ExactTime.ToUniversalTime());
+                DateTime lastPointUtc = points.Max(point => point.ExactTime.ToUniversalTime());
+                DateTime cloudTimeUtc = firstPointUtc.AddTicks(
+                    (lastPointUtc - firstPointUtc).Ticks / 2L);
+                double syncDeltaMs = Math.Abs(
+                    (cloudTimeUtc - imageTimeUtc).TotalMilliseconds);
+                if (syncDeltaMs > 50.0)
+                    throw new InvalidOperationException(
+                        $"图像与点云中心时间差 {syncDeltaMs:F3}ms 超过 50ms，样本已拒绝。");
 
-                                const double pointWindowSeconds = 1.0;
-                                List<PointData> points = await GetCenteredPointWindowWithRetryAsync(
-                                    imageTimeUtc,
-                                    pointWindowSeconds);
+                AviaExportResult result = await Task.Run(() => exporter.Export(
+                    imageBytes,
+                    points,
+                    imageTimeUtc,
+                    cloudTimeUtc,
+                    syncDeltaMs));
 
-                                int exportedCount = 0;
-                                if (points != null && points.Count > 0)
-                                {
-                                    exportedCount = await Task.Run(() =>
-                                        PointCloudProcessor.ExportToPcd(points, pcdPath, true));
-                                    AddLog($"[抓拍] 同步 PCD 已保存，共 {exportedCount} 个点。");
-                                }
-                                else
-                                {
-                                    AddLog("[抓拍] 警告：图像对应的一秒窗口内没有查到点云。");
-                                }
+                double halfRoundTripMs =
+                    (requestEndUtc - requestStartUtc).TotalMilliseconds / 2.0;
+                DateTime windowStartUtc = imageTimeUtc.AddSeconds(-pointWindowSeconds / 2.0);
+                DateTime windowEndUtc = imageTimeUtc.AddSeconds(pointWindowSeconds / 2.0);
+                File.WriteAllLines(rawMetadataPath, new[]
+                {
+                    "sample_id=" + rawSampleId,
+                    "dataset_id=" + result.Id,
+                    "dataset_split=" + exporter.Split,
+                    "dataset_session=" + exporter.Session,
+                    "image_time_source=http_request_midpoint_estimate",
+                    "image_time_utc=" + imageTimeUtc.ToString("O"),
+                    "image_time_local=" + imageTimeLocal.ToString("O"),
+                    "cloud_center_time_utc=" + cloudTimeUtc.ToString("O"),
+                    "sync_delta_ms=" + syncDeltaMs.ToString("F6"),
+                    "http_half_round_trip_ms=" + halfRoundTripMs.ToString("F3"),
+                    "point_window_start_utc=" + windowStartUtc.ToString("O"),
+                    "point_window_end_utc=" + windowEndUtc.ToString("O"),
+                    "raw_point_count=" + rawPointCount,
+                    "model_point_count=" + result.PointCount,
+                    "radar_timestamp_type=" + _lastRadarTimestampType,
+                    "radar_time_sync_status=" + _lastTimeSyncStatus,
+                    "raw_image_file=" + Path.GetFileName(rawImagePath),
+                    "raw_point_cloud_file=" + Path.GetFileName(rawPcdPath),
+                    "model_image_file=" + result.ImagePath,
+                    "model_point_cloud_file=" + result.PointPath
+                });
 
-                                DateTime windowStartUtc = imageTimeUtc.AddSeconds(-0.5);
-                                DateTime windowEndUtc = imageTimeUtc.AddSeconds(0.5);
-                                double halfRoundTripMs =
-                                    (requestEndUtc - requestStartUtc).TotalMilliseconds / 2.0;
-
-                                File.WriteAllLines(metadataPath, new[]
-                                {
-                                    "sample_id=" + sampleId,
-                                    "image_time_source=http_request_midpoint_estimate",
-                                    "image_time_utc=" + imageTimeUtc.ToString("O"),
-                                    "image_time_local=" + imageTimeLocal.ToString("O"),
-                                    "http_half_round_trip_ms=" + halfRoundTripMs.ToString("F3"),
-                                    "point_window_start_utc=" + windowStartUtc.ToString("O"),
-                                    "point_window_end_utc=" + windowEndUtc.ToString("O"),
-                                    "point_count=" + exportedCount,
-                                    "radar_timestamp_type=" + _lastRadarTimestampType,
-                                    "radar_time_sync_status=" + _lastTimeSyncStatus,
-                                    "image_file=" + Path.GetFileName(imagePath),
-                                    "point_cloud_file=" + (exportedCount > 0 ? Path.GetFileName(pcdPath) : string.Empty)
-                                });
-
-                                MessageBox.Show(
-                                    exportedCount > 0
-                                        ? $"RGB 与 PCD 配对保存成功！\n样本：{sampleId}\n点数：{exportedCount}"
-                                        : $"RGB 已保存，但没有找到配对点云。\n样本：{sampleId}",
-                                    "抓拍完成",
-                                    MessageBoxButtons.OK,
-                                    exportedCount > 0 ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
-                            }
-                            else
-                            {
-                                AddLog("[抓拍] 失败：返回的图片数据为空。");
-                            }
-                        }
-                        else
-                        {
-                            AddLog($"[抓拍] HTTP 请求失败，状态码: {response.StatusCode}");
-                        }
-                    }
+                AddLog(
+                    $"[数据集] {result.Id} 保存成功: 24000点, " +
+                    $"同步差={syncDeltaMs:F3}ms");
+                if (showCompletionDialog)
+                {
+                    MessageBox.Show(
+                        $"模型样本保存成功！\nID：{result.Id}\n点数：{result.PointCount}" +
+                        $"\n同步差：{syncDeltaMs:F3} ms\n目录：{exporter.Root}",
+                        "抓拍完成",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
             {
-                AddLog($"[抓拍] 发生异常: {ex.Message}");
+                AddLog("[数据集] 样本保存失败: " + ex.Message);
+                if (showCompletionDialog)
+                {
+                    MessageBox.Show(
+                        ex.Message,
+                        "模型样本保存失败",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
             }
             finally
             {
-                if (snapshotButton != null) snapshotButton.Enabled = true;
+                btn_Snapshot.Enabled = true;
+                _datasetCaptureInProgress = false;
             }
         }
 
@@ -1860,8 +1972,8 @@ namespace RadarConnect
 
                 if (latestResult.Count > 0)
                 {
-                    DateTime latestPointUtc = latestResult[latestResult.Count - 1]
-                        .ExactTime.ToUniversalTime();
+                    DateTime latestPointUtc = latestResult.Max(point =>
+                        point.ExactTime.ToUniversalTime());
                     if (latestPointUtc >= windowEndUtc.AddMilliseconds(-20))
                         return latestResult;
                 }

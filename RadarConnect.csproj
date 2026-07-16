@@ -226,6 +226,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AviaDatasetExporter.cs" />
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="DepthCompleter.cs" />
     <Compile Include="Enums.cs" />
