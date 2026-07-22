@@ -85,12 +85,22 @@ namespace RadarConnect
         private AviaDatasetExporter _aviaDatasetExporter;
         private bool _datasetCaptureInProgress;
         private const int PtzMechanicalSettleDelayMilliseconds = 1000;
+        private const int PtzPresetDepartureGuardMilliseconds = 200;
         private bool _ptzMotionBlocksDatasetCapture;
         private int _ptzMotionGeneration;
         private CancellationTokenSource _ptzSettleCancellation;
+        private CancellationTokenSource _ptzPresetDwellCancellation;
         private DateTime _lastPtzCaptureSkipLogUtc = DateTime.MinValue;
         private bool _ptzHorizontalLocatePending;
         private bool _ptzVerticalLocatePending;
+        private bool _ptzLocateFeedbackEnabled;
+        private bool _ptzPresetCruiseFeedbackEnabled;
+        private bool _ptzPresetArrivalFeedbackEnabled;
+        private bool _ptzPresetCallFeedbackEnabled;
+        private bool _ptzAreaScanFeedbackEnabled;
+        private bool _ptzPresetCruiseActive;
+        private readonly Dictionary<byte, int> _ptzPresetDwellTimes =
+            new Dictionary<byte, int>();
 
         // ==========================================
         // UDP 云台控制
@@ -1070,6 +1080,7 @@ namespace RadarConnect
         {
             StopAutomaticDatasetCapture();
             CancelPtzMechanicalSettle();
+            CancelPtzPresetDwellSchedule();
             _heartbeatTimer.Stop();
             _isSaving = false;
             _dbManager.StopSaving();
@@ -1826,6 +1837,7 @@ namespace RadarConnect
         private void MarkPtzMoving(string reason)
         {
             CancelPtzMechanicalSettle();
+            CancelPtzPresetDwellSchedule();
             bool stateChanged = !_ptzMotionBlocksDatasetCapture;
             _ptzMotionBlocksDatasetCapture = true;
             unchecked { _ptzMotionGeneration++; }
@@ -1872,6 +1884,71 @@ namespace RadarConnect
         {
             CancellationTokenSource cancellation = _ptzSettleCancellation;
             _ptzSettleCancellation = null;
+            if (cancellation != null)
+                cancellation.Cancel();
+        }
+
+        private void HandlePtzPresetCruiseArrival(byte preset)
+        {
+            CancelPtzPresetDwellSchedule();
+
+            int dwellMilliseconds;
+            if (!_ptzPresetDwellTimes.TryGetValue(preset, out dwellMilliseconds))
+                dwellMilliseconds = (int)nud_PtzPresetTime.Value;
+
+            BeginPtzMechanicalSettle($"巡航到达预置位 {preset}");
+
+            int blockDelayMilliseconds = Math.Max(
+                0,
+                dwellMilliseconds - PtzPresetDepartureGuardMilliseconds);
+            SchedulePtzPresetDepartureBlock(
+                preset,
+                dwellMilliseconds,
+                blockDelayMilliseconds);
+        }
+
+        private async void SchedulePtzPresetDepartureBlock(
+            byte preset,
+            int dwellMilliseconds,
+            int blockDelayMilliseconds)
+        {
+            CancellationTokenSource cancellation = new CancellationTokenSource();
+            _ptzPresetDwellCancellation = cancellation;
+
+            if (dwellMilliseconds <=
+                PtzMechanicalSettleDelayMilliseconds + PtzPresetDepartureGuardMilliseconds)
+            {
+                AddLog(
+                    $"[数据集] 预置位 {preset} 驻留 {dwellMilliseconds}ms，" +
+                    "扣除机械稳定和离站保护后无安全采集窗口，本次驻留不采集。");
+            }
+
+            try
+            {
+                await Task.Delay(blockDelayMilliseconds, cancellation.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                cancellation.Dispose();
+                return;
+            }
+
+            if (!ReferenceEquals(_ptzPresetDwellCancellation, cancellation) ||
+                !_ptzPresetCruiseActive)
+            {
+                cancellation.Dispose();
+                return;
+            }
+
+            _ptzPresetDwellCancellation = null;
+            cancellation.Dispose();
+            MarkPtzMoving($"预置位 {preset} 驻留即将结束");
+        }
+
+        private void CancelPtzPresetDwellSchedule()
+        {
+            CancellationTokenSource cancellation = _ptzPresetDwellCancellation;
+            _ptzPresetDwellCancellation = null;
             if (cancellation != null)
                 cancellation.Cancel();
         }
@@ -2514,9 +2591,7 @@ namespace RadarConnect
 
         private void btn_PtzClose_Click(object sender, EventArgs e)
         {
-            _ptzController?.Close();
-            lbl_PtzStatus.Text = "状态: 已关闭";
-            PtzLog("UDP 已关闭。");
+            ClosePtzUdp();
         }
 
         private void btn_PtzRawSend_Click(object sender, EventArgs e)
@@ -2569,9 +2644,9 @@ namespace RadarConnect
                 string localIp = txt_PtzLocalIp.Text.Trim();
                 int localPort = (int)nud_PtzLocalPort.Value;
                 _ptzController.Open(localIp, localPort);
+                ResetPtzFeedbackState();
                 lbl_PtzStatus.Text = localPort == 0 ? "状态: 已打开(随机本地端口)" : $"状态: 已打开({localPort})";
                 PtzLog($"UDP 已打开，本地 {localIp}:{localPort}。");
-                EnablePtzMotionCompletionFeedback();
                 return true;
             }
             catch (Exception ex)
@@ -2583,12 +2658,23 @@ namespace RadarConnect
             }
         }
 
-        private void EnablePtzMotionCompletionFeedback()
+        private void ClosePtzUdp()
         {
-            PtzSendCommand("开启角度定位到位回传", 0xc5, 0x01, 0x00, 0x00);
-            PtzSendCommand("开启预置位巡航结束回传", 0x9f, 0x01, 0x00, 0x00);
-            PtzSendCommand("开启调用预置位到位回传", 0x9f, 0x04, 0x00, 0x00);
-            PtzSendCommand("开启区域扫描结束回传", 0xc4, 0x01, 0x00, 0x00);
+            _ptzController?.Close();
+            ResetPtzFeedbackState();
+            lbl_PtzStatus.Text = "状态: 已关闭";
+            PtzLog("UDP 已关闭。");
+        }
+
+        private void ResetPtzFeedbackState()
+        {
+            _ptzLocateFeedbackEnabled = false;
+            _ptzPresetCruiseFeedbackEnabled = false;
+            _ptzPresetArrivalFeedbackEnabled = false;
+            _ptzPresetCallFeedbackEnabled = false;
+            _ptzAreaScanFeedbackEnabled = false;
+            _ptzPresetCruiseActive = false;
+            CancelPtzPresetDwellSchedule();
         }
 
         private bool EnsurePtzUdpOpen()
@@ -2616,27 +2702,70 @@ namespace RadarConnect
 
         private void PtzSendCommand(string label, byte data1, byte data2, byte data3, byte data4)
         {
+            EnsurePtzFeedbackForMotionCommand(data1, data2);
             byte[] packet = PtzProtocol.Build(GetPtzAddress(), data1, data2, data3, data4);
             PtzSendBytes(label, packet);
         }
 
-        private void PtzSendBytes(string label, byte[] packet)
+        private void EnsurePtzFeedbackForMotionCommand(byte data1, byte data2)
+        {
+            bool isLocate =
+                (data1 == 0x00 && (data2 == 0x4b || data2 == 0x4d)) ||
+                data1 == 0x4b || data1 == 0x4d;
+            if (isLocate && !_ptzLocateFeedbackEnabled)
+            {
+                byte[] packet = PtzProtocol.Build(GetPtzAddress(), 0xc5, 0x01, 0x00, 0x00);
+                PtzSendBytes("按需开启角度定位到位回传", packet);
+            }
+
+            if (data1 == 0x00 && data2 == 0x07 && !_ptzPresetCallFeedbackEnabled)
+            {
+                byte[] packet = PtzProtocol.Build(GetPtzAddress(), 0x9f, 0x04, 0x00, 0x00);
+                PtzSendBytes("按需开启调用预置位到位回传", packet);
+            }
+
+            if (data1 == 0xf0 && (data2 == 0x01 || data2 == 0x03) &&
+                !_ptzPresetCruiseFeedbackEnabled)
+            {
+                byte[] packet = PtzProtocol.Build(GetPtzAddress(), 0x9f, 0x01, 0x00, 0x00);
+                PtzSendBytes("按需开启预置位巡航结束回传", packet);
+            }
+
+            if (data1 == 0xf0 && (data2 == 0x01 || data2 == 0x03) &&
+                !_ptzPresetArrivalFeedbackEnabled)
+            {
+                byte[] packet = PtzProtocol.Build(GetPtzAddress(), 0x9f, 0x02, 0x00, 0x00);
+                PtzSendBytes("按需开启预置位巡航到位回传", packet);
+            }
+
+            if (data1 == 0xf5 &&
+                (data2 == 0x01 || data2 == 0x02 || data2 == 0x04) &&
+                !_ptzAreaScanFeedbackEnabled)
+            {
+                byte[] packet = PtzProtocol.Build(GetPtzAddress(), 0xc4, 0x01, 0x00, 0x00);
+                PtzSendBytes("按需开启区域扫描结束回传", packet);
+            }
+        }
+
+        private bool PtzSendBytes(string label, byte[] packet)
         {
             try
             {
                 if (!EnsurePtzUdpOpen())
-                    return;
+                    return false;
 
                 string ip = txt_PtzIp.Text.Trim();
                 int port = (int)nud_PtzPort.Value;
                 _ptzController.Send(packet, ip, port);
                 UpdatePtzMotionStateAfterSend(label, packet);
                 PtzLog($"发送[{label}] -> {ip}:{port}  {PtzProtocol.ToHex(packet)}");
+                return true;
             }
             catch (Exception ex)
             {
                 PtzLog("[错误] 发送失败: " + ex.Message);
                 MessageBox.Show("发送云台指令失败: " + ex.Message, "云台UDP", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
             }
         }
 
@@ -2648,6 +2777,38 @@ namespace RadarConnect
 
             byte data1 = packet.Data1;
             byte data2 = packet.Data2;
+
+            if (data1 == 0xf1)
+            {
+                _ptzPresetDwellTimes[data2] =
+                    (packet.Data3 << 8) | packet.Data4;
+                return;
+            }
+
+            if (data1 == 0xc5)
+            {
+                if (data2 == 0x01) _ptzLocateFeedbackEnabled = true;
+                else if (data2 == 0x00) _ptzLocateFeedbackEnabled = false;
+                return;
+            }
+
+            if (data1 == 0x9f)
+            {
+                if (data2 == 0x01) _ptzPresetCruiseFeedbackEnabled = true;
+                else if (data2 == 0x00) _ptzPresetCruiseFeedbackEnabled = false;
+                else if (data2 == 0x02) _ptzPresetArrivalFeedbackEnabled = true;
+                else if (data2 == 0x03) _ptzPresetArrivalFeedbackEnabled = false;
+                else if (data2 == 0x04) _ptzPresetCallFeedbackEnabled = true;
+                else if (data2 == 0x05) _ptzPresetCallFeedbackEnabled = false;
+                return;
+            }
+
+            if (data1 == 0xc4)
+            {
+                if (data2 == 0x01) _ptzAreaScanFeedbackEnabled = true;
+                else if (data2 == 0x00) _ptzAreaScanFeedbackEnabled = false;
+                return;
+            }
 
             if (data1 == 0x00 && data2 == 0x00 &&
                 packet.Data3 == 0x00 && packet.Data4 == 0x00)
@@ -2685,9 +2846,16 @@ namespace RadarConnect
             if (data1 == 0xf0)
             {
                 if (data2 == 0x01 || data2 == 0x03)
+                {
+                    _ptzPresetCruiseActive = true;
                     MarkPtzMoving(label);
+                }
                 else if (data2 == 0x02 || data2 == 0x04)
+                {
+                    _ptzPresetCruiseActive = false;
+                    CancelPtzPresetDwellSchedule();
                     BeginPtzMechanicalSettle(label);
+                }
                 return;
             }
 
@@ -3174,7 +3342,13 @@ namespace RadarConnect
                 if (packet.Data2 == 0x08)
                     BeginPtzMechanicalSettle("调用预置位到位回传");
                 else if (packet.Data2 == 0x06)
+                {
+                    _ptzPresetCruiseActive = false;
+                    CancelPtzPresetDwellSchedule();
                     BeginPtzMechanicalSettle("预置位巡航结束回传");
+                }
+                else if (packet.Data2 == 0x07 && _ptzPresetCruiseActive)
+                    HandlePtzPresetCruiseArrival(packet.Data3);
                 return;
             }
 
@@ -3196,9 +3370,7 @@ namespace RadarConnect
 
         private void btnPtzClose_Click(object sender, EventArgs e)
         {
-            _ptzController?.Close();
-            lbl_PtzStatus.Text = "状态: 已关闭";
-            PtzLog("UDP 已关闭。");
+            ClosePtzUdp();
         }
 
         private void btnPtzSendRaw_Click(object sender, EventArgs e)
