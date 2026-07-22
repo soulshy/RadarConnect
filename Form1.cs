@@ -84,6 +84,13 @@ namespace RadarConnect
         // Avia 模型数据集采集
         private AviaDatasetExporter _aviaDatasetExporter;
         private bool _datasetCaptureInProgress;
+        private const int PtzMechanicalSettleDelayMilliseconds = 1000;
+        private bool _ptzMotionBlocksDatasetCapture;
+        private int _ptzMotionGeneration;
+        private CancellationTokenSource _ptzSettleCancellation;
+        private DateTime _lastPtzCaptureSkipLogUtc = DateTime.MinValue;
+        private bool _ptzHorizontalLocatePending;
+        private bool _ptzVerticalLocatePending;
 
         // ==========================================
         // UDP 云台控制
@@ -1062,6 +1069,7 @@ namespace RadarConnect
         private void StopAllWork()
         {
             StopAutomaticDatasetCapture();
+            CancelPtzMechanicalSettle();
             _heartbeatTimer.Stop();
             _isSaving = false;
             _dbManager.StopSaving();
@@ -1775,6 +1783,9 @@ namespace RadarConnect
 
         private async void DatasetAutoTimer_Tick(object sender, EventArgs e)
         {
+            if (ShouldSkipDatasetCaptureForPtz(false))
+                return;
+
             await CaptureAviaDatasetSampleAsync(false);
         }
 
@@ -1788,6 +1799,81 @@ namespace RadarConnect
             if (_datasetSessionTextBox != null) _datasetSessionTextBox.Enabled = true;
             if (_datasetAutoButton != null) _datasetAutoButton.Text = "开始模型数据集采集";
             if (wasEnabled) AddLog("[数据集] 自动采集已停止。");
+        }
+
+        private bool ShouldSkipDatasetCaptureForPtz(bool showCompletionDialog)
+        {
+            if (!_ptzMotionBlocksDatasetCapture)
+                return false;
+
+            if (showCompletionDialog)
+            {
+                MessageBox.Show(
+                    "云台正在运动或尚未完成机械稳定，本次采集已跳过。",
+                    "暂不采集",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            else if ((DateTime.UtcNow - _lastPtzCaptureSkipLogUtc).TotalSeconds >= 2.0)
+            {
+                _lastPtzCaptureSkipLogUtc = DateTime.UtcNow;
+                AddLog("[数据集] 云台运动/稳定等待期间，跳过本次自动采集。");
+            }
+
+            return true;
+        }
+
+        private void MarkPtzMoving(string reason)
+        {
+            CancelPtzMechanicalSettle();
+            bool stateChanged = !_ptzMotionBlocksDatasetCapture;
+            _ptzMotionBlocksDatasetCapture = true;
+            unchecked { _ptzMotionGeneration++; }
+
+            if (stateChanged)
+                AddLog($"[数据集] 云台运动中（{reason}），暂停模型样本采集。");
+        }
+
+        private async void BeginPtzMechanicalSettle(string reason)
+        {
+            CancelPtzMechanicalSettle();
+            _ptzMotionBlocksDatasetCapture = true;
+            unchecked { _ptzMotionGeneration++; }
+
+            CancellationTokenSource cancellation = new CancellationTokenSource();
+            _ptzSettleCancellation = cancellation;
+            AddLog(
+                $"[数据集] 云台已停止（{reason}），等待 " +
+                $"{PtzMechanicalSettleDelayMilliseconds}ms 机械稳定。");
+
+            try
+            {
+                await Task.Delay(PtzMechanicalSettleDelayMilliseconds, cancellation.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                cancellation.Dispose();
+                return;
+            }
+
+            if (!ReferenceEquals(_ptzSettleCancellation, cancellation))
+            {
+                cancellation.Dispose();
+                return;
+            }
+
+            _ptzSettleCancellation = null;
+            _ptzMotionBlocksDatasetCapture = false;
+            cancellation.Dispose();
+            AddLog("[数据集] 云台机械稳定完成，自动恢复模型样本采集。");
+        }
+
+        private void CancelPtzMechanicalSettle()
+        {
+            CancellationTokenSource cancellation = _ptzSettleCancellation;
+            _ptzSettleCancellation = null;
+            if (cancellation != null)
+                cancellation.Cancel();
         }
 
         private AviaDatasetExporter CreateDatasetExporterFromControls()
@@ -1814,6 +1900,9 @@ namespace RadarConnect
         private async Task CaptureAviaDatasetSampleAsync(bool showCompletionDialog)
         {
             if (_datasetCaptureInProgress) return;
+            if (ShouldSkipDatasetCaptureForPtz(showCompletionDialog)) return;
+
+            int ptzMotionGenerationAtCaptureStart = _ptzMotionGeneration;
             if (!_isSaving)
             {
                 if (showCompletionDialog)
@@ -1859,6 +1948,13 @@ namespace RadarConnect
                 List<PointData> points = await GetCenteredPointWindowWithRetryAsync(
                     imageTimeUtc,
                     pointWindowSeconds);
+
+                if (_ptzMotionBlocksDatasetCapture ||
+                    ptzMotionGenerationAtCaptureStart != _ptzMotionGeneration)
+                {
+                    AddLog("[数据集] 本次图像/点云获取期间云台发生运动，样本已丢弃。");
+                    return;
+                }
 
                 string rawFolder = Path.Combine(Application.StartupPath, "Snapshots");
                 Directory.CreateDirectory(rawFolder);
@@ -2475,6 +2571,7 @@ namespace RadarConnect
                 _ptzController.Open(localIp, localPort);
                 lbl_PtzStatus.Text = localPort == 0 ? "状态: 已打开(随机本地端口)" : $"状态: 已打开({localPort})";
                 PtzLog($"UDP 已打开，本地 {localIp}:{localPort}。");
+                EnablePtzMotionCompletionFeedback();
                 return true;
             }
             catch (Exception ex)
@@ -2484,6 +2581,14 @@ namespace RadarConnect
                 PtzLog("[错误] 打开 UDP 失败: " + ex.Message);
                 return false;
             }
+        }
+
+        private void EnablePtzMotionCompletionFeedback()
+        {
+            PtzSendCommand("开启角度定位到位回传", 0xc5, 0x01, 0x00, 0x00);
+            PtzSendCommand("开启预置位巡航结束回传", 0x9f, 0x01, 0x00, 0x00);
+            PtzSendCommand("开启调用预置位到位回传", 0x9f, 0x04, 0x00, 0x00);
+            PtzSendCommand("开启区域扫描结束回传", 0xc4, 0x01, 0x00, 0x00);
         }
 
         private bool EnsurePtzUdpOpen()
@@ -2525,12 +2630,95 @@ namespace RadarConnect
                 string ip = txt_PtzIp.Text.Trim();
                 int port = (int)nud_PtzPort.Value;
                 _ptzController.Send(packet, ip, port);
+                UpdatePtzMotionStateAfterSend(label, packet);
                 PtzLog($"发送[{label}] -> {ip}:{port}  {PtzProtocol.ToHex(packet)}");
             }
             catch (Exception ex)
             {
                 PtzLog("[错误] 发送失败: " + ex.Message);
                 MessageBox.Show("发送云台指令失败: " + ex.Message, "云台UDP", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void UpdatePtzMotionStateAfterSend(string label, byte[] rawPacket)
+        {
+            PtzPacket packet;
+            if (!PtzPacket.TryParse(rawPacket, 0, out packet))
+                return;
+
+            byte data1 = packet.Data1;
+            byte data2 = packet.Data2;
+
+            if (data1 == 0x00 && data2 == 0x00 &&
+                packet.Data3 == 0x00 && packet.Data4 == 0x00)
+            {
+                _ptzHorizontalLocatePending = false;
+                _ptzVerticalLocatePending = false;
+                BeginPtzMechanicalSettle(label);
+                return;
+            }
+
+            if (data1 == 0x00 && IsPtzDirectionCommand(data2))
+            {
+                MarkPtzMoving(label);
+                return;
+            }
+
+            if ((data1 == 0x00 && (data2 == 0x4b || data2 == 0x4d)) ||
+                data1 == 0x4b || data1 == 0x4d)
+            {
+                bool horizontal = data1 == 0x4b || data2 == 0x4b;
+                if (horizontal)
+                    _ptzHorizontalLocatePending = true;
+                else
+                    _ptzVerticalLocatePending = true;
+                MarkPtzMoving(label);
+                return;
+            }
+
+            if (data1 == 0x00 && data2 == 0x07)
+            {
+                MarkPtzMoving(label);
+                return;
+            }
+
+            if (data1 == 0xf0)
+            {
+                if (data2 == 0x01 || data2 == 0x03)
+                    MarkPtzMoving(label);
+                else if (data2 == 0x02 || data2 == 0x04)
+                    BeginPtzMechanicalSettle(label);
+                return;
+            }
+
+            if (data1 == 0xf5)
+            {
+                if (data2 == 0x01 || data2 == 0x02 || data2 == 0x04)
+                    MarkPtzMoving(label);
+                else if (data2 == 0x03 || data2 == 0x05)
+                    BeginPtzMechanicalSettle(label);
+                return;
+            }
+
+            if (data1 == 0xce || data1 == 0xde)
+                MarkPtzMoving(label);
+        }
+
+        private static bool IsPtzDirectionCommand(byte command)
+        {
+            switch (command)
+            {
+                case 0x02:
+                case 0x04:
+                case 0x08:
+                case 0x0a:
+                case 0x0c:
+                case 0x10:
+                case 0x12:
+                case 0x14:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -2955,6 +3143,7 @@ namespace RadarConnect
 
             string description = PtzProtocol.DescribePacket(packet);
             PtzLog($"接收[{remote.Address}:{remote.Port}] {packet.ToHex()}  {description}");
+            HandlePtzMotionFeedback(packet);
 
             if (packet.Data1 == 0x00 && packet.Data2 == 0x59)
                 lbl_PtzHAngle.Text = $"水平角度: {PtzProtocol.DecodeUnsigned100(packet.Data3, packet.Data4):F2}";
@@ -2962,6 +3151,35 @@ namespace RadarConnect
                 lbl_PtzVAngle.Text = $"垂直角度: {PtzProtocol.DecodeSigned100(packet.Data3, packet.Data4):F2}";
             else if (packet.Data1 == 0xe0)
                 lbl_PtzStatus.Text = "状态: " + description;
+        }
+
+        private void HandlePtzMotionFeedback(PtzPacket packet)
+        {
+            if (packet.Data1 == 0xc5)
+            {
+                if (packet.Data2 == 0x02)
+                    _ptzHorizontalLocatePending = false;
+                else if (packet.Data2 == 0x03)
+                    _ptzVerticalLocatePending = false;
+                else
+                    return;
+
+                if (!_ptzHorizontalLocatePending && !_ptzVerticalLocatePending)
+                    BeginPtzMechanicalSettle("角度定位到位回传");
+                return;
+            }
+
+            if (packet.Data1 == 0x9f)
+            {
+                if (packet.Data2 == 0x08)
+                    BeginPtzMechanicalSettle("调用预置位到位回传");
+                else if (packet.Data2 == 0x06)
+                    BeginPtzMechanicalSettle("预置位巡航结束回传");
+                return;
+            }
+
+            if (packet.Data1 == 0xc4 && packet.Data2 == 0x02)
+                BeginPtzMechanicalSettle("区域扫描结束回传");
         }
 
         private void PtzLog(string message)
