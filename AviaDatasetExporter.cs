@@ -109,6 +109,7 @@ namespace RadarConnect
                     id,
                     relativeImage,
                     relativePoints,
+                    sampled.Length,
                     imageTimeUtc,
                     cloudTimeUtc,
                     syncDeltaMs);
@@ -223,13 +224,13 @@ namespace RadarConnect
             int seed)
         {
             Random random = new Random(seed);
-            PointData[] output = new PointData[targetCount];
+            int outputCount = Math.Min(points.Count, targetCount);
+            PointData[] output = new PointData[outputCount];
 
-            int initialCount = Math.Min(points.Count, targetCount);
-            for (int i = 0; i < initialCount; i++)
+            for (int i = 0; i < outputCount; i++)
                 output[i] = points[i];
 
-            if (points.Count >= targetCount)
+            if (points.Count > targetCount)
             {
                 // Reservoir sampling avoids copying a potentially large 100 ms point window.
                 for (int i = targetCount; i < points.Count; i++)
@@ -238,12 +239,6 @@ namespace RadarConnect
                     if (replacement < targetCount)
                         output[replacement] = points[i];
                 }
-            }
-            else
-            {
-                // Match the Python loader's replacement behavior for sparse frames.
-                for (int i = points.Count; i < targetCount; i++)
-                    output[i] = points[random.Next(points.Count)];
             }
 
             return output;
@@ -289,6 +284,7 @@ namespace RadarConnect
             string id,
             string relativeImage,
             string relativePoints,
+            int pointCount,
             DateTime imageTimeUtc,
             DateTime cloudTimeUtc,
             double syncDeltaMs)
@@ -304,7 +300,7 @@ namespace RadarConnect
                 EscapeJson(_session),
                 EscapeJson(relativeImage),
                 EscapeJson(relativePoints),
-                TargetPointCount,
+                pointCount,
                 ToUnixNanoseconds(imageTimeUtc),
                 ToUnixNanoseconds(cloudTimeUtc),
                 syncDeltaMs);

@@ -1924,7 +1924,7 @@ namespace RadarConnect
                 });
 
                 AddLog(
-                    $"[数据集] {result.Id} 保存成功: 24000点, " +
+                    $"[数据集] {result.Id} 保存成功: {result.PointCount}点, " +
                     $"同步差={syncDeltaMs:F3}ms");
                 if (showCompletionDialog)
                 {
